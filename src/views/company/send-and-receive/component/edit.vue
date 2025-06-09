@@ -1,0 +1,423 @@
+<template>
+	<div class="send-and-receive">
+		<el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+			<el-row :gutter="10">
+				<el-col :span="12">
+					<el-form-item label="代码(税号)" prop="code">
+						<el-input v-model="form.code" placeholder="请输入代码" @input="handleInputTaxNumber('code', form.code, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="名称" prop="name">
+						<el-input v-model="form.name" placeholder="请输入名称" @input="handleInputTaxNumber('name', form.name,2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="地址" prop="address">
+						<el-input v-model="form.address" placeholder="请输入地址" @input="handleInputTaxNumber('address', form.address, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="国家/地区代码" prop="country">
+						<el-input v-model="form.country" placeholder="请输入国家/地区代码" @input="handleInputTaxNumber('country', form.country, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="电话" prop="phone">
+						<el-input v-model="form.phone" placeholder="请输入电话" @input="handleInputTaxNumber('phone', form.phone, 2)"  :disabled="disabled?true:false" />
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="AEO企业编码" prop="aeo_company_code">
+						<el-input v-model="form.aeo_company_code" placeholder="请输入AEO企业编码" @input="handleInputTaxNumber('aeo_company_code', form.aeo_company_code, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="12">
+					<el-form-item label="具体联系人" prop="contact_name">
+						<el-input v-model="form.contact_name" placeholder="请输入具体联系人" @input="handleInputTaxNumber('contact_name', form.contact_name, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+			
+				<el-col :span="12">
+					<el-form-item label="联系人电话" prop="contact_phone">
+						<el-input v-model="form.contact_phone" placeholder="请输入联系人电话" @input="handleInputTaxNumber('contact_phone', form.contact_phone, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+			
+				<el-col :span="24">
+					<el-form-item label="舱单网址" prop="url">
+						<el-input v-model="form.url" placeholder="请输入舱单网址" @input="handleInputTaxNumber('url', form.url, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+				
+				<el-col :span="12">
+					<el-form-item label="收发通类型" prop="contact_phone">
+						<el-select v-model="form.type" placeholder="请选择收发通类型" clearable @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
+							<el-option v-for="item in TYPE_LIST" :key="item.value" :label="item.label"
+								:value="item.value" />
+						</el-select>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="生成">
+						<el-button type="primary" @click="openDialog">生成</el-button>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item :label="type_content_label" prop="type_content" >
+						<el-input v-model="form.type_content" :placeholder="'请输入'+form.type_content" :rows="7" type="textarea" @input="handleInputTaxNumber('type_content', form.type_content, 2)" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="备注" prop="remark">
+						<el-input v-model="form.remark" placeholder="请输入备注" :rows="7" type="textarea" :disabled="disabled?true:false"/>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="是否确认" prop="contact_phone">
+						<el-select v-model="form.is_confirm" placeholder="请选择是否确认" clearable @change="getRulesRequired(form.is_confirm)" :disabled="disabled?true:false">
+							<el-option v-for="item in IS_CONFIRM_LIST" :key="item.value" :label="item.label"
+								:value="item.value" />
+						</el-select>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="操作员" prop="operation_user_ids">
+						<el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple :disabled="disabled?true:false">
+							<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
+						</el-select>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="单证员" prop="document_user_ids">
+						<el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple :disabled="disabled?true:false">
+							<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
+						</el-select>
+					</el-form-item>
+				</el-col>
+				<el-col :span="12">
+					<el-form-item label="商务" prop="commerce_user_ids">
+						<el-select v-model="form.commerce_user_ids" placeholder="请选择商务" filterable clearable multiple :disabled="disabled?true:false">
+							<el-option v-for="item in COMMERCE_USER" :key="item.id" :label="item.name" :value="item.id" />
+						</el-select>
+					</el-form-item>
+				</el-col>
+			</el-row>
+		</el-form>
+		<div v-if='props.btnType === "add" || props.btnType === "edit"'>
+			<!-- <template name='footer'> -->
+				<div class="dialog-footer">
+					<el-button type="primary" @click="submitForm">保 存</el-button>
+					<el-button @click="cancel">取 消</el-button>
+				</div>
+			<!-- </template> -->
+		</div>
+		<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%" :append-to-body='true'>
+			<el-input v-model="form.generate_information" placeholder="请输入生成信息" :rows="8" type="textarea" id="myTextarea"/>
+		</el-dialog>
+	</div>
+</template>
+
+<script setup>
+	import {
+		addData,
+		updateData
+	} from "@/api/company/send-and-receive";
+	import {
+			listUser as userListData
+		} from "@/api/system/user";
+	import { onMounted, toRefs,watchEffect } from 'vue';
+	import useUserStore from "@/store/modules/user";
+	const Emit = defineEmits(['handleCancle'])
+	const {proxy} = getCurrentInstance();
+	const userStore = useUserStore();  //vuex缓存的用户信息
+	// 验证大小写
+	const handleInputTaxNumber = (lable, value, isChar = 0) => {
+		if (isChar == 0) {
+			form.value[lable] = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase(); // 转换为大写
+		} else if (isChar == 1) {
+			form.value[lable] = value.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase(); // 转换为大写
+		} else if (isChar == 2) {
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;''-*,，@: //.]/g, "").toUpperCase();
+		}
+	}
+	const props  = defineProps({
+		btnType: {
+		  type: String,
+		  default: 'add'
+		},
+		openView: {
+			type: Boolean,
+			default: false,	
+		},
+		model: {
+			type: Object,
+			validator: (value) => value == null
+		}
+	})
+	const openInformation= ref(false)
+	const data = reactive({
+		form: {
+			code: '',  //代码
+			name: '',  //名称
+			url: '',  //网址
+			type: 'receiver',  //收发通类型
+			operation_user_ids: [],  //操作员
+			document_user_ids: [],  //单证员
+			commerce_user_ids: [],  //商务
+			generate_information: '',  //生成信息
+			remark: '',  //备注
+			is_confirm: 0,  //是否确认
+			address:'',  //地址
+			country:'',  //国家地区代码
+			phone:'',  //电话
+			aeo_company_code:'',  //AEO企业编码
+			contact_name:'',  //具体联系人
+			contact_phone:'',  //联系人电话
+			type_content:'', //一个框（对应操作单据页面的具体发货人/收货人/通知人信息，根据收发通类型确认是哪个）
+		},
+		rules: {
+			name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+			type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
+			type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
+			is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
+		}
+	});
+	const {
+		form,
+		rules
+	} = toRefs(data);
+	const disabled = ref(false);
+	// 非增加操作时,获取详情信息
+	watchEffect(()=>{
+		console.log('props.btnType', props.btnType)
+		if(props.model){
+			form.value =  props.model
+			// 收发通类型:代码:名称:地址:国家/地区代码AEO企业编码:具体联系人:联系人电话:
+			if(props.btnType == 'view'){
+				rules.value = {};
+				disabled.value = true;
+			}else if(form.value.is_confirm=== 0){
+				rules.value= {
+					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+					type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
+					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
+					is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
+				}
+			}else{
+				rules.value= {
+					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
+					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+					type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
+					url: [{required: true,message: "舱单网址不能为空",trigger: "blur"}],
+					operation_user_ids: [{required: true,message: "操作员不能为空",trigger: "change"}],
+					document_user_ids: [{required: true,message: "单证员不能为空",trigger: "change"}],
+					commerce_user_ids: [{required: true,message: "商务不能为空",trigger: "change"}],
+					// generate_information: [{required: true,message: "生成信息不能为空",trigger: "blur"}],
+					// remark: [{required: true,message: "备注不能为空",trigger: "blur"}],
+					is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
+					address: [{required: true,message: "地址不能为空",trigger: "blur"}],
+					country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
+					phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
+					contact_name: [{required: true,message: "具体联系人不能为空",trigger: "blur"}],
+					contact_phone: [{required: true,message: "联系人电话不能为空",trigger: "blur"}],
+					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
+				}
+			}
+		}
+		// console.log(props.model,202)
+		// console.log(form.value,203)
+	})
+	// 点击生成信息
+	function openDialog(){
+		openInformation.value= true
+		let typeLabel= TYPE_LIST.value.find(item =>item.value=== form.value.type)?TYPE_LIST.value.find(item =>item.value=== form.value.type).label : ''
+		form.value.generate_information= `收发通类型:${typeLabel}\r\n代码:${form.value.code}\r\n名称:${form.value.name}\r\n地址:${form.value.address}\r\n国家/地区代码:${form.value.country}\r\nAEO企业编码:${form.value.aeo_company_code}\r\n具体联系人:${form.value.contact_name}\r\n联系人电话:${form.value.contact_phone}`
+	}
+	// 收发通类型
+	const TYPE_LIST = ref([{
+			label: '发货人',
+			value: 'sender',
+			contentLabel: '发货人具体信息'
+		},
+		{
+			label: '收货人',
+			value: 'receiver',
+			contentLabel: '收货人具体信息'
+		},
+		{
+			label: '通知人',
+			value: 'notifier',
+			contentLabel: '通知人具体信息'
+		}
+	])
+	// 是否确认
+	const IS_CONFIRM_LIST = ref([{
+			label: '未确认',
+			value: 0
+		},
+		{
+			label: '已确认',
+			value: 1
+		}
+	])
+	// 操作员
+	const OPERATION_USER = ref([])
+	// 单证员
+	const DOCUMENT_USER = ref([])
+	// 商务
+	const COMMERCE_USER = ref([])
+	const type_content_label = ref('收货人具体信息')
+	
+	function getSelectDataList(){  // 角色  1  超管  2  操作  3 单证  4 商务
+		Promise.all([userDataSelect('OPERATE'), userDataSelect('DOCUMENT'), userDataSelect('COMMERCE')]).then(([operates,documents,commerces]) => {
+			OPERATION_USER.value= operates?operates: []
+			DOCUMENT_USER.value= documents?documents: []
+			COMMERCE_USER.value= commerces?commerces: []
+			if(userStore.userRole !== 1){
+				if(userStore.userRole=== 2){
+					console.log(1111)
+					userSelectEdit(OPERATION_USER.value,form.value.operation_user_ids)
+				}else if(userStore.userRole=== 3){
+					userSelectEdit(DOCUMENT_USER.value,form.value.document_user_ids)
+				}else if(userStore.userRole=== 4){
+					userSelectEdit(COMMERCE_USER.value,form.value.commerce_user_ids)
+				}
+			}
+			
+		})
+	}
+	function userDataSelect(code){
+		return new Promise((resolve, reject) => {
+		  userListData({
+		  	is_paginate: 0,
+		  	code: code
+		  }).then(response => {
+		  	resolve(response.data)
+		  }).catch((e) =>reject(e))
+		  .finally(()=>{})
+		})
+	} 
+	// 当前登录用户必选且不可编辑
+	function userSelectEdit(list,val){
+		list.forEach(item =>{
+			if(item.id=== userStore.id){
+				if(props.btnType === 'add'){
+					val.push(item.id)
+				}
+				item.select= true
+			}else{
+				item.select= false
+			}
+		})
+	}
+	getSelectDataList()
+	// 获取收发通类型后的提示文字
+	function getTypeContentLabel(type){
+		var label = TYPE_LIST.value.find(item =>{item.value=== type});
+		if(label){
+			type_content_label.value = label.contentLabel
+		}
+	}
+	// 根据是否确认获取必填项
+	function getRulesRequired(type){
+		rules.value = {};
+		if(type=== 0){
+			rules.value= {
+				name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+				type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
+				type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
+				is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
+			}
+		}else{
+			rules.value= {
+				code: [{required: true,message: "代码不能为空",trigger: "blur"}],
+				name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+				type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
+				url: [{required: true,message: "舱单网址不能为空",trigger: "blur"}],
+				operation_user_ids: [{required: true,message: "操作员不能为空",trigger: "change"}],
+				document_user_ids: [{required: true,message: "单证员不能为空",trigger: "change"}],
+				commerce_user_ids: [{required: true,message: "商务不能为空",trigger: "change"}],
+				// generate_information: [{required: true,message: "生成信息不能为空",trigger: "blur"}],
+				remark: [{required: true,message: "备注不能为空",trigger: "blur"}],
+				is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
+				address: [{required: true,message: "地址不能为空",trigger: "blur"}],
+				country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
+				phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
+				contact_name: [{required: true,message: "具体联系人不能为空",trigger: "blur"}],
+				contact_phone: [{required: true,message: "联系人电话不能为空",trigger: "blur"}],
+				type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
+			}
+		}
+	}
+	// 提交/保存
+	function submitForm(){
+		proxy.$refs["formRef"].validate(valid => {
+		  if (valid) {
+		    if (props.btnType=== 'add') {
+		      addDataForm()
+		    } else {
+		      updateDataForm()
+		    }
+		  }
+		});
+	}
+	// --------------------接口-------------------------
+	function addDataForm(){
+		let param = form.value;
+		param.operation_user_ids = JSON.stringify(param.operation_user_ids);
+		param.document_user_ids = JSON.stringify(param.document_user_ids);
+		param.commerce_user_ids = JSON.stringify(param.commerce_user_ids);
+		addData(param).then(response => {
+		  proxy.$modal.msgSuccess("新增成功");
+		  cancel()
+		  // open.value = false;
+		  // getList();
+		});
+	}
+	function updateDataForm(){
+		let param = form.value;
+		param.operation_user_ids = JSON.stringify(param.operation_user_ids);
+		param.document_user_ids = JSON.stringify(param.document_user_ids);
+		param.commerce_user_ids = JSON.stringify(param.commerce_user_ids);
+		updateData(param).then(response => {
+		  proxy.$modal.msgSuccess("修改成功")
+		  cancel()
+		  // open.value = false;
+		  // getList();
+		});
+	}
+	
+	const cancel = () =>{
+	    Emit('handleCancle');
+	  // openView.value= false
+	}
+	
+</script>
+
+<style>
+	.send-and-receive .el-form-item__label{
+		width: 120px !important;
+	}
+	#myTextarea {
+	white-space: pre-wrap;
+	}
+	.generate_dialog{
+		top: 20%
+	}
+	.generate_dialog .el-textarea__inner{
+		padding-bottom: 40px
+	}
+</style>
+<style scoped>
+	.dialog-footer{
+		text-align: right
+	}
+</style>

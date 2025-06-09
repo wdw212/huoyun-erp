@@ -1,0 +1,442 @@
+<template>
+	<div class="app-container">
+		<el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
+			<el-form-item label="关键字" prop="keyword" style="width: 240px">
+				<el-input v-model="queryParams.keyword" placeholder="公司抬头, 税号, 备注" clearable
+					@keyup.enter="handleQuery" />
+			</el-form-item>
+			<el-form-item label="公司类型" prop="company_type_id" style="width: 240px">
+				<el-select v-model="queryParams.company_type_id" placeholder="请选择公司类型" clearable>
+					<el-option v-for="item in company_type" :key="item.value" :label="item.label" :value="item.value" />
+				</el-select>
+			</el-form-item>
+			<el-form-item label="业务员" prop="admin_user_id" style="width: 240px">
+				<el-select v-model="queryParams.admin_user_id" placeholder="请选择业务员" clearable>
+					<el-option v-for="item in admin_user" :key="item.value" :label="item.label" :value="item.value" />
+				</el-select>
+			</el-form-item>
+			<el-form-item>
+				<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+				<el-button icon="Refresh" @click="resetQuery">重置</el-button>
+			</el-form-item>
+		</el-form>
+
+		<el-row :gutter="10" class="mb8" justify="end">
+			<el-col :span="1.5">
+				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+			</el-col>
+			<el-col :span="1.5">
+				<el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">批量删除</el-button>
+			</el-col>
+			<right-toolbar @queryTable="getList" :columns="columns"></right-toolbar>
+		</el-row>
+
+		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
+			<el-table-column type="selection" width="55" align="center" />
+			<!-- <el-table-column label="编号" align="center" prop="id" v-if="columns[0].visible" /> -->
+			<el-table-column label="类型" align="center" prop="company_type.name" v-if="columns[0].visible" />
+			<el-table-column label="业务员" align="center" prop="admin_user.name" v-if="columns[1].visible" />
+			<el-table-column label="公司名称" align="center" prop="company_name" v-if="columns[2].visible" />
+			<el-table-column label="税号" align="center" prop="tax_number" v-if="columns[3].visible" />
+			<el-table-column label="区分" align="center" prop="distinction" v-if="columns[4].visible" />
+			<el-table-column label="联系人" align="center" prop="contact_person" v-if="columns[5].visible" />
+			<el-table-column label="联系电话" align="center" prop="contact_phone" v-if="columns[6].visible" />
+			<el-table-column label="开户行" align="center" prop="bank_name" v-if="columns[7].visible" />
+			<el-table-column label="账户" align="center" prop="bank_account" v-if="columns[8].visible" />
+			<el-table-column label="添加时间" align="center" prop="created_at" v-if="columns[9].visible" />
+			<el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
+				<template #default="scope">
+					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
+					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<pagination v-show="total>0" :total="total" v-model:page="queryParams.page" v-model:limit="queryParams.pageSize"
+			@pagination="getList" />
+
+		<!-- 添加或修改对话框 -->
+		<el-dialog :title="title" v-model="open" width="800px" append-to-body>
+			<el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+				<el-row :gutter="10">
+					<el-col :span="12">
+						<el-form-item label="公司名称" prop="company_name">
+							<el-input v-model="form.company_name" placeholder="请输入公司名称" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="税号" prop="tax_number">
+							<el-input v-model="form.tax_number" placeholder="请输入税号" @input="handleInputTaxNumber" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="公司地址" prop="billing_address">
+							<el-input v-model="form.billing_address" placeholder="请输入公司地址" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="座机" prop="company_phone">
+							<el-input v-model="form.company_phone" placeholder="座机" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="开户行" prop="bank_name">
+							<el-input v-model="form.bank_name" placeholder="请输入开户行" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="开户账户" prop="bank_account">
+							<el-input v-model="form.bank_account" placeholder="请输入开户账户" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="交付手机号" prop="delivery_phone">
+							<el-input v-model="form.delivery_phone" placeholder="请输入交付手机号" />
+						</el-form-item>
+					</el-col>
+
+
+					<el-col :span="12">
+						<el-form-item label="交付邮箱" prop="delivery_email">
+							<el-input v-model="form.delivery_email" placeholder="请输入交付邮箱" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="联系人" prop="contact_person">
+							<el-input v-model="form.contact_person" placeholder="请输入联系人" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="联系电话" prop="contact_phone">
+							<el-input v-model="form.contact_phone" placeholder="请输入联系电话" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="QQ" prop="qq">
+							<el-input v-model="form.qq" placeholder="请输入QQ" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="区分" prop="distinction">
+							<el-input v-model="form.distinction" placeholder="请输入区分" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="寄件地址" prop="delivery_address">
+							<el-input v-model="form.delivery_address" placeholder="请输入寄件地址" :rows="3" type="textarea" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="备注" prop="remark">
+							<el-input v-model="form.remark" placeholder="请输入备注" :rows="3" type="textarea" />
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="业务员" prop="admin_user_id">
+							<!-- <el-input v-model="form.admin_user_id" placeholder="请输入业务员" /> -->
+							<el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
+								<el-option v-for="item in admin_user" :key="item.value" :label="item.label"
+									:value="item.value" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+
+					<el-col :span="12">
+						<el-form-item label="公司类型" prop="company_type_id">
+							<!-- <el-input v-model="form.company_type_id" placeholder="请输入公司名称" /> -->
+							<el-select v-model="form.company_type_id" placeholder="请选择公司类型" clearable>
+								<el-option v-for="item in company_type" :key="item.value" :label="item.label"
+									:value="item.value" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+				</el-row>
+			</el-form>
+			<template #footer>
+				<div class="dialog-footer">
+					<el-button type="primary" @click="submitForm">保 存</el-button>
+					<el-button @click="cancel">取 消</el-button>
+				</div>
+			</template>
+		</el-dialog>
+	</div>
+</template>
+
+<script setup name="CompanyHeaders">
+	import {
+		listData,
+		getData,
+		delByIds,
+		addData,
+		updateData
+	} from "@/api/company/headers";
+
+	import {
+		getSelectOptions
+	} from "@/api/other";
+
+	const {
+		proxy
+	} = getCurrentInstance();
+
+	const dataList = ref([]);
+	const open = ref(false);
+	const loading = ref(true);
+	const ids = ref([]);
+	const single = ref(true);
+	const multiple = ref(true);
+	const total = ref(0);
+	const title = ref("");
+
+	// 列显隐信息
+	const columns = ref([{
+			key: 0,
+			label: `类型`,
+			visible: true
+		},
+		{
+			key: 1,
+			label: `业务员`,
+			visible: true
+		},
+		{
+			key: 2,
+			label: `公司名称`,
+			visible: true
+		},
+		{
+			key: 3,
+			label: `税号`,
+			visible: true
+		},
+		{
+			key: 4,
+			label: `区分`,
+			visible: true
+		},
+		{
+			key: 5,
+			label: `联系人`,
+			visible: true
+		},
+		{
+			key: 6,
+			label: `联系电话`,
+			visible: true
+		},
+		{
+			key: 7,
+			label: `开户行`,
+			visible: true
+		},
+		{
+			key: 8,
+			label: `账户`,
+			visible: true
+		},
+		{
+			key: 9,
+			label: `添加时间`,
+			visible: true
+		}
+	]);
+
+	const admin_user = ref([]);
+	const company_type = ref([]);
+
+	function getSelect() {
+		// ADMIN_USER ：业务员 COMPANY_TYPE: 公司类型 DEPARTMENT：部门
+		getSelectOptions("ADMIN_USER").then(response => {
+			// console.log();
+			let data = response.data;
+			data.forEach(item => {
+				admin_user.value.push({
+					label: item.name,
+					value: parseInt(item.id)
+				})
+			})
+		});
+
+		getSelectOptions("COMPANY_TYPE").then(response => {
+			let data = response.data;
+			data.forEach(item => {
+				company_type.value.push({
+					label: item.name,
+					value: item.id
+				})
+			})
+		});
+	}
+	getSelect()
+
+	// getDicts("sys_user_type").then(response => {
+	// 	admin_user.value = response.data;
+	// });
+
+	const data = reactive({
+		form: {},
+		queryParams: {
+			page: 1,
+			pageSize: 15,
+			keyword: null,
+			company_type_id: null,
+			admin_user_id: null
+		},
+		rules: {
+			company_name: [{
+				required: true,
+				message: "公司名称不能为空",
+				trigger: "blur"
+			}],
+			tax_number: [{
+				required: true,
+				message: "税号不能为空",
+				trigger: "blur"
+			}, {
+				pattern: /^[A-Z0-9]+$/, // 正则表达式：只允许大写字母和数字
+				message: "税号只能包含大写字母和数字",
+				trigger: "blur"
+			}],
+			company_type_id: [{
+				required: true,
+				message: "公司类型不能为空",
+				trigger: "blur"
+			}]
+		}
+	});
+
+	const {
+		queryParams,
+		form,
+		rules
+	} = toRefs(data);
+
+	/** 查询列表 */
+	function getList() {
+		loading.value = true;
+		listData(queryParams.value).then(response => {
+			dataList.value = response.data;
+			total.value = response.meta.total;
+			loading.value = false;
+		});
+	}
+
+	// 取消按钮
+	function cancel() {
+		open.value = false;
+		reset();
+	}
+
+	// 表单重置
+	function reset() {
+		form.value = {
+			id: null,
+			company_name: null,
+			company_type_id: null,
+			tax_number: null,
+			billing_address: null,
+			company_phone: null,
+			bank_name: null,
+			bank_account: null,
+			delivery_phone: null,
+			delivery_email: null,
+			contact_person: null,
+			contact_phone: null,
+			qq: null,
+			distinction: null,
+			delivery_address: null,
+			remark: null,
+			admin_user_id: null,
+		};
+		proxy.resetForm("formRef");
+	}
+
+	/** 搜索按钮操作 */
+	function handleQuery() {
+		queryParams.value.page = 1;
+		getList();
+	}
+
+	/** 重置按钮操作 */
+	function resetQuery() {
+		proxy.resetForm("queryRef");
+		handleQuery();
+	}
+
+	// 多选框选中数据
+	function handleSelectionChange(selection) {
+		ids.value = selection.map(item => item.id);
+		single.value = selection.length != 1;
+		multiple.value = !selection.length;
+	}
+
+	/** 新增按钮操作 */
+	function handleAdd() {
+		reset();
+		open.value = true;
+		title.value = "新增";
+	}
+
+	/** 修改按钮操作 */
+	function handleUpdate(row) {
+		reset();
+		const _id = row.id || ids.value
+		getData(_id).then(response => {
+			form.value = response;
+			open.value = true;
+			title.value = "修改";
+		});
+	}
+
+	/** 提交按钮 */
+	function submitForm() {
+		proxy.$refs["formRef"].validate(valid => {
+			if (valid) {
+				if (form.value.id != null) {
+					updateData(form.value).then(response => {
+						proxy.$modal.msgSuccess("修改成功");
+						open.value = false;
+						getList();
+					});
+				} else {
+					addData(form.value).then(response => {
+						proxy.$modal.msgSuccess("新增成功");
+						open.value = false;
+						getList();
+					});
+				}
+			}
+		});
+	}
+
+	/** 删除按钮操作 */
+	function handleDelete(row) {
+		const _ids = row.id || ids.value;
+		proxy.$modal.confirm('是否确认删除编号为"' + _ids + '"的数据项？').then(function() {
+			return delByIds(_ids);
+		}).then(() => {
+			getList();
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
+
+	const handleInputTaxNumber = (value) => {
+		// console.log(value, value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase());
+		form.value.tax_number = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase(); // 转换为大写
+	}
+
+	getList();
+</script>
