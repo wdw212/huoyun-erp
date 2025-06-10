@@ -29,34 +29,24 @@
 				<el-tooltip content="布局大小" effect="dark" placement="bottom">
 					<size-select id="size-select" class="right-menu-item hover-effect" />
 				</el-tooltip>
-				<div>
-					<svg-icon icon-class="user" />
-					{{ userStore.name }}
-				</div>
-			</template>
-			<div class="avatar-container">
-				<el-dropdown @command="handleCommand" class="right-menu-item hover-effect" trigger="click">
-					<div class="avatar-wrapper">
-						<!-- <img :src="userStore.avatar" class="user-avatar" />
-						<el-icon><caret-bottom /></el-icon> -->
-
+				<el-dropdown placement="bottom" @command="handleCommand">
+					<div style="line-height: 50px;color: #222;font-size: 18px;padding-right: 20px;">
+						<svg-icon icon-class="user" />
+						{{ userStore.name }}
 					</div>
 					<template #dropdown>
 						<el-dropdown-menu>
-							<!-- <router-link to="/user/profile"> -->
-							<router-link>
-								<el-dropdown-item>个人中心</el-dropdown-item>
-							</router-link>
+							<el-dropdown-item>
+								<router-link>个人中心</router-link>
+							</el-dropdown-item>
 							<el-dropdown-item command="setLayout" v-if="settingsStore.showSettings">
-								<span>布局设置</span>
+								布局设置
 							</el-dropdown-item>
-							<el-dropdown-item divided command="logout">
-								<span>退出登录</span>
-							</el-dropdown-item>
+							<el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
 						</el-dropdown-menu>
 					</template>
 				</el-dropdown>
-			</div>
+			</template>
 		</div>
 	</div>
 </template>
@@ -86,6 +76,7 @@
 	}
 
 	function handleCommand(command) {
+		console.log('handleCommand', command)
 		switch (command) {
 			case "setLayout":
 				setLayout();
