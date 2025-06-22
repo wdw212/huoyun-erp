@@ -23,6 +23,7 @@ const useUserStore = defineStore("user", {
 		userRole: null,  //当前登录人的角色
 		roles: [],
 		permissions: [],
+		userRoleCode: null  //当前登录人的角色code
 	}),
 	actions: {
 		// 登录
@@ -76,6 +77,7 @@ const useUserStore = defineStore("user", {
 						this.name = res.name;
 						this.avatar = "";
 						this.userRole= res.roles;
+						this.userRoleCode= res.role.code;
 						resolve(res);
 					})
 					.catch((error) => {

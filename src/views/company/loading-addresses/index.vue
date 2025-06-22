@@ -1,32 +1,48 @@
 <template>
 	<div class="app-container">
-		<el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
-			<el-form-item label="关键字" prop="keyword">
-				<el-input v-model="queryParams.keyword" placeholder="请输入" clearable @keyup.enter="handleQuery" />
-			</el-form-item>
-			<el-form-item>
-				<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-				<el-button icon="Refresh" @click="resetQuery">重置</el-button>
-			</el-form-item>
-		</el-form>
-
+		<div class="query-form-style">
+			<el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
+				<el-row :gutter="10">
+					<el-col :span="10">
+						<el-form-item label="关键字" prop="keyword">
+							<el-input v-model="queryParams.keyword" placeholder="地址，联系人，联系地址，方便备注，备注" clearable @keyup.enter="handleQuery" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="10">
+						<el-form-item>
+							<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+							<el-button icon="Refresh" @click="resetQuery">重置</el-button>
+						</el-form-item>
+					</el-col>
+				</el-row>
+			</el-form>
+		</div>
 		<el-row :gutter="10" class="mb8" justify="end">
+			<view-indicate></view-indicate>
 			<el-col :span="1.5">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
-			</el-col>
-			<el-col :span="1.5">
-				<el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">批量删除</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
 		</el-row>
 
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
-			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="省份" align="center" prop="region.name" />
 			<el-table-column label="地址" align="center" prop="address" />
 			<el-table-column label="联系人" align="center" prop="contact_name" />
 			<el-table-column label="联系方式" align="center" prop="phone" />
-			<el-table-column label="创建时间" align="center" prop="created_at" />
+			<el-table-column label="业务员" align="center" prop="created_at" />
+			<el-table-column label="创建人" align="center" prop="admin_user.name" />
+			<el-table-column label="备注" align="center" prop="remark" >
+				<template #default="{ row }">
+					<el-tooltip placement="top">
+					  <!-- 使用带样式的插槽内容 -->
+					  <template #content>
+						<div class="tooltip-content">{{ row.remark }}</div>
+					  </template>
+					  <span class="ellipsis-text">{{ row.remark }}</span>
+					</el-tooltip>
+				  </template>
+			</el-table-column>
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -43,9 +59,18 @@
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="省份" prop="region_id">
 					<!-- <el-input v-model="form.region_id" placeholder="请输入" /> -->
-					<el-tree-select v-model="form.region_id" :data="REGION_OPTIONS"
+					<!-- <el-tree-select v-model="form.region_id" :data="REGION_OPTIONS"
 						:props="{ value: 'id', label: 'name', children: 'children' }" value-key="id" placeholder="选择"
-						check-strictly />
+						:check-strictly="false"  @node-click='nodeClick'/> -->
+					 <el-tree-select filterable :data="REGION_OPTIONS" :props="{ value: 'id', label: 'pathLabel', children: 'children' }"
+					    @change="handleDeptData" node-key="id"
+					    class="w100" clearable placeholder="请选择/输入分组"
+					    check-strictly :render-after-expand="true"
+					    v-model="form.region_id">
+					    <template #default="{ data: { name } }">
+					      <span>{{ name }}</span>
+					    </template>
+					    </el-tree-select>
 				</el-form-item>
 
 				<el-form-item label="地址" prop="address">
@@ -59,26 +84,34 @@
 				<el-form-item label="联系方式" prop="phone">
 					<el-input v-model="form.phone" placeholder="请输入" />
 				</el-form-item>
-
-				<el-form-item label="业务员" prop="business_user_id">
+				<el-form-item label="运费">
+					<el-input v-model="form.freight" placeholder="请输入" />
+				</el-form-item>
+				<el-form-item label="方便查询">
+					<el-input v-model="form.keyword" placeholder="请输入" />
+				</el-form-item>
+				<el-form-item label="业务员" prop="business_user_ids">
+					<UserSelect v-model="form.business_user_ids" :user-type="'BUSINESS'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.business_user_id" placeholder="请输入" /> -->
-					<el-select v-model="form.business_user_id" placeholder="请选择" clearable filterable>
+					<!-- <el-select v-model="form.business_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in BUSINESS_USER" :key="item.id" :label="item.name" :value="item.id" />
-					</el-select>
+					</el-select> -->
 				</el-form-item>
 
-				<el-form-item label="操作员" prop="operation_user_id">
+				<el-form-item label="操作员" prop="operation_user_ids">
+					<UserSelect v-model="form.operation_user_ids" :user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.operation_user_id" placeholder="请输入" /> -->
-					<el-select v-model="form.operation_user_id" placeholder="请选择" clearable filterable>
+					<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" />
-					</el-select>
+					</el-select> -->
 				</el-form-item>
 
-				<el-form-item label="单证员" prop="document_user_id">
+				<el-form-item label="单证员" prop="document_user_ids">
+												<UserSelect v-model="form.document_user_ids" :user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.document_user_id" placeholder="请输入" /> -->
-					<el-select v-model="form.document_user_id" placeholder="请选择" clearable filterable>
+					<!-- <el-select v-model="form.document_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
-					</el-select>
+					</el-select> -->
 				</el-form-item>
 
 				<el-form-item label="备注" prop="remark">
@@ -110,7 +143,8 @@
 	import {
 		listData as regionsListData
 	} from "@/api/company/regions";
-
+	import ViewIndicate from '@/components/ViewIndicate/index'
+	import UserSelect from '@/components/UserSelect'  //共享人组件
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -152,17 +186,17 @@
 				message: "联系方式不能为空",
 				trigger: "blur"
 			}],
-			business_user_id: [{
+			business_user_ids: [{
 				required: true,
 				message: "业务员不能为空",
 				trigger: "blur"
 			}],
-			operation_user_id: [{
+			operation_user_ids: [{
 				required: true,
 				message: "操作员不能为空",
 				trigger: "blur"
 			}],
-			document_user_id: [{
+			document_user_ids: [{
 				required: true,
 				message: "单证员不能为空",
 				trigger: "blur"
@@ -237,9 +271,9 @@
 			address: null,
 			contact_name: null,
 			phone: null,
-			business_user_id: null,
-			operation_user_id: null,
-			document_user_id: null,
+			business_user_ids: null,
+			operation_user_ids: null,
+			document_user_ids: null,
 			remark: null
 		};
 		proxy.resetForm("formRef");
@@ -255,13 +289,6 @@
 	function resetQuery() {
 		proxy.resetForm("queryRef");
 		handleQuery();
-	}
-
-	// 多选框选中数据
-	function handleSelectionChange(selection) {
-		ids.value = selection.map(item => item.id);
-		single.value = selection.length != 1;
-		multiple.value = !selection.length;
 	}
 
 	/** 新增按钮操作 */
@@ -315,4 +342,43 @@
 	}
 
 	getList();
+	
+	const name = ref('')
+	// 省市区展示
+	const handleDeptData = (regionId) => {
+	  findPath(REGION_OPTIONS.value, regionId);
+	}
+	  // 根据分组id获取分组名
+	function findPath(tree, targetId) {
+	  let path = [];
+	  let currentNode;
+	  // 查找节点
+	  function findNode(nodes, currentPath) {
+	    for (let node of nodes) {
+	      const newPath = [...currentPath, node.name];
+	
+	      if (node.id === targetId) {
+	        currentNode = node;
+	        path = newPath;
+	        return true;
+	      }
+	
+	      if (node.children && findNode(node.children, newPath)) {
+	        return true;
+	      }
+	    }
+	    return false;
+	  }
+	  findNode(tree, []);
+	  // 选中节点赋值 pathLabel
+	  if (currentNode) currentNode.pathLabel = path.length ? path.join('/') : null;
+	  return path.length ? path.join('/') : null;
+	}
 </script>
+<style scoped lang="scss">
+	.query-form-style{
+		.el-form-item{
+			width: 100%
+		}
+	}
+</style>

@@ -11,7 +11,7 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
-			<el-col :span="1.5">
+			<el-col :span="1.5" v-if="editALLBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
 			<!-- <el-col :span="1.5">
@@ -25,7 +25,7 @@
 			@selection-change="handleSelectionChange">
 			<!-- <el-table-column type="selection" width="55" align="center" /> -->
 			<el-table-column label="名称" align="center" prop="name" />
-			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+			<el-table-column label="操作" align="center" class-name="small-padding fixed-width"  v-if="editALLBtnType.includes(userStore.userRoleCode)">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
 					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
@@ -37,16 +37,47 @@
 			@pagination="getList" />
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="500px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="60%" append-to-body>
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-				<el-form-item label="上级" prop="parent_id">
-					<el-tree-select v-model="form.parent_id" :data="parentList"
-						:props="{ value: 'id', label: 'name', children: 'children' }" value-key="id" placeholder="选择"
-						check-strictly />
-				</el-form-item>
-				<el-form-item label="名称" prop="name">
-					<el-input v-model="form.name" placeholder="请输入" />
-				</el-form-item>
+				<el-row :gutter="10">
+					<el-col :span="12">
+						<el-form-item label="上级" prop="parent_id">
+							<el-tree-select v-model="form.parent_id" :data="parentList"
+								:props="{ value: 'id', label: 'name', children: 'children' }" value-key="id" placeholder="选择"
+								check-strictly />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="名称" prop="name">
+							<el-input v-model="form.name" placeholder="请输入" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="宁波20GP">
+							<el-input v-model="form.nb_20_gp" placeholder="请输入" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="宁波40HQ">
+							<el-input v-model="form.nb_40_hq" placeholder="请输入" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="上海20GP">
+							<el-input v-model="form.sh_20_gp" placeholder="请输入" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="上海40HQ">
+							<el-input v-model="form.sh_40_hq" placeholder="请输入" />
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="备注" prop="remark">
+							<el-input v-model="form.remark" placeholder="请输入备注" :rows="7" type="textarea" :disabled="disabled?true:false"/>
+						</el-form-item>
+					</el-col>
+				</el-row>
 			</el-form>
 			<template #footer>
 				<div class="dialog-footer">
@@ -70,7 +101,8 @@
 	const {
 		proxy
 	} = getCurrentInstance();
-
+	import useUserStore from "@/store/modules/user";
+	const userStore = useUserStore();  //vuex缓存的用户信息
 	const dataList = ref([]);
 	const open = ref(false);
 	const loading = ref(true);
@@ -79,6 +111,7 @@
 	const multiple = ref(true);
 	const total = ref(0);
 	const title = ref("");
+	const editALLBtnType = ref(['FINANCE','SCHEDULE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
 
 	const data = reactive({
 		form: {},

@@ -65,7 +65,7 @@
 						<el-input v-model="form.username" placeholder="请输入" maxlength="30" />
 					</el-form-item>
 
-					<el-form-item v-if="form.id == undefined" label="用户密码" prop="password" style="width: 300px">
+					<el-form-item label="用户密码" prop="password" style="width: 300px">
 						<el-input v-model="form.password" placeholder="请输入" type="password" maxlength="20"
 							show-password />
 					</el-form-item>
@@ -99,24 +99,24 @@
 						<el-date-picker v-model="form.leave_date" placeholder="请选择" format="YYYY-MM-DD"
 							type="date"></el-date-picker>
 					</el-form-item>
-
-					<el-form-item label="提成比例" prop="base_rate" style="width: 300px">
+					{{btnType}}
+					<el-form-item label="提成比例" prop="base_rate" style="width: 300px"  v-if="btnType==='add'">
 						<el-input v-model="form.base_rate" type="number" placeholder="≤1万时的提成比例(%)" />
 					</el-form-item>
 
-					<el-form-item label="提成比例" prop="higher_rate" style="width: 300px">
+					<el-form-item label="提成比例" prop="higher_rate" style="width: 300px" v-if="btnType==='add'">
 						<el-input v-model="form.higher_rate" type="number" placeholder="＞1万时的提成比例(%)" />
 					</el-form-item>
 
-					<el-form-item label="提成票数" prop="tickets" style="width: 300px">
+					<el-form-item label="提成票数" prop="tickets" style="width: 300px" v-if="btnType==='add'">
 						<el-input v-model="form.tickets" type="number" placeholder="请输入" />
 					</el-form-item>
 
-					<el-form-item label="提成单价" prop="unit_price" style="width: 300px">
+					<el-form-item label="提成单价" prop="unit_price" style="width: 300px" v-if="btnType==='add'">
 						<el-input v-model="form.unit_price" type="number" placeholder="请输入" />
 					</el-form-item>
 
-					<el-form-item label="底薪工资" prop="basic_salary" style="width: 300px">
+					<el-form-item label="底薪工资" prop="basic_salary" style="width: 300px" v-if="btnType==='add'">
 						<el-input v-model="form.basic_salary" type="number" placeholder="请输入" />
 					</el-form-item>
 
@@ -264,6 +264,7 @@
 	const initPassword = ref(undefined);
 	const postOptions = ref([]);
 	const roleOptions = ref([]);
+	const btnType = ref('');
 	/*** 用户导入参数 */
 	const upload = reactive({
 		// 是否显示弹出层（用户导入）
@@ -528,6 +529,7 @@
 		reset();
 		open.value = true;
 		title.value = "添加用户";
+		btnType.value="add"
 		form.value.password = initPassword.value;
 	};
 
@@ -539,6 +541,7 @@
 
 	/** 修改按钮操作 */
 	function handleUpdate(row) {
+		btnType.value="edit"
 		reset();
 		const userId = row.id || ids.value;
 		getUser(userId).then(response => {

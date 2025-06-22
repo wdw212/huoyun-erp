@@ -4,27 +4,26 @@
 			<el-col :span="1.5">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
-			<el-col :span="1.5">
-				<el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">批量删除</el-button>
-			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
 		</el-row>
 
-		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
-			<el-table-column type="selection" width="55" align="center" />
-			<el-table-column label="月份" align="center" prop="month_code" />
-			<el-table-column label="利润调整" align="center" prop="profit_adjustment_amount" />
+		<el-table v-loading="loading" :data="dataList">
+			<el-table-column label="月份" align="center" prop="month_code" width="150"/>
+			<el-table-column label="利润调整" align="center" prop="profit_adjustment_amount" width="150"/>
 			<el-table-column label="" align="center" prop="items">
 				<template #default="scope">
-					<div v-for="(item, index) in scope.row.items" :key="item.id" class="mt10">
-						<el-tag>{{ item.order_type.name + ": " + item.price }}</el-tag>
+					<div class="flex flex-justify-center flex-wrap">
+						<div v-for="(item, index) in scope.row.items" :key="item.id" class="mt10">
+							<el-tag class="mt10-item-padding">
+							 <p>{{item.order_type.name}}</p>
+							 <p>{{item.price}}</p></el-tag>
+						</div>
 					</div>
 				</template>
 			</el-table-column>
-			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+			<el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="100">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -44,13 +43,16 @@
 						<template #append>/票</template>
 					</el-input>
 				</el-form-item>
-
-				<el-form-item v-for="(item, index) in orderTypesList" :key="item.id" :label="item.name"
-					prop="orderTypesItems">
-					<el-input v-model="orderTypesList[index].value" placeholder="请输入">
-						<template #append>/票</template>
-					</el-input>
-				</el-form-item>
+				
+				<div v-for="(item, index) in orderTypesList" :key="item.id">
+					<el-form-item :label="item.name"
+						:prop="'orderTypesList.'+ index +'.value'" :rules="rules.value">
+						<el-input v-model="orderTypesList[index].value" placeholder="请输入">
+							<template #append>/票</template>
+						</el-input>
+					</el-form-item>
+				</div>
+				
 
 				<el-form-item label="备注" prop="remark">
 					<el-input v-model="form.remark" type="textarea" rows="3" placeholder="请输入" />
@@ -77,7 +79,18 @@
 	import {
 		listData as listOrderTypes
 	} from "@/api/system/system-parameter/order-types";
-
+	
+	const validatePrice = (rule,value,callback) =>{
+			console.log(value,'value')
+	        let reg = /^\d+.?\d{0,2}$/
+	        if(!value){
+	            callback(new Error('价格不能为空'))
+	         }else if(!reg.test(value)){
+	            callback(new Error('请输入最多保留两位小数的数字'))
+	         }else{
+	          callback();
+	        }
+	      };
 
 	const {
 		proxy
@@ -111,10 +124,11 @@
 				message: "利润调整不能为空",
 				trigger: "blur"
 			}],
-			orderTypesItems: [{
+			value: [{
 				required: true,
-				message: "价格不能为空",
-				trigger: "blur"
+				// message: "价格不能为空",
+				trigger: "blur",
+				validator: validatePrice
 			}]
 		}
 	});
@@ -152,16 +166,17 @@
 
 	// 表单重置
 	function reset() {
-		form.value = {
-			id: null,
-			month_code: null,
-			profit_adjustment_amount: null,
-			remark: null
-		};
-		proxy.resetForm("formRef");
 		for (let i = 0; i < orderTypesList.value.length; i++) {
 			orderTypesList.value[i].value = null
 		};
+		form.value = {
+					id: null,
+					month_code: null,
+					profit_adjustment_amount: null,
+					remark: null,
+					orderTypesList: orderTypesList.value
+				};
+				proxy.resetForm("formRef");
 	}
 
 	/** 搜索按钮操作 */
@@ -175,14 +190,7 @@
 		proxy.resetForm("queryRef");
 		handleQuery();
 	}
-
-	// 多选框选中数据
-	function handleSelectionChange(selection) {
-		ids.value = selection.map(item => item.id);
-		single.value = selection.length != 1;
-		multiple.value = !selection.length;
-	}
-
+	
 	/** 新增按钮操作 */
 	async function handleAdd() {
 		reset();
@@ -201,6 +209,7 @@
 			orderTypesList.value.forEach(item => {
 				item.value = form.value.items.find(i => i.order_type_id == item.id).price
 			})
+			form.value.orderTypesList= orderTypesList.value
 			open.value = true;
 			title.value = "修改";
 		});
@@ -235,20 +244,27 @@
 		});
 	}
 
-	/** 删除按钮操作 */
-	function handleDelete(row) {
-		const _ids = row.id || ids.value;
-		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
-			return delByIds(_ids);
-		}).then(() => {
-			getList();
-			proxy.$modal.msgSuccess("删除成功");
-		}).catch(() => {});
-	}
-
 	function getItemValue(row, id) {
 		return row.items.find(item => item.order_type.id == id).price
 	}
 
 	getList();
 </script>
+
+<style>
+	.flex{
+		display: flex;
+	}
+	.flex-justify-center{
+		justify-content: center;
+	}
+	.flex-wrap{
+		flex-wrap: wrap
+	}
+	.mt10{
+		margin-right: 10px
+	}
+	.mt10-item-padding{
+		padding: 24px
+	}
+</style>

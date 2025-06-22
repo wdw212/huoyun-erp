@@ -37,13 +37,14 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
+			<view-indicate :view-indicate-role-list="viewIndicateRoleList"></view-indicate>
 			<el-col :span="1.5">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
 		</el-row>
 
-		<el-table v-loading="loading" :data="dataList" show-overflow-tooltip>
+		<el-table v-loading="loading" :data="dataList">
 			<!-- <el-table-column type="selection" width="55" align="center" /> -->
 			<el-table-column label="收发通类型" align="center" prop="type" >
 				<template #default="scope">
@@ -72,16 +73,26 @@
 					<el-button  plain type="success" @click="handleInformation(scope.row)">生成信息</el-button>
 				</template>
 			</el-table-column>
-			<el-table-column label="备注" align="center" prop="remark" />
+			<el-table-column label="备注" align="center" prop="remark" >
+				<template #default="{ row }">
+					<el-tooltip placement="top">
+					  <!-- 使用带样式的插槽内容 -->
+					  <template #content>
+						<div class="tooltip-content">{{ row.remark }}</div>
+					  </template>
+					  <span class="ellipsis-text">{{ row.remark }}</span>
+					</el-tooltip>
+				  </template>
+			</el-table-column>
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
 				<template #default="scope">
-					<div v-if="scope.row.is_confirm==0 || userStore.userRole === 1 || (scope.row.confirm_user && scope.row.confirm_user.name=== userStore.name)">
+					<!-- <div v-if="scope.row.is_confirm==0 || userStore.userRole === 1 || (scope.row.confirm_user && scope.row.confirm_user.name=== userStore.name)"> -->
 						<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-						<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
-					</div>
-					<div v-else>
+						<el-button v-if="scope.row.is_confirm==0 || userStore.userRole === 1 || (scope.row.confirm_user && scope.row.confirm_user.name=== userStore.name)" plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+					<!-- </div> -->
+					<!-- <div v-else>
 						<el-button plain type="primary" @click="handleView(scope.row)">查看详情</el-button>
-					</div>
+					</div> -->
 				</template>
 			</el-table-column>
 		</el-table>
@@ -89,7 +100,7 @@
 			<el-input v-model="generate_information" placeholder="请输入生成信息" :rows="8" type="textarea" id="myTextarea"/>
 		</el-dialog>
 		<pagination v-show="total>0" :total="total" v-model:page="queryParams.page" v-model:limit="queryParams.pageSize"
-			@pagination="getList" />
+			@pagination="getList" :page-sizes="[30]"/>
 		
 		<view-or-dialog ref="viewOrDialogDom" :openView.sync='openView' :btnType.sync='btnType' :model.sync='modalModel' @refresh='refresh' @cancel="cancel" :title='dialogTitle'></view-or-dialog>
 	</div>
@@ -113,12 +124,13 @@
 	import viewOrDialog from './component/view-or-dialog'
 	import Cookies from "js-cookie";
 	import useUserStore from "@/store/modules/user";
+	import ViewIndicate from '@/components/ViewIndicate/index'
 	
 	const userStore = useUserStore();  //vuex缓存的用户信息
 	const {proxy} = getCurrentInstance();
 	const queryParams = reactive({
 		page: 1,
-		pageSize: 15,
+		pageSize: 30,
 		keyword: null,
 		type: null,
 		is_confirm: null,
@@ -139,7 +151,7 @@
 	const openInformation= ref(0)  //生成信息界面
 	const generate_information= ref('')  //生成信息参数
 	const username = ref(Cookies.get("username"));
-	console.log('username', username)
+	const viewIndicateRoleList = ref(['SUPER_ADMIN']);  //页面标明组件可更改权限
 	// 收发通类型
 	const TYPE_LIST = ref([{
 			label: '发货人',
@@ -255,7 +267,7 @@
 	function handleInformation(row){
 		openInformation.value= true
 		let typeLabel= TYPE_LIST.value.find(item =>item.value=== row.type)?TYPE_LIST.value.find(item =>item.value=== row.type).label : ''
-		generate_information.value= `收发通类型:${typeLabel}\r\n代码:${row.code}\r\n名称:${row.name}\r\n地址:${row.address}\r\n国家/地区代码:${row.country}\r\nAEO企业编码:${row.aeo_company_code}\r\n具体联系人:${row.contact_name}\r\n联系人电话:${row.contact_phone}`
+		generate_information.value= `收发通类型:${typeLabel}\r\n代码:${row.code?row.code:''}\r\n名称:${row.name?row.name:''}\r\n电话:${row.phone?row.phone:''}\r\n地址:${row.address?row.address:''}\r\n国家/地区代码:${row.country?row.country:''}\r\nAEO企业编码:${row.aeo_company_code?row.aeo_company_code:''}\r\n具体联系人:${row.contact_name?row.contact_name:''}\r\n联系人电话:${row.contact_phone?row.contact_phone:''}`
 	}
 	// -----------------------接口------------------
 	/** 查询列表 */
@@ -275,5 +287,21 @@
 	}
 	.font-color-gray{
 		color: gray
+	}
+	/* 提示框内容样式 */
+	.tooltip-content {
+	  max-width: 300px; /* 控制最大宽度 */
+	  white-space: normal; /* 允许换行 */
+	  word-break: break-all; /* 强制换行 */
+	  line-height: 1.5; /* 行高 */
+	}
+	
+	/* 单元格文本溢出显示省略号 */
+	.ellipsis-text {
+	  display: inline-block;
+	  width: 100px; /* 固定宽度 */
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
 	}
 </style>

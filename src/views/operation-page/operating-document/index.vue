@@ -1612,13 +1612,19 @@
 	}
 
 	function orderDelegationHeaderChange(e) {
-		console.log(e, COMPANY_HEADER);
-		COMPANY_HEADER.value.map(item => {
-			if (item.id == e) {
-				form.value.order_delegation_header.contact_person = item.contact_person
-				form.value.order_delegation_header.contact_phone = item.contact_phone
-			}
-		})
+		console.log(e, COMPANY_HEADER,1615);
+		if(e){
+			COMPANY_HEADER.value.map(item => {
+				if (item.id == e) {
+					form.value.order_delegation_header.contact_person = item.contact_person
+					form.value.order_delegation_header.contact_phone = item.contact_phone
+				}
+			})
+		}else{
+			form.value.order_delegation_header.contact_person= ''
+			form.value.order_delegation_header.contact_phone= ''
+		}
+		
 	}
 
 	function getShoppingCompany() {

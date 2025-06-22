@@ -15,6 +15,16 @@
 					<el-option v-for="item in admin_user" :key="item.value" :label="item.label" :value="item.value" />
 				</el-select>
 			</el-form-item>
+			<el-form-item label="操作员" style="width: 300px" prop="operation_user_id">
+				<el-select v-model="queryParams.operation_user_id" placeholder="请选择操作员" clearable>
+					<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" />
+				</el-select>
+			</el-form-item>
+			<el-form-item label="单证员" style="width: 300px" prop="document_user_id">
+				<el-select v-model="queryParams.document_user_id" placeholder="请选择单证员" clearable>
+					<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
+				</el-select>
+			</el-form-item>
 			<el-form-item>
 				<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
 				<el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -22,17 +32,14 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
-			<el-col :span="1.5">
+			<view-indicate></view-indicate>
+			<el-col :span="1.5" v-if="addBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
-			</el-col>
-			<el-col :span="1.5">
-				<el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">批量删除</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList" :columns="columns"></right-toolbar>
 		</el-row>
 
-		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
-			<el-table-column type="selection" width="55" align="center" />
+		<el-table v-loading="loading" :data="dataList">
 			<!-- <el-table-column label="编号" align="center" prop="id" v-if="columns[0].visible" /> -->
 			<el-table-column label="类型" align="center" prop="company_type.name" v-if="columns[0].visible" />
 			<el-table-column label="业务员" align="center" prop="admin_user.name" v-if="columns[1].visible" />
@@ -43,11 +50,11 @@
 			<el-table-column label="联系电话" align="center" prop="contact_phone" v-if="columns[6].visible" />
 			<el-table-column label="开户行" align="center" prop="bank_name" v-if="columns[7].visible" />
 			<el-table-column label="账户" align="center" prop="bank_account" v-if="columns[8].visible" />
-			<el-table-column label="添加时间" align="center" prop="created_at" v-if="columns[9].visible" />
+			<el-table-column label="创建人" align="center" prop="admin_user.name" v-if="columns[9].visible" />
 			<el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)" v-if="userStore.id=== admin_user.id ||  userStore.userRoleCode==='SUPER_ADMIN'">删除</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -144,23 +151,40 @@
 						</el-form-item>
 					</el-col>
 
-					<el-col :span="12">
-						<el-form-item label="业务员" prop="admin_user_id">
+					<el-col :span="12" v-if="userStore.userRoleCode !== 'BUSINESS'">
+						<el-form-item label="业务员" prop="business_user_ids">
+							<UserSelect v-model="form.business_user_ids" :user-type="'BUSINESS'" :btn-type="btnType" :userRoleType="1"></UserSelect>
 							<!-- <el-input v-model="form.admin_user_id" placeholder="请输入业务员" /> -->
-							<el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
+							<!-- <el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
 								<el-option v-for="item in admin_user" :key="item.value" :label="item.label"
 									:value="item.value" />
-							</el-select>
+							</el-select> -->
 						</el-form-item>
 					</el-col>
 
 					<el-col :span="12">
-						<el-form-item label="公司类型" prop="company_type_id">
+						<el-form-item label="公司类型" prop="company_type">
 							<!-- <el-input v-model="form.company_type_id" placeholder="请输入公司名称" /> -->
-							<el-select v-model="form.company_type_id" placeholder="请选择公司类型" clearable>
+							<el-select v-model="form.company_type" placeholder="请选择公司类型" multiple>
 								<el-option v-for="item in company_type" :key="item.value" :label="item.label"
 									:value="item.value" />
 							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="操作员" prop="operation_user_ids">
+							<UserSelect v-model="form.operation_user_ids" :user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
+							<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
+								<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
+							</el-select> -->
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="单证员" prop="document_user_ids">
+							<UserSelect v-model="form.document_user_ids" :user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
+							<!-- <el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
+								<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
+							</el-select> -->
 						</el-form-item>
 					</el-col>
 				</el-row>
@@ -187,7 +211,14 @@
 	import {
 		getSelectOptions
 	} from "@/api/other";
-
+	
+	import {
+				listUser as userListData
+			} from "@/api/system/user";
+	import ViewIndicate from '@/components/ViewIndicate/index'
+	import UserSelect from '@/components/UserSelect'
+	import useUserStore from "@/store/modules/user";
+	const userStore = useUserStore();  //vuex缓存的用户信息
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -200,6 +231,8 @@
 	const multiple = ref(true);
 	const total = ref(0);
 	const title = ref("");
+	const btnType = ref("");  //新增/修改/查看  add/edit/view
+	const addBtnType = ref(['OPERATE','DOCUMENT','BUSINESS','FINANCE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
 
 	// 列显隐信息
 	const columns = ref([{
@@ -249,36 +282,70 @@
 		},
 		{
 			key: 9,
-			label: `添加时间`,
+			label: `创建人`,
 			visible: true
 		}
 	]);
 
 	const admin_user = ref([]);
-	const company_type = ref([]);
+	const company_type = ref([{
+			label: '委托抬头',
+			value: 0
+		},
+		{
+			label: '应付抬头',
+			value: 1
+		},
+		{
+			label: '应收抬头',
+			value: 2
+		}
+	]);
+	// 操作员
+	const OPERATION_USER = ref([])
+	// 单证员
+	const DOCUMENT_USER = ref([])
 
 	function getSelect() {
 		// ADMIN_USER ：业务员 COMPANY_TYPE: 公司类型 DEPARTMENT：部门
-		getSelectOptions("ADMIN_USER").then(response => {
-			// console.log();
-			let data = response.data;
-			data.forEach(item => {
-				admin_user.value.push({
-					label: item.name,
-					value: parseInt(item.id)
-				})
-			})
-		});
+		// getSelectOptions("ADMIN_USER").then(response => {
+		// 	// console.log();
+		// 	let data = response.data;
+		// 	data.forEach(item => {
+		// 		admin_user.value.push({
+		// 			label: item.name,
+		// 			value: parseInt(item.id)
+		// 		})
+		// 	})
+		// });
 
-		getSelectOptions("COMPANY_TYPE").then(response => {
-			let data = response.data;
-			data.forEach(item => {
-				company_type.value.push({
-					label: item.name,
-					value: item.id
-				})
-			})
-		});
+		// getSelectOptions("COMPANY_TYPE").then(response => {
+		// 	let data = response.data;
+		// 	data.forEach(item => {
+		// 		company_type.value.push({
+		// 			label: item.name,
+		// 			value: item.id
+		// 		})
+		// 	})
+		// });
+		userListData({
+			is_paginate: 0,
+			code: 'BUSINESS'
+		}).then(response => {
+			admin_user.value = response.data
+		})
+		userListData({
+			is_paginate: 0,
+			code: 'OPERATE'
+		}).then(response => {
+			OPERATION_USER.value = response.data
+		})
+		userListData({
+			is_paginate: 0,
+			code: 'DOCUMENT'
+		}).then(response => {
+			DOCUMENT_USER.value = response.data
+		})
 	}
 	getSelect()
 
@@ -293,29 +360,11 @@
 			pageSize: 15,
 			keyword: null,
 			company_type_id: null,
-			admin_user_id: null
+			admin_user_id: null,
+			operation_user_id: null,
+			document_user_id: null,
 		},
-		rules: {
-			company_name: [{
-				required: true,
-				message: "公司名称不能为空",
-				trigger: "blur"
-			}],
-			tax_number: [{
-				required: true,
-				message: "税号不能为空",
-				trigger: "blur"
-			}, {
-				pattern: /^[A-Z0-9]+$/, // 正则表达式：只允许大写字母和数字
-				message: "税号只能包含大写字母和数字",
-				trigger: "blur"
-			}],
-			company_type_id: [{
-				required: true,
-				message: "公司类型不能为空",
-				trigger: "blur"
-			}]
-		}
+		rules: {}
 	});
 
 	const {
@@ -345,7 +394,7 @@
 		form.value = {
 			id: null,
 			company_name: null,
-			company_type_id: null,
+			company_type: null,
 			tax_number: null,
 			billing_address: null,
 			company_phone: null,
@@ -359,7 +408,9 @@
 			distinction: null,
 			delivery_address: null,
 			remark: null,
-			admin_user_id: null,
+			business_user_ids: null,
+			operation_user_ids: null,
+			document_user_ids: null
 		};
 		proxy.resetForm("formRef");
 	}
@@ -376,18 +427,17 @@
 		handleQuery();
 	}
 
-	// 多选框选中数据
-	function handleSelectionChange(selection) {
-		ids.value = selection.map(item => item.id);
-		single.value = selection.length != 1;
-		multiple.value = !selection.length;
-	}
-
 	/** 新增按钮操作 */
 	function handleAdd() {
 		reset();
 		open.value = true;
 		title.value = "新增";
+		btnType.value= 'add'
+		form.value.company_type= [0]
+		if(userStore.userRoleCode === 'BUSINESS'){
+			form.value.business_user_ids= []
+			form.value.business_user_ids.push(userStore.id)
+		}
 	}
 
 	/** 修改按钮操作 */
@@ -398,11 +448,13 @@
 			form.value = response;
 			open.value = true;
 			title.value = "修改";
+			btnType.value= 'edit'
 		});
 	}
 
 	/** 提交按钮 */
 	function submitForm() {
+		console.log(form.value,'form.value')
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
 				if (form.value.id != null) {
@@ -439,4 +491,37 @@
 	}
 
 	getList();
+	
+	// 监听公司类型 判断必填
+	watch(() => [form.value.company_type], (newVal, oldVal) => {
+	console.log(newVal[0], oldVal,484); // 输出新旧值的数组
+		if(newVal[0].includes(1) || newVal[0].includes(2)){
+			console.log(486)
+			rules.value= {
+						company_name: [{required: true,message: "公司名称不能为空",trigger: "blur"}],
+						tax_number: [{required: true,message: "税号不能为空",trigger: "blur"},
+						{
+							pattern: /^[A-Z0-9]+$/, // 正则表达式：只允许大写字母和数字
+							message: "税号只能包含大写字母和数字",
+							trigger: "blur"
+						}],
+						billing_address: [{required: true,message: "公司地址不能为空",trigger: "blur"}],
+						company_phone: [{required: true,message: "座机不能为空",trigger: "blur"}],
+						bank_name: [{required: true,message: "开户行不能为空",trigger: "blur"}],
+						bank_account: [{required: true,message: "开户账户不能为空",trigger: "blur"}],
+						company_type: [{required: true,message: "公司类型不能为空",trigger: "change"}]
+					}
+		}else{
+			rules.value= {
+						company_name: [{required: true,message: "公司名称不能为空",trigger: "blur"}],
+						tax_number: [{required: true,message: "税号不能为空",trigger: "blur"},
+						{
+							pattern: /^[A-Z0-9]+$/, // 正则表达式：只允许大写字母和数字
+							message: "税号只能包含大写字母和数字",
+							trigger: "blur"
+						}],
+						company_type: [{required: true,message: "公司类型不能为空",trigger: "change"}]
+					}
+		}
+	})
 </script>

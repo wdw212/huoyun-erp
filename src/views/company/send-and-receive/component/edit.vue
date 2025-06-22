@@ -59,7 +59,7 @@
 				
 				<el-col :span="12">
 					<el-form-item label="收发通类型" prop="contact_phone">
-						<el-select v-model="form.type" placeholder="请选择收发通类型" clearable @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
+						<el-select v-model="form.type" placeholder="请选择收发通类型" @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
 							<el-option v-for="item in TYPE_LIST" :key="item.value" :label="item.label"
 								:value="item.value" />
 						</el-select>
@@ -82,7 +82,7 @@
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="是否确认" prop="contact_phone">
-						<el-select v-model="form.is_confirm" placeholder="请选择是否确认" clearable @change="getRulesRequired(form.is_confirm)" :disabled="disabled?true:false">
+						<el-select v-model="form.is_confirm" placeholder="请选择是否确认" :disabled="disabled?true:false">
 							<el-option v-for="item in IS_CONFIRM_LIST" :key="item.value" :label="item.label"
 								:value="item.value" />
 						</el-select>
@@ -90,28 +90,28 @@
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="操作员" prop="operation_user_ids">
-						<el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple :disabled="disabled?true:false">
+						<el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 							<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
 						</el-select>
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="单证员" prop="document_user_ids">
-						<el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple :disabled="disabled?true:false">
+						<el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 							<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 						</el-select>
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="商务" prop="commerce_user_ids">
-						<el-select v-model="form.commerce_user_ids" placeholder="请选择商务" filterable clearable multiple :disabled="disabled?true:false">
+						<el-select v-model="form.commerce_user_ids" placeholder="请选择商务" filterable clearable multiple>
 							<el-option v-for="item in COMMERCE_USER" :key="item.id" :label="item.name" :value="item.id" />
 						</el-select>
 					</el-form-item>
 				</el-col>
 			</el-row>
 		</el-form>
-		<div v-if='props.btnType === "add" || props.btnType === "edit"'>
+		<div>
 			<!-- <template name='footer'> -->
 				<div class="dialog-footer">
 					<el-button type="primary" @click="submitForm">保 存</el-button>
@@ -145,7 +145,7 @@
 		} else if (isChar == 1) {
 			form.value[lable] = value.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase(); // 转换为大写
 		} else if (isChar == 2) {
-			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;''-*,，@: //.]/g, "").toUpperCase();
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;''-*,，@: //.-=]/g, "").toUpperCase();
 		}
 	}
 	const props  = defineProps({
@@ -195,41 +195,55 @@
 		rules
 	} = toRefs(data);
 	const disabled = ref(false);
+	
+	watch(() => [form.value.is_confirm, form.value.type], (newVal, oldVal) => {
+	console.log(newVal, oldVal,200); // 输出新旧值的数组
+		if(newVal[0]=== 0){
+			rules.value= {
+						name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+						type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
+					}
+		}else if(newVal[0]=== 1){
+			if(newVal[1]=== 'sender'){
+				rules.value= {
+					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
+					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+					address: [{required: true,message: "地址不能为空",trigger: "blur"}],
+					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
+				}
+			}else if(newVal[1]=== 'receiver'){
+				rules.value= {
+					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
+					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+					address: [{required: true,message: "地址不能为空",trigger: "blur"}],
+					country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
+					phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
+					contact_name: [{required: true,message: "具体联系人不能为空",trigger: "blur"}],
+					contact_phone: [{required: true,message: "联系人电话不能为空",trigger: "blur"}],
+					url: [{required: true,message: "舱单网址不能为空",trigger: "blur"}],
+					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
+				}
+			}else if(newVal[1]=== 'notifier'){
+				rules.value= {
+					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
+					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
+					address: [{required: true,message: "地址不能为空",trigger: "blur"}],
+					country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
+					phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
+					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
+				}
+			}
+		}
+	})
 	// 非增加操作时,获取详情信息
 	watchEffect(()=>{
 		console.log('props.btnType', props.btnType)
 		if(props.model){
 			form.value =  props.model
 			// 收发通类型:代码:名称:地址:国家/地区代码AEO企业编码:具体联系人:联系人电话:
-			if(props.btnType == 'view'){
+			if(props.btnType == 'edit' && form.value.is_confirm=== 1 && form.value.confirm_user_id!== userStore.id){
 				rules.value = {};
 				disabled.value = true;
-			}else if(form.value.is_confirm=== 0){
-				rules.value= {
-					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
-					type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
-					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
-					is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
-				}
-			}else{
-				rules.value= {
-					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
-					name: [{required: true,message: "名称不能为空",trigger: "blur"}],
-					type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
-					url: [{required: true,message: "舱单网址不能为空",trigger: "blur"}],
-					operation_user_ids: [{required: true,message: "操作员不能为空",trigger: "change"}],
-					document_user_ids: [{required: true,message: "单证员不能为空",trigger: "change"}],
-					commerce_user_ids: [{required: true,message: "商务不能为空",trigger: "change"}],
-					// generate_information: [{required: true,message: "生成信息不能为空",trigger: "blur"}],
-					// remark: [{required: true,message: "备注不能为空",trigger: "blur"}],
-					is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
-					address: [{required: true,message: "地址不能为空",trigger: "blur"}],
-					country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
-					phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
-					contact_name: [{required: true,message: "具体联系人不能为空",trigger: "blur"}],
-					contact_phone: [{required: true,message: "联系人电话不能为空",trigger: "blur"}],
-					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
-				}
 			}
 		}
 		// console.log(props.model,202)
@@ -239,7 +253,7 @@
 	function openDialog(){
 		openInformation.value= true
 		let typeLabel= TYPE_LIST.value.find(item =>item.value=== form.value.type)?TYPE_LIST.value.find(item =>item.value=== form.value.type).label : ''
-		form.value.generate_information= `收发通类型:${typeLabel}\r\n代码:${form.value.code}\r\n名称:${form.value.name}\r\n地址:${form.value.address}\r\n国家/地区代码:${form.value.country}\r\nAEO企业编码:${form.value.aeo_company_code}\r\n具体联系人:${form.value.contact_name}\r\n联系人电话:${form.value.contact_phone}`
+		form.value.generate_information= `收发通类型:${typeLabel}\r\n代码:${form.value.code}\r\n名称:${form.value.name?form.value.name:''}\r\n电话:${form.value.phone?form.value.phone:''}\r\n地址:${form.value.address?form.value.address:''}\r\n国家/地区代码:${form.value.country}\r\nAEO企业编码:${form.value.aeo_company_code?form.value.aeo_company_code:''}\r\n具体联系人:${form.value.contact_name? form.value.contact_name:''}\r\n联系人电话:${form.value.contact_phone? form.value.contact_phone:''}`
 	}
 	// 收发通类型
 	const TYPE_LIST = ref([{
@@ -281,9 +295,9 @@
 			OPERATION_USER.value= operates?operates: []
 			DOCUMENT_USER.value= documents?documents: []
 			COMMERCE_USER.value= commerces?commerces: []
+
 			if(userStore.userRole !== 1){
 				if(userStore.userRole=== 2){
-					console.log(1111)
 					userSelectEdit(OPERATION_USER.value,form.value.operation_user_ids)
 				}else if(userStore.userRole=== 3){
 					userSelectEdit(DOCUMENT_USER.value,form.value.document_user_ids)
@@ -308,7 +322,7 @@
 	// 当前登录用户必选且不可编辑
 	function userSelectEdit(list,val){
 		list.forEach(item =>{
-			if(item.id=== userStore.id){
+			if(item.id=== userStore.id  || (props.btnType !== 'add' && form.value.is_confirm=== 1 && form.value.confirm_user_id=== item.id)){
 				if(props.btnType === 'add'){
 					val.push(item.id)
 				}
@@ -326,37 +340,6 @@
 			type_content_label.value = label.contentLabel
 		}
 	}
-	// 根据是否确认获取必填项
-	function getRulesRequired(type){
-		rules.value = {};
-		if(type=== 0){
-			rules.value= {
-				name: [{required: true,message: "名称不能为空",trigger: "blur"}],
-				type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
-				type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
-				is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
-			}
-		}else{
-			rules.value= {
-				code: [{required: true,message: "代码不能为空",trigger: "blur"}],
-				name: [{required: true,message: "名称不能为空",trigger: "blur"}],
-				type: [{required: true,message: "收发通类型不能为空",trigger: "change"}],
-				url: [{required: true,message: "舱单网址不能为空",trigger: "blur"}],
-				operation_user_ids: [{required: true,message: "操作员不能为空",trigger: "change"}],
-				document_user_ids: [{required: true,message: "单证员不能为空",trigger: "change"}],
-				commerce_user_ids: [{required: true,message: "商务不能为空",trigger: "change"}],
-				// generate_information: [{required: true,message: "生成信息不能为空",trigger: "blur"}],
-				remark: [{required: true,message: "备注不能为空",trigger: "blur"}],
-				is_confirm: [{required: true,message: "是否确认不能为空",trigger: "change"}],
-				address: [{required: true,message: "地址不能为空",trigger: "blur"}],
-				country: [{required: true,message: "国家/地区代码不能为空",trigger: "blur"}],
-				phone: [{required: true,message: "电话不能为空",trigger: "blur"}],
-				contact_name: [{required: true,message: "具体联系人不能为空",trigger: "blur"}],
-				contact_phone: [{required: true,message: "联系人电话不能为空",trigger: "blur"}],
-				type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}],
-			}
-		}
-	}
 	// 提交/保存
 	function submitForm(){
 		proxy.$refs["formRef"].validate(valid => {
@@ -371,7 +354,7 @@
 	}
 	// --------------------接口-------------------------
 	function addDataForm(){
-		let param = form.value;
+		let param = JSON.parse(JSON.stringify(form.value));
 		param.operation_user_ids = JSON.stringify(param.operation_user_ids);
 		param.document_user_ids = JSON.stringify(param.document_user_ids);
 		param.commerce_user_ids = JSON.stringify(param.commerce_user_ids);
@@ -383,7 +366,7 @@
 		});
 	}
 	function updateDataForm(){
-		let param = form.value;
+		let param = JSON.parse(JSON.stringify(form.value));
 		param.operation_user_ids = JSON.stringify(param.operation_user_ids);
 		param.document_user_ids = JSON.stringify(param.document_user_ids);
 		param.commerce_user_ids = JSON.stringify(param.commerce_user_ids);
