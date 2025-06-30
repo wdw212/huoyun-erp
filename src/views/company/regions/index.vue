@@ -11,6 +11,7 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
+			<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'region'"></view-indicate>
 			<el-col :span="1.5" v-if="editALLBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
@@ -112,7 +113,8 @@
 	const total = ref(0);
 	const title = ref("");
 	const editALLBtnType = ref(['FINANCE','SCHEDULE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
-
+    import ViewIndicate from '@/components/ViewIndicate/index'
+	const viewIndicateRoleList = ref(['SUPER_ADMIN','FINANCE','SCHEDULE']);  //页面标明组件可更改权限
 	const data = reactive({
 		form: {},
 		queryParams: {

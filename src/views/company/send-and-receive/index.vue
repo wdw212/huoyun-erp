@@ -37,8 +37,8 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
-			<view-indicate :view-indicate-role-list="viewIndicateRoleList"></view-indicate>
-			<el-col :span="1.5">
+			<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'sft_record'"></view-indicate>
+			<el-col :span="1.5" v-if="addBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
@@ -78,7 +78,7 @@
 					<el-tooltip placement="top">
 					  <!-- 使用带样式的插槽内容 -->
 					  <template #content>
-						<div class="tooltip-content">{{ row.remark }}</div>
+						<div class="tooltip-content multiline-text">{{ row.remark }}</div>
 					  </template>
 					  <span class="ellipsis-text">{{ row.remark }}</span>
 					</el-tooltip>
@@ -88,7 +88,7 @@
 				<template #default="scope">
 					<!-- <div v-if="scope.row.is_confirm==0 || userStore.userRole === 1 || (scope.row.confirm_user && scope.row.confirm_user.name=== userStore.name)"> -->
 						<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-						<el-button v-if="scope.row.is_confirm==0 || userStore.userRole === 1 || (scope.row.confirm_user && scope.row.confirm_user.name=== userStore.name)" plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+						<el-button v-if="roleHeight.includes(userStore.userRoleCode) || (scope.row.is_confirm=== 1 && scope.row.confirm_user.id=== userStore.id) || scope.row.is_confirm=== 0" plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
 					<!-- </div> -->
 					<!-- <div v-else>
 						<el-button plain type="primary" @click="handleView(scope.row)">查看详情</el-button>
@@ -97,7 +97,7 @@
 			</el-table-column>
 		</el-table>
 		<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%">
-			<el-input v-model="generate_information" placeholder="请输入生成信息" :rows="8" type="textarea" id="myTextarea"/>
+			<el-input v-model="generate_information" placeholder="请输入生成信息" :rows="10" type="textarea" id="myTextarea"/>
 		</el-dialog>
 		<pagination v-show="total>0" :total="total" v-model:page="queryParams.page" v-model:limit="queryParams.pageSize"
 			@pagination="getList" :page-sizes="[30]"/>
@@ -151,7 +151,9 @@
 	const openInformation= ref(0)  //生成信息界面
 	const generate_information= ref('')  //生成信息参数
 	const username = ref(Cookies.get("username"));
+	const addBtnType = ref(['OPERATE','DOCUMENT','COMMERCE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
 	const viewIndicateRoleList = ref(['SUPER_ADMIN']);  //页面标明组件可更改权限
+	const roleHeight= ref(['SUPER_ADMIN'])  //最高权限人
 	// 收发通类型
 	const TYPE_LIST = ref([{
 			label: '发货人',
@@ -267,7 +269,7 @@
 	function handleInformation(row){
 		openInformation.value= true
 		let typeLabel= TYPE_LIST.value.find(item =>item.value=== row.type)?TYPE_LIST.value.find(item =>item.value=== row.type).label : ''
-		generate_information.value= `收发通类型:${typeLabel}\r\n代码:${row.code?row.code:''}\r\n名称:${row.name?row.name:''}\r\n电话:${row.phone?row.phone:''}\r\n地址:${row.address?row.address:''}\r\n国家/地区代码:${row.country?row.country:''}\r\nAEO企业编码:${row.aeo_company_code?row.aeo_company_code:''}\r\n具体联系人:${row.contact_name?row.contact_name:''}\r\n联系人电话:${row.contact_phone?row.contact_phone:''}`
+		generate_information.value= `收发通类型:${typeLabel}\r\n代码:${row.code?row.code:''}\r\n名称:${row.name?row.name:''}\r\n电话:${row.phone?row.phone:''}\r\n地址:${row.address?row.address:''}\r\n国家/地区代码:${row.country?row.country:''}\r\nAEO企业编码:${row.aeo_company_code?row.aeo_company_code:''}\r\n具体联系人:${row.contact_name?row.contact_name:''}\r\n联系人电话:${row.contact_phone?row.contact_phone:''}\r\n备注:${row.remark?row.remark:''}`
 	}
 	// -----------------------接口------------------
 	/** 查询列表 */
@@ -303,5 +305,10 @@
 	  overflow: hidden;
 	  text-overflow: ellipsis;
 	  white-space: nowrap;
+	}
+	
+	.multiline-text {
+	  white-space: pre-line; /* 保留换行符并自动换行 */
+	  /* 或者使用 white-space: pre-wrap; 保留所有空白和换行 */
 	}
 </style>

@@ -32,7 +32,7 @@
 		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
-			<view-indicate></view-indicate>
+			<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'company_header'"></view-indicate>
 			<el-col :span="1.5" v-if="addBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
@@ -54,7 +54,7 @@
 			<el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-					<el-button plain type="danger" icon="Delete" @click="handleDelete(scope.row)" v-if="userStore.id=== admin_user.id ||  userStore.userRoleCode==='SUPER_ADMIN'">删除</el-button>
+					<el-button v-if="deleteBtnType.includes(userStore.userRoleCode) || userStore.id=== scope.row.admin_user.id" plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -153,7 +153,7 @@
 
 					<el-col :span="12" v-if="userStore.userRoleCode !== 'BUSINESS'">
 						<el-form-item label="业务员" prop="business_user_ids">
-							<UserSelect v-model="form.business_user_ids" :user-type="'BUSINESS'" :btn-type="btnType" :userRoleType="1"></UserSelect>
+							<UserSelect :value="form.business_user_ids" @update:value="form.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-input v-model="form.admin_user_id" placeholder="请输入业务员" /> -->
 							<!-- <el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
 								<el-option v-for="item in admin_user" :key="item.value" :label="item.label"
@@ -173,7 +173,7 @@
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="操作员" prop="operation_user_ids">
-							<UserSelect v-model="form.operation_user_ids" :user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
+							<UserSelect :value="form.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
 							</el-select> -->
@@ -181,7 +181,7 @@
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="单证员" prop="document_user_ids">
-							<UserSelect v-model="form.document_user_ids" :user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
+							<UserSelect :value="form.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 							</el-select> -->
@@ -233,7 +233,11 @@
 	const title = ref("");
 	const btnType = ref("");  //新增/修改/查看  add/edit/view
 	const addBtnType = ref(['OPERATE','DOCUMENT','BUSINESS','FINANCE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
-
+	const deleteBtnType = ref(['SUPER_ADMIN'])  //可删除的角色
+	const viewIndicateRoleList = ref(['SUPER_ADMIN']);  //页面标明组件可更改权限
+	const roleTypeList= ref(['FINANCE','SCHEDULE','SUPER_ADMIN'])  //当前页面有所有人权限的角色
+	const roleTypeUserIdList= ref([])  //当前共享人不能编辑的数组
+	
 	// 列显隐信息
 	const columns = ref([{
 			key: 0,
@@ -445,26 +449,39 @@
 		reset();
 		const _id = row.id || ids.value
 		getData(_id).then(response => {
+			console.log(response,'response')
 			form.value = response;
 			open.value = true;
 			title.value = "修改";
 			btnType.value= 'edit'
+			if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
+				roleTypeUserIdList.value.push(row.admin_user.id)
+			}else{
+				roleTypeUserIdList.value= ''
+			}
+			
 		});
 	}
 
 	/** 提交按钮 */
 	function submitForm() {
 		console.log(form.value,'form.value')
+		if(!checkInfo()) return;
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
+				let params = JSON.parse(JSON.stringify(form.value));
+				params.business_user_ids = JSON.stringify(params.business_user_ids);
+				params.operation_user_ids = JSON.stringify(params.operation_user_ids);
+				params.document_user_ids = JSON.stringify(params.document_user_ids);
+				params.company_type = JSON.stringify(params.company_type);
 				if (form.value.id != null) {
-					updateData(form.value).then(response => {
+					updateData(params).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
 						open.value = false;
 						getList();
 					});
 				} else {
-					addData(form.value).then(response => {
+					addData(params).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();
@@ -493,10 +510,8 @@
 	getList();
 	
 	// 监听公司类型 判断必填
-	watch(() => [form.value.company_type], (newVal, oldVal) => {
-	console.log(newVal[0], oldVal,484); // 输出新旧值的数组
-		if(newVal[0].includes(1) || newVal[0].includes(2)){
-			console.log(486)
+	watch(() => form.value.company_type, (newVal, oldVal) => {
+		if(newVal=== '1' || newVal=== '2'){
 			rules.value= {
 						company_name: [{required: true,message: "公司名称不能为空",trigger: "blur"}],
 						tax_number: [{required: true,message: "税号不能为空",trigger: "blur"},
@@ -524,4 +539,13 @@
 					}
 		}
 	})
+	
+	// 必填
+	function checkInfo(){
+		if((!form.value.business_user_ids || form.value.business_user_ids.length=== 0) && (!form.value.operation_user_ids || form.value.operation_user_ids.length=== 0) && (!form.value.document_user_ids || form.value.document_user_ids.length=== 0)){
+			proxy.$modal.msgWarning("请选择至少一个共享人");
+			return false;
+		}
+		return true;
+	}
 </script>

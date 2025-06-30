@@ -3,8 +3,29 @@
 		<div class="query-form-style">
 			<el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
 				<el-row :gutter="10">
-					<el-col :span="10">
-						<el-form-item label="关键字" prop="keyword">
+					<el-col :span="8">
+						<el-form-item label="业务员">
+							<el-select v-model="queryParams.business_user_id" placeholder="请选择业务员" clearable>
+								<el-option v-for="item in BUSINESS_USER" :key="item.id" :label="item.name" :value="item.id" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="操作员">
+							<el-select v-model="queryParams.operation_user_id" placeholder="请选择操作员" clearable>
+								<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="单证员">
+							<el-select v-model="queryParams.document_user_id" placeholder="请选择单证员" clearable>
+								<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="关键字">
 							<el-input v-model="queryParams.keyword" placeholder="地址，联系人，联系地址，方便备注，备注" clearable @keyup.enter="handleQuery" />
 						</el-form-item>
 					</el-col>
@@ -18,8 +39,8 @@
 			</el-form>
 		</div>
 		<el-row :gutter="10" class="mb8" justify="end">
-			<view-indicate></view-indicate>
-			<el-col :span="1.5">
+			<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'loading_address'"></view-indicate>
+			<el-col :span="1.5" v-if="addBtnType.includes(userStore.userRoleCode)">
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
@@ -91,7 +112,7 @@
 					<el-input v-model="form.keyword" placeholder="请输入" />
 				</el-form-item>
 				<el-form-item label="业务员" prop="business_user_ids">
-					<UserSelect v-model="form.business_user_ids" :user-type="'BUSINESS'" :btn-type="btnType"></UserSelect>
+					<UserSelect :value="form.business_user_ids" @update:value="form.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.business_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.business_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in BUSINESS_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -99,7 +120,7 @@
 				</el-form-item>
 
 				<el-form-item label="操作员" prop="operation_user_ids">
-					<UserSelect v-model="form.operation_user_ids" :user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
+					<UserSelect :value="form.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.operation_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -107,7 +128,7 @@
 				</el-form-item>
 
 				<el-form-item label="单证员" prop="document_user_ids">
-												<UserSelect v-model="form.document_user_ids" :user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
+					<UserSelect :value="form.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
 					<!-- <el-input v-model="form.document_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.document_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -145,6 +166,10 @@
 	} from "@/api/company/regions";
 	import ViewIndicate from '@/components/ViewIndicate/index'
 	import UserSelect from '@/components/UserSelect'  //共享人组件
+	const viewIndicateRoleList = ref(['SUPER_ADMIN']);  //页面标明组件可更改权限
+	const roleTypeList= ref(['FINANCE','SUPER_ADMIN'])  //当前页面有所有人权限的角色
+	const roleTypeUserIdList= ref([])  //当前共享人不能编辑的数组
+	const addBtnType = ref(['OPERATE','DOCUMENT','BUSINESS','FINANCE','SCHEDULE','SUPER_ADMIN'])  //新增权限  SUPER_ADMIN 超管  OPERATE  操作  DOCUMENT  单证  COMMERCE 商务  BUSINESS  业务  FINANCE  财务  SCHEDULE  调度
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -157,13 +182,19 @@
 	const multiple = ref(true);
 	const total = ref(0);
 	const title = ref("");
+	const btnType = ref("");
+	import useUserStore from "@/store/modules/user";
+	const userStore = useUserStore();  //vuex缓存的用户信息
 
 	const data = reactive({
 		form: {},
 		queryParams: {
 			page: 1,
 			pageSize: 15,
-			keyword: null
+			keyword: null,
+			business_user_id: null,
+			operation_user_id: null,
+			document_user_id: null,
 		},
 		rules: {
 			region_id: [{
@@ -186,21 +217,21 @@
 				message: "联系方式不能为空",
 				trigger: "blur"
 			}],
-			business_user_ids: [{
-				required: true,
-				message: "业务员不能为空",
-				trigger: "blur"
-			}],
-			operation_user_ids: [{
-				required: true,
-				message: "操作员不能为空",
-				trigger: "blur"
-			}],
-			document_user_ids: [{
-				required: true,
-				message: "单证员不能为空",
-				trigger: "blur"
-			}]
+			// business_user_ids: [{
+			// 	required: true,
+			// 	message: "业务员不能为空",
+			// 	trigger: "blur"
+			// }],
+			// operation_user_ids: [{
+			// 	required: true,
+			// 	message: "操作员不能为空",
+			// 	trigger: "blur"
+			// }],
+			// document_user_ids: [{
+			// 	required: true,
+			// 	message: "单证员不能为空",
+			// 	trigger: "blur"
+			// }]
 		}
 	});
 
@@ -296,6 +327,7 @@
 		reset();
 		open.value = true;
 		title.value = "新增";
+		btnType.value= 'add'
 	}
 
 	/** 修改按钮操作 */
@@ -306,21 +338,40 @@
 			form.value = response;
 			open.value = true;
 			title.value = "修改";
+			btnType.value= 'edit'
+			if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
+				roleTypeUserIdList.value.push(row.admin_user.id)
+			}else{
+				roleTypeUserIdList.value= ''
+			}
 		});
 	}
-
+	// 必填
+	function checkInfo(){
+		if((!form.value.business_user_ids || form.value.business_user_ids.length=== 0) && (!form.value.operation_user_ids || form.value.operation_user_ids.length=== 0) && (!form.value.document_user_ids || form.value.document_user_ids.length=== 0)){
+			proxy.$modal.msgWarning("请选择至少一个共享人");
+			return false;
+		}
+		return true;
+	}
 	/** 提交按钮 */
 	function submitForm() {
+		if(!checkInfo()) return;
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
+				let params = JSON.parse(JSON.stringify(form.value));
+				params.business_user_ids = JSON.stringify(params.business_user_ids);
+				params.operation_user_ids = JSON.stringify(params.operation_user_ids);
+				params.document_user_ids = JSON.stringify(params.document_user_ids);
+				console.log(params,'560')
 				if (form.value.id != null) {
-					updateData(form.value).then(response => {
+					updateData(params).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
 						open.value = false;
 						getList();
 					});
 				} else {
-					addData(form.value).then(response => {
+					addData(params).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();

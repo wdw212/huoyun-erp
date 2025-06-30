@@ -58,7 +58,7 @@
 				</el-col>
 				
 				<el-col :span="12">
-					<el-form-item label="收发通类型" prop="contact_phone">
+					<el-form-item label="收发通类型">
 						<el-select v-model="form.type" placeholder="请选择收发通类型" @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
 							<el-option v-for="item in TYPE_LIST" :key="item.value" :label="item.label"
 								:value="item.value" />
@@ -81,8 +81,8 @@
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
-					<el-form-item label="是否确认" prop="contact_phone">
-						<el-select v-model="form.is_confirm" placeholder="请选择是否确认" :disabled="disabled?true:false">
+					<el-form-item label="是否确认" prop="is_confirm">
+						<el-select v-model="form.is_confirm" placeholder="请选择是否确认" @change="getIsConfirmValue" :disabled="disabled?true:false">
 							<el-option v-for="item in IS_CONFIRM_LIST" :key="item.value" :label="item.label"
 								:value="item.value" />
 						</el-select>
@@ -90,23 +90,26 @@
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="操作员" prop="operation_user_ids">
-						<el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
+						<UserSelect :value="form.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+						<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 							<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
-						</el-select>
+						</el-select> -->
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="单证员" prop="document_user_ids">
-						<el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
+						<UserSelect :value="form.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+						<!-- <el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 							<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
-						</el-select>
+						</el-select> -->
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
 					<el-form-item label="商务" prop="commerce_user_ids">
-						<el-select v-model="form.commerce_user_ids" placeholder="请选择商务" filterable clearable multiple>
+						<UserSelect :value="form.commerce_user_ids" @update:value="form.commerce_user_ids= $event" :user-type="'COMMERCE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+						<!-- <el-select v-model="form.commerce_user_ids" placeholder="请选择商务" filterable clearable multiple>
 							<el-option v-for="item in COMMERCE_USER" :key="item.id" :label="item.name" :value="item.id" />
-						</el-select>
+						</el-select> -->
 					</el-form-item>
 				</el-col>
 			</el-row>
@@ -120,7 +123,7 @@
 			<!-- </template> -->
 		</div>
 		<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%" :append-to-body='true'>
-			<el-input v-model="form.generate_information" placeholder="请输入生成信息" :rows="8" type="textarea" id="myTextarea"/>
+			<el-input v-model="form.generate_information" placeholder="请输入生成信息" :rows="10" type="textarea" id="myTextarea"/>
 		</el-dialog>
 	</div>
 </template>
@@ -134,10 +137,13 @@
 			listUser as userListData
 		} from "@/api/system/user";
 	import { onMounted, toRefs,watchEffect } from 'vue';
+	import UserSelect from '@/components/UserSelect'
 	import useUserStore from "@/store/modules/user";
 	const Emit = defineEmits(['handleCancle'])
 	const {proxy} = getCurrentInstance();
 	const userStore = useUserStore();  //vuex缓存的用户信息
+	const roleTypeList= ref(['SUPER_ADMIN'])  //当前页面有所有人权限的角色
+	const roleTypeNowList= ref(['OPERATE','DOCUMENT','COMMERCE'])  //当前页面共享人所有人权限的角色
 	// 验证大小写
 	const handleInputTaxNumber = (lable, value, isChar = 0) => {
 		if (isChar == 0) {
@@ -145,7 +151,7 @@
 		} else if (isChar == 1) {
 			form.value[lable] = value.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase(); // 转换为大写
 		} else if (isChar == 2) {
-			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;''-*,，@: //.-=]/g, "").toUpperCase();
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;'',，\-@: //.=*]/g, "").toUpperCase();
 		}
 	}
 	const props  = defineProps({
@@ -196,14 +202,18 @@
 	} = toRefs(data);
 	const disabled = ref(false);
 	
-	watch(() => [form.value.is_confirm, form.value.type], (newVal, oldVal) => {
+	const formRef= ref()
+	watch(() => [form.value.is_confirm, form.value.type, form.value.operation_user_ids, form.value.document_user_ids, form.value.commerce_user_ids], (newVal, oldVal) => {
 	console.log(newVal, oldVal,200); // 输出新旧值的数组
+		formRef.value?.clearValidate()
 		if(newVal[0]=== 0){
+			rules.value = {};
 			rules.value= {
 						name: [{required: true,message: "名称不能为空",trigger: "blur"}],
 						type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
 					}
 		}else if(newVal[0]=== 1){
+			rules.value = {};
 			if(newVal[1]=== 'sender'){
 				rules.value= {
 					code: [{required: true,message: "代码不能为空",trigger: "blur"}],
@@ -233,17 +243,49 @@
 					type_content: [{required: true,message: "具体信息不能为空",trigger: "blur"}]
 				}
 			}
+			if((form.value.confirm_user_id && userStore.id === form.value.confirm_user_id) || roleTypeList.value.includes(userStore.userRoleCode)){
+				if(!newVal[2].find(item=> item=== form.value.confirm_user_id) && !newVal[3].find(item=> item=== form.value.confirm_user_id) && !newVal[4].find(item=> item=== form.value.confirm_user_id) && !roleTypeList.value.includes(userStore.userRoleCode)){
+					form.value.is_confirm= 0
+				}
+				// if(!newVal[3].find(item=> item=== userStore.id)){
+				// 	form.value.is_confirm= 0
+				// }
+				// if(!newVal[4].find(item=> item=== userStore.id)){
+				// 	form.value.is_confirm= 0
+				// }
+				// if(userStore.userRoleCode=== 'OPERATE'){
+				// 	if(!newVal[2].find(item=> item=== userStore.id)){
+				// 		form.value.is_confirm= 0
+				// 		console.log(259)
+				// 	}
+				// }else if(userStore.userRoleCode=== 'DOCUMENT'){
+				// 	if(!newVal[3].find(item=> userStore.id)){
+				// 		form.value.is_confirm= 0
+				// 	}
+				// }else if(userStore.userRoleCode=== 'COMMERCE'){
+				// 	if(!newVal[4].find(item=> userStore.id)){
+				// 		form.value.is_confirm= 0
+				// 	}
+				// }
+			}
+			
 		}
 	})
+	const roleTypeUserIdList= ref([])
 	// 非增加操作时,获取详情信息
 	watchEffect(()=>{
 		console.log('props.btnType', props.btnType)
 		if(props.model){
-			form.value =  props.model
+			form.value =  JSON.parse(JSON.stringify(props.model))
 			// 收发通类型:代码:名称:地址:国家/地区代码AEO企业编码:具体联系人:联系人电话:
-			if(props.btnType == 'edit' && form.value.is_confirm=== 1 && form.value.confirm_user_id!== userStore.id){
-				rules.value = {};
+			if(props.btnType == 'edit' && props.model.is_confirm=== 1 && props.model.confirm_user_id!== userStore.id && !roleTypeList.value.includes(userStore.userRoleCode)){
 				disabled.value = true;
+			// if(props.btnType == 'edit' && props.model.is_confirm=== 1 && (!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== props.model.confirm_user_id)){
+				// 1.当当前登录人权限不为最高权限时不可修改确认人
+				// 2.当前登录人id不为确认人id时不可修改确认人共享权限
+				console.log(userStore.id !== form.value.confirm_user_id,293)
+				roleTypeUserIdList.value.push(form.value.confirm_user_id)
+				console.log(roleTypeUserIdList.value,286)
 			}
 		}
 		// console.log(props.model,202)
@@ -253,7 +295,7 @@
 	function openDialog(){
 		openInformation.value= true
 		let typeLabel= TYPE_LIST.value.find(item =>item.value=== form.value.type)?TYPE_LIST.value.find(item =>item.value=== form.value.type).label : ''
-		form.value.generate_information= `收发通类型:${typeLabel}\r\n代码:${form.value.code}\r\n名称:${form.value.name?form.value.name:''}\r\n电话:${form.value.phone?form.value.phone:''}\r\n地址:${form.value.address?form.value.address:''}\r\n国家/地区代码:${form.value.country}\r\nAEO企业编码:${form.value.aeo_company_code?form.value.aeo_company_code:''}\r\n具体联系人:${form.value.contact_name? form.value.contact_name:''}\r\n联系人电话:${form.value.contact_phone? form.value.contact_phone:''}`
+		form.value.generate_information= `收发通类型:${typeLabel}\r\n代码:${form.value.code}\r\n名称:${form.value.name?form.value.name:''}\r\n电话:${form.value.phone?form.value.phone:''}\r\n地址:${form.value.address?form.value.address:''}\r\n国家/地区代码:${form.value.country}\r\nAEO企业编码:${form.value.aeo_company_code?form.value.aeo_company_code:''}\r\n具体联系人:${form.value.contact_name? form.value.contact_name:''}\r\n联系人电话:${form.value.contact_phone? form.value.contact_phone:''}\r\n备注:${form.value.remark?form.value.remark:''}`
 	}
 	// 收发通类型
 	const TYPE_LIST = ref([{
@@ -290,49 +332,42 @@
 	const COMMERCE_USER = ref([])
 	const type_content_label = ref('收货人具体信息')
 	
-	function getSelectDataList(){  // 角色  1  超管  2  操作  3 单证  4 商务
-		Promise.all([userDataSelect('OPERATE'), userDataSelect('DOCUMENT'), userDataSelect('COMMERCE')]).then(([operates,documents,commerces]) => {
-			OPERATION_USER.value= operates?operates: []
-			DOCUMENT_USER.value= documents?documents: []
-			COMMERCE_USER.value= commerces?commerces: []
+	// function getSelectDataList(){  // 角色  1  超管  2  操作  3 单证  4 商务
+	// 	Promise.all([userDataSelect('OPERATE'), userDataSelect('DOCUMENT'), userDataSelect('COMMERCE')]).then(([operates,documents,commerces]) => {
+	// 		OPERATION_USER.value= operates?operates: []
+	// 		DOCUMENT_USER.value= documents?documents: []
+	// 		COMMERCE_USER.value= commerces?commerces: []
 
-			if(userStore.userRole !== 1){
-				if(userStore.userRole=== 2){
-					userSelectEdit(OPERATION_USER.value,form.value.operation_user_ids)
-				}else if(userStore.userRole=== 3){
-					userSelectEdit(DOCUMENT_USER.value,form.value.document_user_ids)
-				}else if(userStore.userRole=== 4){
-					userSelectEdit(COMMERCE_USER.value,form.value.commerce_user_ids)
-				}
-			}
+	// 		if(userStore.userRole !== 1){
+	// 			if(userStore.userRole=== 2){
+	// 				userSelectEdit(OPERATION_USER.value,form.value.operation_user_ids)
+	// 			}else if(userStore.userRole=== 3){
+	// 				userSelectEdit(DOCUMENT_USER.value,form.value.document_user_ids)
+	// 			}else if(userStore.userRole=== 4){
+	// 				userSelectEdit(COMMERCE_USER.value,form.value.commerce_user_ids)
+	// 			}
+	// 		}
 			
-		})
-	}
-	function userDataSelect(code){
-		return new Promise((resolve, reject) => {
-		  userListData({
-		  	is_paginate: 0,
-		  	code: code
-		  }).then(response => {
-		  	resolve(response.data)
-		  }).catch((e) =>reject(e))
-		  .finally(()=>{})
-		})
-	} 
-	// 当前登录用户必选且不可编辑
+	// 	})
+	// }
+	// function userDataSelect(code){
+	// 	return new Promise((resolve, reject) => {
+	// 	  userListData({
+	// 	  	is_paginate: 0,
+	// 	  	code: code
+	// 	  }).then(response => {
+	// 	  	resolve(response.data)
+	// 	  }).catch((e) =>reject(e))
+	// 	  .finally(()=>{})
+	// 	})
+	// } 
+	//  已确认默认增加自己的共享权限
 	function userSelectEdit(list,val){
-		list.forEach(item =>{
-			if(item.id=== userStore.id  || (props.btnType !== 'add' && form.value.is_confirm=== 1 && form.value.confirm_user_id=== item.id)){
-				if(props.btnType === 'add'){
-					val.push(item.id)
-				}
-				item.select= true
-			}else{
-				item.select= false
-			}
-		})
+		if(!val.find(item => item=== userStore.id)){
+			val.push(userStore.id)
+		}
 	}
-	getSelectDataList()
+	// getSelectDataList()
 	// 获取收发通类型后的提示文字
 	function getTypeContentLabel(type){
 		var label = TYPE_LIST.value.find(item =>{item.value=== type});
@@ -340,8 +375,30 @@
 			type_content_label.value = label.contentLabel
 		}
 	}
+	// 是否确认
+	function getIsConfirmValue(e){
+		if(e=== 1 && (roleTypeNowList.value.includes(userStore.userRoleCode))){
+			if(userStore.userRoleCode=== 'OPERATE'){
+				userSelectEdit(OPERATION_USER.value,form.value.operation_user_ids)
+			}else if(userStore.userRoleCode=== 'DOCUMENT'){
+				userSelectEdit(DOCUMENT_USER.value,form.value.document_user_ids)
+			}else if(userStore.userRoleCode=== 'COMMERCE'){
+				userSelectEdit(COMMERCE_USER.value,form.value.commerce_user_ids)
+			}
+		}
+	}
+	// 必填
+	function checkInfo(){
+		if((!form.value.commerce_user_ids || form.value.commerce_user_ids.length=== 0) && (!form.value.operation_user_ids || form.value.operation_user_ids.length=== 0) && (!form.value.document_user_ids || form.value.document_user_ids.length=== 0)){
+			proxy.$modal.msgWarning("请选择至少一个共享人");
+			return false;
+		}
+		return true;
+	}
 	// 提交/保存
 	function submitForm(){
+		console.log(form.value)
+		if(!checkInfo()) return;
 		proxy.$refs["formRef"].validate(valid => {
 		  if (valid) {
 		    if (props.btnType=== 'add') {

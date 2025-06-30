@@ -91,7 +91,7 @@
 					</el-form-item>
 
 					<el-form-item label="入职时间" prop="hire_date" style="width: 300px">
-						<el-date-picker v-model="form.hire_date" placeholder="请选择" format="YYYY-MM-DD"
+						<el-date-picker v-model="form.hire_date" placeholder="请选择" format-value="YYYY-MM-DD"
 							type="date"></el-date-picker>
 					</el-form-item>
 
@@ -99,7 +99,6 @@
 						<el-date-picker v-model="form.leave_date" placeholder="请选择" format="YYYY-MM-DD"
 							type="date"></el-date-picker>
 					</el-form-item>
-					{{btnType}}
 					<el-form-item label="提成比例" prop="base_rate" style="width: 300px"  v-if="btnType==='add'">
 						<el-input v-model="form.base_rate" type="number" placeholder="≤1万时的提成比例(%)" />
 					</el-form-item>
@@ -127,6 +126,11 @@
 						</el-radio-group>
 					</el-form-item>
 				</el-row>
+				<el-form-item label="入职单位" prop="seller_ids" style="width: 300px">
+					<el-select v-model="form.seller_ids" placeholder="请选择" clearable multiple>
+						<el-option v-for="item in SELLERS_LIST" :key="item.id" :label="item.name" :value="item.id" />
+					</el-select>
+				</el-form-item>
 				<el-form-item label="备注" prop="remark" style="width: 300px">
 					<el-input v-model="form.remark" type="textarea" rows="3" placeholder="请输入" />
 				</el-form-item>
@@ -166,7 +170,7 @@
 			<el-form :model="form2" :rules="rules2" ref="userRef2" label-width="100px">
 				<el-row>
 					<el-form-item label="月份" prop="month_code" style="width: 300px">
-						<el-date-picker v-model="form2.month_code" placeholder="请选择" format="YYYY-MM-DD"
+						<el-date-picker v-model="form2.month_code" placeholder="请选择" format="YYYY-MM"
 							type="date"></el-date-picker>
 					</el-form-item>
 
@@ -232,7 +236,10 @@
 	import {
 		listData as deptListData
 	} from "@/api/system/dept";
-
+	import {
+		listData as listSellersData
+	} from "@/api/system/system-parameter/sellers";
+	
 	import {
 		Splitpanes,
 		Pane
@@ -325,7 +332,17 @@
 			role_id: [{
 				required: true,
 				message: "角色不能为空",
-				trigger: "blur"
+				trigger: "change"
+			}],
+			hire_date: [{
+				required: true,
+				message: "入职时间不能为空",
+				trigger: "change"
+			}],
+			seller_ids: [{
+				required: true,
+				message: "入职单位不能为空",
+				trigger: "change"
 			}]
 		},
 		rules2: []
@@ -361,7 +378,17 @@
 		})
 	}
 	getSelectionList()
-
+	
+	const SELLERS_LIST = ref([])
+	// 入职单位下拉框
+	function getListSellersData() {
+		listSellersData({
+			is_paginate: 0
+		}).then(response => {
+			SELLERS_LIST.value = response.data
+		})
+	}
+	getListSellersData()
 
 	/** 查询用户列表 */
 	function getList() {
@@ -493,7 +520,8 @@
 			unit_price: undefined,
 			basic_salary: undefined,
 			status: 1,
-			remark: undefined
+			remark: undefined,
+			seller_ids:null
 		};
 		proxy.resetForm("userRef");
 	};
@@ -571,14 +599,16 @@
 	function submitForm() {
 		proxy.$refs["userRef"].validate(valid => {
 			if (valid) {
+				let params = JSON.parse(JSON.stringify(form.value));
+				params.seller_ids = JSON.stringify(params.seller_ids);
 				if (form.value.id != undefined) {
-					updateUser(form.value).then(response => {
+					updateUser(params).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
 						open.value = false;
 						getList();
 					});
 				} else {
-					addUser(form.value).then(response => {
+					addUser(params).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();
