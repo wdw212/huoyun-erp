@@ -278,6 +278,42 @@ const routerList = [{
 	name: "BusinessManagement",
 	path: "/business-management",
 	redirect: "noRedirect",
+}, {
+	alwaysShow: true,
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "财务管理",
+	},
+	name: "FinanceManagement",
+	path: "/finance-management",
+	redirect: "noRedirect",
+	children: [{
+		component: "finance-management/profit-statistics/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "利润统计",
+		},
+		name: "ProfitStatistics",
+		path: "profit-statistics",
+	},{
+		component: "finance-management/salary-settlement/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "工资结算",
+		},
+		name: "SalarySettlement",
+		path: "salary-settlement",
+	}],
 }];
 
 
