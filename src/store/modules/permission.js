@@ -314,7 +314,33 @@ const routerList = [{
 		name: "SalarySettlement",
 		path: "salary-settlement",
 	}],
-}];
+},{
+	// alwaysShow: true,
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "待办事项",
+	},
+	name: "TodoList",
+	path: "/todo-list",
+	redirect: "noRedirect",
+	children: [{
+		component: "todo-list/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "待办事项",
+		},
+		name: "todoListIndex",
+		path: "todo-list-index",
+	}],
+  }
+];
 
 
 

@@ -26,6 +26,11 @@
 			@selection-change="handleSelectionChange">
 			<!-- <el-table-column type="selection" width="55" align="center" /> -->
 			<el-table-column label="名称" align="center" prop="name" />
+			<el-table-column label="宁波20GP" align="center" prop="name" />
+			<el-table-column label="宁波40HQ" align="center" prop="name" />
+			<el-table-column label="上海20GP" align="center" prop="name" />
+			<el-table-column label="上海40HQ" align="center" prop="name" />
+			<el-table-column label="备注" align="center" prop="name" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width"  v-if="editALLBtnType.includes(userStore.userRoleCode)">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
