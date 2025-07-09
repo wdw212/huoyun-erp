@@ -263,7 +263,7 @@
 					label: '查看详情',
 					type: 'primary',
 					size: 'small',
-					icon: View,
+					icon: 'View',
 					onClick: (row) => handleEdit(row)
 				},
 			],

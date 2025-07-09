@@ -44,9 +44,13 @@
 				</template>
 			</el-form-item>
 		
-			<el-form-item>
+			<el-form-item v-show="btnShow">
 				<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
 				<el-button icon="Refresh" @click="resetQuery">重置</el-button>
+			</el-form-item>
+			
+			<el-form-item>
+				<slot name="fromCon"></slot>
 			</el-form-item>
 		</el-form>
 	</div>
@@ -69,7 +73,11 @@
 		resetBtnShow: {
 			type: Boolean,
 			default: false
-		}
+		},
+		btnShow: {
+			type: Boolean,
+			default: true
+		},
 	})
 	
 	const searchQuery = ref({});
