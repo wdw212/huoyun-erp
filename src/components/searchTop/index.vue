@@ -6,20 +6,37 @@
 				<template v-if="item.type=='input'">
 					<el-input v-model="searchQuery[item.key]" 
 					:placeholder="item.placeholder" clearable
-					@keyup.enter="handleQuery" />
+					@keyup.enter="handleQuery" :disabled="item.disabled"/>
 				</template>
 				<template v-if="item.type=='date'">
 					<el-date-picker v-model="searchQuery[item.key]" 
 					:placeholder="item.placeholder" :value-format="item.valueFormat||'YYYY-MM-DD'" 
-					:type="item.dateType||'daterange'"
+					:type="item.dateType||'daterange'" :disabled="item.disabled"
 					:start-placeholder="item.startPlaceholder||'开始时间'" 
 					:end-placeholder="item.endPlaceholder||'结束时间'" 
 					:range-separator="item.rangeSeparator||'-'"  />
 				</template>
 				<template v-if="item.type=='select'">
-					<el-select v-model="searchQuery[item.key]" style="min-width: 200px"
-					:placeholder="item.placeholder||'请选择'" clearable>
+					<el-select v-model="searchQuery[item.key]" :style="item.style||'width:180px'"
+					:placeholder="item.placeholder||'请选择'" clearable
+					:disabled="item.disabled">
 						<el-option v-for="vv in item.options" 
+						:key="vv[item.keyName||'id']" 
+						:label="vv[item.labelName||'label']"
+						:value="vv[item.valueName||'value']" />
+					</el-select>
+				</template>
+				<template v-if="item.type=='selectSearch'">
+					<el-select v-model="searchQuery[item.key]" filterable
+					:disabled="item.disabled"
+					:multiple="item.multiple" remote
+					:placeholder="item.placeholder||'请选择'"
+					:reserve-keyword="item.reserveKeyword"
+					:remote-show-suffix="item.remoteShowSuffix"
+					:remote-method="item.remoteMethod"
+					:loading="item.loading" :style="item.style"
+					>
+						<el-option v-for="vv in item.options"
 						:key="vv[item.keyName||'id']" 
 						:label="vv[item.labelName||'label']"
 						:value="vv[item.valueName||'value']" />

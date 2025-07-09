@@ -1,14 +1,24 @@
 <template>
 	<div style="padding: 20px;">
 		
-		<el-row :gutter="10" class="mb8" justify="end">
-			<slot name="header"></slot>
-			<right-toolbar @queryTable="getList" :columns="columns" v-show="toolbar"></right-toolbar>
-		</el-row>
+		<slot name="headerCon"></slot>
+		
+		<div class="flex mb8">
+			<div style="flex: 1;">
+				<slot name="headerLeft"></slot>
+			</div>
+			<div class="flex">
+				<slot name="headerRight"></slot>
+				<right-toolbar @queryTable="getList" :columns="columns" v-show="toolbar"></right-toolbar>
+			</div>
+		</div>
 
 		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey"
 			:size="size" :height="height" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-show="multiple" />
+			<!-- <el-table-column label="序号" width="50" align="center" v-show="number">
+				<template #default="scope">{{scope.row}}</template>
+			</el-table-column> -->
 			<template v-for="(item,index) in tableColumn" :key="index">
 				<!-- 展示列 -->
 				<el-table-column 
@@ -19,7 +29,7 @@
 				</el-table-column>
 
 				<!-- 操作列 -->
-				<el-table-column v-if="item.prop=='actions'" 
+				<el-table-column v-if="item.prop=='actions'" :fixed="item.fixed"
 				:label="item.label" :align="item.align||'center'" :width="item.width">
 					<template #default="{row}">
 						<action-buttons :row="row" :actions="item.actions" />
@@ -83,6 +93,10 @@
 		toolbar: {
 			type: Boolean,
 			default: false
+		},
+		number: {
+			type: Boolean,
+			default: true
 		},
 	})
 
@@ -198,5 +212,10 @@
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 8px;
+	}
+	.flex{
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
 </style>

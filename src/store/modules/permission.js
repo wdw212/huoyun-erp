@@ -292,7 +292,18 @@ const routerList = [{
 	path: "/finance-management",
 	redirect: "noRedirect",
 	children: [{
-		component: "finance-management/profit-statistics/index",
+		component: "finance-management/financial-documents",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "财务单据",
+		},
+		name: "FinancialDocuments",
+		path: "financial-documents",
+	},{
+		component: "finance-management/profit-statistics",
 		hidden: false,
 		meta: {
 			icon: "edit",
@@ -303,7 +314,7 @@ const routerList = [{
 		name: "ProfitStatistics",
 		path: "profit-statistics",
 	},{
-		component: "finance-management/salary-settlement/index",
+		component: "finance-management/salary-settlement",
 		hidden: false,
 		meta: {
 			icon: "edit",
