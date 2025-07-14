@@ -33,3 +33,39 @@ export function delByIds(id) {
 		method: 'delete'
 	})
 }
+
+// 备注
+// 查询列表
+export function listDataRemarks(params) {
+	return request({
+		url: '/remarks',
+		method: 'get',
+		params
+	})
+}
+
+// 新增
+export function addDataRemarks(data) {
+	return request({
+		url: '/remarks',
+		method: 'post',
+		data: data
+	})
+}
+
+// 修改
+export function updateDataRemarks(data) {
+	return request({
+		url: '/remarks/' + data.id,
+		method: 'put',
+		data: data
+	})
+}
+
+// 删除
+export function delByIdsRemarks(id) {
+	return request({
+		url: '/remarks/' + id,
+		method: 'delete'
+	})
+}

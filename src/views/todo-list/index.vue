@@ -10,7 +10,8 @@
 			  </template>
 			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules">
 				  <el-form-item style="flex:1" prop="title">
-				  	<el-input v-model="form.title" placeholder="请输入待办事项" clearable />
+				  	<el-input v-model="form.title" placeholder="请输入待办事项" clearable  type="textarea"
+							:rows="3" />
 				  </el-form-item>
 				  <el-form-item >
 				  	<el-button type="primary" icon="Plus" @click="handleAdd" :loadingAddBtn="loadingAddBtn">添加</el-button>
@@ -36,26 +37,31 @@
 					  <span>备注</span>
 					</div>
 				</template>
-				<div class="btn-padding">
-					<el-button type="primary" icon="Plus" @click="formRemark.remark.push('')">新增备注</el-button>
+				<div class="btn-padding flex">
+					<el-button style='margin-right: 10px' type="primary" icon="Plus" @click="handleAddRemarks">新增备注</el-button>
+					<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'remark'"></view-indicate>
 				</div>
 				<el-form ref="queryParamsRef" :model="queryParams" :inline="true" class="flex flex-align-center" :rules="rules">
 				  <el-form-item style="flex:1">
 					<el-input v-model="queryParams.keyword" placeholder="请输入备注关键字" clearable />
 				  </el-form-item>
 				  <el-form-item >
-					<el-button type="primary" icon="search" @click="handleSearch">搜索</el-button>
+					<el-button type="primary" icon="search" @click="handleSearcRemarks" :loading="loadingRemarks">搜索</el-button>
 				  </el-form-item>
 				</el-form>
-				<div>
-					<span v-for="(item, index) in formRemark.remark" :key="index"
-						class="input-wrapper mr20 mb20" style="width: 300px; position: relative;">
+				<div class="flex flex-wrap">
+					<span v-for="(item, index) in dataListRemarks" :key="index"
+						class="input-wrapper mr20 mb20" style="width: 30%">
 						<!-- 漂浮的 div -->
-						<div class="floating-div" @click="formRemark.remark.splice(index, 1);">×</div>
+						<div class="floating-div flex flex-justify-between">
+							<el-button class="icon-color-black" icon="Delete" @click="handleDeleteRemarks(item,index)"></el-button>
+							<!-- <p @click="formRemark.remark.splice(index, 1);">×</p> -->
+							<el-button type="primary" @click="submitFormRemarks(item)" :loading="loadingSaveBtn">保 存</el-button>
+						</div>
 
 						<!-- el-input -->
-						<el-input v-model="formRemark.remark[index]" placeholder="请输入" type="textarea"
-							:rows="4" />
+						<el-input v-model="item.content" placeholder="请输入" type="textarea"
+							:rows="6" />
 					</span>
 				</div>
 			</el-card>
@@ -70,9 +76,14 @@
 		listData,
 		delByIds,
 		addData,
-		updateData
+		updateData,
+		listDataRemarks,
+		addDataRemarks,
+		updateDataRemarks,
+		delByIdsRemarks
 	} from "@/api/todo-list";
 	const {proxy} = getCurrentInstance();
+	import ViewIndicate from '@/components/ViewIndicate/index'
 	const data = reactive({
 		form: {
 			title: '',  
@@ -82,23 +93,24 @@
 		},
 		queryParams: {
 			keyword: ''
-		},
-		formRemark: {
-			remark: []
 		}
 	});
 	const {
 		form,
 		rules,
 		queryParams,
-		formRemark
+		// formRemark
 	} = toRefs(data);
 	 const radio1= ref("1")
 	 const loading = ref(false)
 	 const loadingAddBtn = ref(false)
+	 const loadingRemarks = ref(false)
+	 const loadingSaveBtn = ref(false)
 	 const dataList = ref([]);
+	 const dataListRemarks= ref([])
 	 
 	 // 新增
+	 // 待办事项
 	 function handleAdd() {
 		 proxy.$refs["formRef"].validate(valid => {
 		   if (valid) {
@@ -108,6 +120,10 @@
 	 	// open.value= true
 	 	// title.value = "新增";
 	 	
+	 }
+	 // 备注	
+	 function handleAddRemarks(){
+		 dataListRemarks.value.unshift({content:""})
 	 }
 	 // 编辑
 	 function handleEdit(item,type){  //type 0 不修改内容  1 调接口修改内容
@@ -127,7 +143,26 @@
 		 updateDataForm(item)
 		 
 	 }
+	 // 模糊搜索
+	 function handleSearcRemarks(){
+		 dataListRemarks.value= []
+		 getListRemarks()
+	 }
+	 // 保存备注
+	 function submitFormRemarks(item){
+		 console.log(item,'item.content')
+		 if(!item.content){
+			 proxy.$modal.msgWarning("请输入备注内容");
+			 return false
+		 }
+		 if(item.id){
+			 updateDataFormRemarks(item)
+		 }else{
+			 addDataFormRemarks(item)
+		 }
+	 }
 	 /** 查询列表 */
+	 // 待办事项
 	 function getList() {
 	 	loading.value = true;
 	 	listData().then(response => {
@@ -141,6 +176,16 @@
 	 	.finally(()=>{ loading.value = false })
 	 }
 	 getList()
+	 // 备注
+	 function getListRemarks() {
+	 	loadingRemarks.value = true;
+	 	listDataRemarks(queryParams.value).then(response => {
+	 		dataListRemarks.value = response.data
+	 	}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
+	 	.finally(()=>{ loadingRemarks.value = false })
+	 }
+	 getListRemarks()
+	 // 待办事项
 	 function addDataForm(){
 		 loadingAddBtn.value= true
 		addData(form.value).then(response => {
@@ -167,6 +212,33 @@
 		}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
 	 	.finally(()=>{ loading.value = false });
 	}
+	// 备注
+	function addDataFormRemarks(item){
+		 loadingSaveBtn.value= true
+		 console.log(item,'209')
+		addDataRemarks(item).then(response => {
+		  proxy.$modal.msgSuccess("新增成功");
+		  getListRemarks()
+		  // open.value = false;
+		  // getList();
+		}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
+	 	.finally(()=>{ loadingSaveBtn.value = false });
+	}
+	function updateDataFormRemarks(item){
+		console.log(item,'item')
+		loadingSaveBtn.value= true
+		let data={
+			id: item.id,
+			content: item.content
+		}
+		updateDataRemarks(data).then(response => {
+		  proxy.$modal.msgSuccess("修改成功");
+		  getListRemarks()
+		  // open.value = false;
+		  // getList();
+		}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
+	 	.finally(()=>{ loadingSaveBtn.value = false });
+	}
 	/** 删除按钮操作 */
 	function handleDelete(item) {
 		proxy.$modal.confirm('是否确认删除此条待办事项？').then(function() {
@@ -175,6 +247,19 @@
 			getList();
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
+	}
+	function handleDeleteRemarks(item,index){
+		if(item.id){
+			proxy.$modal.confirm('是否确认删除此条备注？').then(function() {
+				return delByIdsRemarks(item.id);
+			}).then(() => {
+				getListRemarks();
+				proxy.$modal.msgSuccess("删除成功");
+			}).catch(() => {});
+		}else{
+			dataListRemarks.value.splice(index,1)
+		}
+		
 	}
 </script>
 
@@ -187,6 +272,9 @@
 	}
 	.flex-justify-around{
 		justify-content: space-around
+	}
+	.flex-justify-between{
+		justify-content: space-between
 	}
 	.box-card{
 		width: 48%;
@@ -219,5 +307,16 @@
 	}
 	.btn-padding{
 		padding: 10px 0
+	}
+	.flex-wrap{
+		flex-wrap: wrap;
+	}
+</style>
+<style lang="scss" scoped>
+	.floating-div{
+		margin-bottom: 10px
+	}
+	.box-card{
+		height: 800px
 	}
 </style>
