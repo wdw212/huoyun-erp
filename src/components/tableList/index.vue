@@ -1,14 +1,24 @@
 <template>
-	<div style="padding: 20px;">
+	<div style="padding: 0 20px;">
 		
-		<el-row :gutter="10" class="mb8" justify="end">
-			<slot name="header"></slot>
-			<right-toolbar @queryTable="getList" :columns="columns" v-show="toolbar"></right-toolbar>
-		</el-row>
+		<slot name="headerCon"></slot>
+		
+		<div class="flex">
+			<div style="flex: 1;">
+				<slot name="headerLeft"></slot>
+			</div>
+			<div class="flex">
+				<slot name="headerRight"></slot>
+				<right-toolbar @queryTable="getList" :columns="columns" v-show="toolbar"></right-toolbar>
+			</div>
+		</div>
 
-		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey"
+		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :border="border"
 			:size="size" :height="height" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-show="multiple" />
+			<!-- <el-table-column label="序号" width="50" align="center" v-show="number">
+				<template #default="scope">{{scope.row}}</template>
+			</el-table-column> -->
 			<template v-for="(item,index) in tableColumn" :key="index">
 				<!-- 展示列 -->
 				<el-table-column 
@@ -19,7 +29,7 @@
 				</el-table-column>
 
 				<!-- 操作列 -->
-				<el-table-column v-if="item.prop=='actions'" 
+				<el-table-column v-if="item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
 				:label="item.label" :align="item.align||'center'" :width="item.width">
 					<template #default="{row}">
 						<action-buttons :row="row" :actions="item.actions" />
@@ -30,6 +40,8 @@
 
 		<pagination v-show="pageShow&&pageInit.total>0" v-model:page="pageInit.page" :total="pageInit.total"
 			v-model:limit="pageInit.pageSize" @pagination="getList" />
+		
+		<slot name="bottomCon"></slot>
 
 	</div>
 </template>
@@ -84,10 +96,18 @@
 			type: Boolean,
 			default: false
 		},
+		number: {
+			type: Boolean,
+			default: true
+		},
+		border: {
+			type: Boolean,
+			default: false
+		},
 	})
 
 	onMounted(() => {
-		console.log('组件', props.tableColumn);
+		// console.log('组件', props.tableColumn);
 		if (props.tableConfig.isQuery) {
 			if(props.toolbar){
 				columnsInit();
@@ -97,7 +117,7 @@
 	})
 
 	watch(props.tableConfig, (newVal) => {
-		console.log('tableConfig变更', newVal);
+		// console.log('tableConfig变更', newVal);
 		if (newVal.page) {
 			pageInit.value = newVal.page;
 		}
@@ -110,7 +130,7 @@
 	const tableData = ref([]);
 	const pageInit = ref({
 		page: 1,
-		pageSize: 15,
+		pageSize: 30,
 		total: 0
 	})
 
@@ -149,12 +169,11 @@
 				},
 				props.actions.map((action, i) =>
 					h(ElButton, {
-						type: action.type,
-						size: action.size,
+						type: action.type||'primary',
+						size: action.size||'small',
+						icon: action.icon,
 						onClick: () => action.onClick(props.row),
-						style: {
-							marginRight: '10px'
-						},
+						style: action.style||{},
 						key: i
 					},
 					() => action.label
@@ -198,5 +217,15 @@
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 8px;
+	}
+	.flex{
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+</style>
+<style>
+	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before{
+		border-right: 1px solid #dcdfe6;
 	}
 </style>
