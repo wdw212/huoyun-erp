@@ -2,6 +2,9 @@ import { createApp } from 'vue'
 
 import Cookies from 'js-cookie'
 
+// 公共样式
+import './public.css'
+
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'

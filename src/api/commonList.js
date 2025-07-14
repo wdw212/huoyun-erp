@@ -19,3 +19,67 @@ export async function getCZY() {
 	let res = await httpGet('/admin-users', params);
 	return res.data||[]
 }
+
+//抬头列表
+export async function getTT(keyword) {
+	var params = {
+		is_paginate: 0,
+		keyword: keyword
+	}
+	let res = await httpGet('/company-headers', params);
+	return res.data||[]
+}
+
+//业务/单据类型列表
+export async function getYWLX() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/order-types', params);
+	return res.data||[]
+}
+
+//其他选项
+export const optionsComm = {
+	'付款方式': [
+		{label: '月结', value: 1},
+		{label: '付款买单', value: 2},
+	],
+	'提货': [
+		{label: '已提货', value: '1'},
+		{label: '未提货', value: '0'},
+		{label: '超期未提货', value: '2'},
+	],
+	'发票': [
+		{label: '已开', value: '1'},
+		{label: '未开', value: '2'},
+	],
+	'毛利润': [
+		{label: '毛利润 > 0', value: '1'},
+		{label: '毛利润 = 0', value: '2'},
+		{label: '毛利润 < 0', value: '3'},
+	],
+	'费用比例': [
+		{label: '符合比例', value: '1'},
+		{label: '不符合比例', value: '2'},
+	],
+	'兑付': [
+		{label: '未兑付', value: 0},
+		{label: '已兑付', value: 1},
+	],
+	'费用完结': [
+		{label: '费用未完结', value: '1'},
+		{label: '费用已完结', value: '2'},
+	],
+	'截单状态': [
+		{label: '正常截单',value: 1}, 
+		{label: '等通知截单',value: 2}, 
+		{label: '开港后截单',value: 3}
+	],
+	'提单状态': [
+		{label: '正常提单',value: 1}, 
+		{label: '等通知电放',value: 2}, 
+		{label: '已电放',value: 3}, 
+		{label: '已seawaybil',value: 4}
+	]
+}

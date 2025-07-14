@@ -1,8 +1,8 @@
 <template>
-	<div style="padding: 0 20px;">
-		
+	<div>
+
 		<slot name="headerCon"></slot>
-		
+
 		<div class="flex">
 			<div style="flex: 1;">
 				<slot name="headerLeft"></slot>
@@ -13,35 +13,42 @@
 			</div>
 		</div>
 
-		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :border="border"
-			:size="size" :height="height" style="font-size: 12px;">
-			<el-table-column type="selection" width="55" align="center" v-show="multiple" />
-			<!-- <el-table-column label="序号" width="50" align="center" v-show="number">
-				<template #default="scope">{{scope.row}}</template>
-			</el-table-column> -->
-			<template v-for="(item,index) in tableColumn" :key="index">
-				<!-- 展示列 -->
-				<el-table-column 
-				v-if="item.prop!='actions'&&(!toolbar||(columns[index]&&columns[index].visible))" 
-				:label="item.label" :align="item.align||'center'"
-					:prop="item.prop" :width="item.width" :show-overflow-tooltip="item.tooltip||false"
-					:formatter="item.formatter">
+		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey"
+			:border="border" :size="size" :height="height" style="font-size: 12px;">
+			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
+			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
+			<template v-for="(item,index) in tableColumn" :key="index" v-show="!item.noShow">
+				<!-- 操作列 -->
+				<el-table-column v-if="item.type=='edit'" :fixed="item.fixed" :label="item.label"
+					:align="item.align||'center'" :width="item.width">
+					<template #default="{row,index}">
+						<common-form-item :item="item.form" :formValue="row[item.prop]"
+						@changeValue="itemChange"></common-form-item>
+					</template>
 				</el-table-column>
 
-				<!-- 操作列 -->
-				<el-table-column v-if="item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
-				:label="item.label" :align="item.align||'center'" :width="item.width">
+				<!-- 操作按钮列 -->
+				<el-table-column v-else-if="item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
+					:label="item.label" :align="item.align||'center'" :width="item.width">
 					<template #default="{row}">
 						<action-buttons :row="row" :actions="item.actions" />
 					</template>
 				</el-table-column>
+
+				<!-- 展示列 -->
+				<el-table-column
+					v-else-if="item.prop!='actions'&&(!toolbar||(toolbar&&columns[index]&&columns[index].visible))"
+					:label="item.label" :align="item.align||'center'" :prop="item.prop" :width="item.width"
+					:show-overflow-tooltip="item.tooltip||false" :formatter="item.formatter">
+				</el-table-column>
+
 			</template>
 		</el-table>
 
 		<pagination v-show="pageShow&&pageInit.total>0" v-model:page="pageInit.page" :total="pageInit.total"
 			v-model:limit="pageInit.pageSize" @pagination="getList" />
-		
-		<slot name="bottomCon"></slot>
+
+		<slot name="bottomCon" :tableData="tableData"></slot>
 
 	</div>
 </template>
@@ -63,6 +70,7 @@
 	import {
 		ElButton
 	} from 'element-plus'
+	import commonFormItem from "@/components/commonForm/formItem";
 
 	const props = defineProps({
 		tableConfig: {},
@@ -98,7 +106,7 @@
 		},
 		number: {
 			type: Boolean,
-			default: true
+			default: false
 		},
 		border: {
 			type: Boolean,
@@ -109,22 +117,28 @@
 	onMounted(() => {
 		// console.log('组件', props.tableColumn);
 		if (props.tableConfig.isQuery) {
-			if(props.toolbar){
-				columnsInit();
-			}
-			getList();
+			init();
 		}
 	})
 
 	watch(props.tableConfig, (newVal) => {
-		// console.log('tableConfig变更', newVal);
+		console.log('tableConfig变更', newVal);
 		if (newVal.page) {
 			pageInit.value = newVal.page;
+		}
+		if (newVal.isQuery) {
+			init();
 		}
 	}, {
 		deep: true
 	})
 
+	function init() {
+		if (props.toolbar) {
+			columnsInit();
+		}
+		getList();
+	}
 
 	const loading = ref(false);
 	const tableData = ref([]);
@@ -151,6 +165,43 @@
 		});
 	}
 
+	// 多选框选中数据
+	function handleSelectionChange(selection) {
+		var ids = selection.map(item => item.id);
+		emit('selectionChange', {
+			selection,
+			ids
+		});
+	}
+
+	const columns = ref([]);
+	const columnsInit = () => {
+		columns.value = [];
+		props.tableColumn.forEach((item, index) => {
+			if (item.prop != 'actions') {
+				columns.value.push({
+					key: index,
+					label: item.label,
+					visible: true
+				})
+			}
+		})
+	}
+	
+	const itemChange = (item, val) => {
+		console.log('itemChange', item, val);
+	}
+	
+	const updateTableData = (data) => {
+		tableData.value = data;
+	}
+
+	const emit = defineEmits(['selectionChange'])
+	defineExpose({
+		tableData,
+		updateTableData
+	})
+
 	// 定义独立的操作按钮组件
 	const ActionButtons = defineComponent({
 		props: {
@@ -169,45 +220,19 @@
 				},
 				props.actions.map((action, i) =>
 					h(ElButton, {
-						type: action.type||'primary',
-						size: action.size||'small',
-						icon: action.icon,
-						onClick: () => action.onClick(props.row),
-						style: action.style||{},
-						key: i
-					},
-					() => action.label
-				))
+							type: action.type || 'primary',
+							size: action.size || 'small',
+							icon: action.icon,
+							onClick: () => action.onClick(props.row),
+							style: action.style || {
+								margin: '0px'
+							},
+							key: i
+						},
+						() => action.label
+					))
 			)
 		}
-	})
-
-	// 多选框选中数据
-	function handleSelectionChange(selection) {
-		var ids = selection.map(item => item.id);
-		emit('selectionChange', {
-			selection,
-			ids
-		});
-	}
-	
-	const columns = ref([]);
-	const columnsInit = () => {
-		columns.value = [];
-		props.tableColumn.forEach((item, index)=>{
-			if(item.prop!='actions'){
-				columns.value.push({
-					key: index,
-					label: item.label,
-					visible: true
-				})
-			}
-		})
-	}
-
-	const emit = defineEmits(['selectionChange'])
-	defineExpose({
-
 	})
 </script>
 
@@ -218,14 +243,15 @@
 		justify-content: center;
 		gap: 8px;
 	}
-	.flex{
+
+	.flex {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
 	}
 </style>
 <style>
-	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before{
+	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before {
 		border-right: 1px solid #dcdfe6;
 	}
 </style>

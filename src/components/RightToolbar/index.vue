@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<el-row :gutter="10" class="mb8">
+		<el-row :gutter="10" class="mb-1">
 			<el-col :span="1.5">
 				<el-button icon="Refresh" plain @click="refresh()">刷新</el-button>
 			</el-col>

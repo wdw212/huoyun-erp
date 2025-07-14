@@ -139,7 +139,7 @@ const routerList = [{
 }, {
 	alwaysShow: true,
 	children: [{
-		component: "operation-page/operating-document/index",
+		component: "operation-page/operating-document/operating-document",
 		hidden: false,
 		meta: {
 			icon: "edit",
@@ -149,6 +149,17 @@ const routerList = [{
 		},
 		name: "OperatingDocument",
 		path: "operating-document",
+	},{
+		component: "operation-page/operating-document/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "操作单据旧",
+		},
+		name: "OperatingDocumentOld",
+		path: "operating-document-old",
 	}],
 	component: "Layout",
 	hidden: false,
