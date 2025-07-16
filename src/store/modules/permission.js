@@ -139,7 +139,7 @@ const routerList = [{
 }, {
 	alwaysShow: true,
 	children: [{
-		component: "operation-page/operating-document/operating-document",
+		component: "operation-page/operating-document/index",
 		hidden: false,
 		meta: {
 			icon: "edit",
@@ -147,20 +147,22 @@ const routerList = [{
 			noCache: false,
 			title: "操作单据",
 		},
-		name: "OperatingDocument",
-		path: "operating-document",
-	},{
-		component: "operation-page/operating-document/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "操作单据旧",
-		},
 		name: "OperatingDocumentOld",
 		path: "operating-document-old",
-	}],
+	},
+	// {
+	// 	component: "operation-page/operating-document/operating-document",
+	// 	hidden: false,
+	// 	meta: {
+	// 		icon: "edit",
+	// 		link: null,
+	// 		noCache: false,
+	// 		title: "操作单据新",
+	// 	},
+	// 	name: "OperatingDocument",
+	// 	path: "operating-document",
+	// },
+	],
 	component: "Layout",
 	hidden: false,
 	meta: {
@@ -291,17 +293,6 @@ const routerList = [{
 	redirect: "noRedirect",
 }, {
 	alwaysShow: true,
-	component: "Layout",
-	hidden: false,
-	meta: {
-		icon: "edit",
-		link: null,
-		noCache: false,
-		title: "财务管理",
-	},
-	name: "FinanceManagement",
-	path: "/finance-management",
-	redirect: "noRedirect",
 	children: [{
 		component: "finance-management/financial-documents",
 		hidden: false,
@@ -336,6 +327,17 @@ const routerList = [{
 		name: "SalarySettlement",
 		path: "salary-settlement",
 	}],
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "财务管理",
+	},
+	name: "FinanceManagement",
+	path: "/finance-management",
+	redirect: "noRedirect",
 },{
 	// alwaysShow: true,
 	component: "Layout",

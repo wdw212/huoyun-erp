@@ -1,75 +1,77 @@
 <template>
 	
-	<!-- 顶部搜索 -->
-	<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
-	
-	<!-- 表格 -->
-	<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-	class="px-2">
-		<template #headerCon>
-			<div style="display: flex;flex-wrap: wrap;text-align: center!important;">
-				<div style="width: 20%;margin-top: 10px;" v-for="(item,index) in statistic" :key="index">
-					<el-statistic :value="item.value" :precision="2" :prefix="item.prefix"
-					value-style="font-weight: bold;">
-						<template #title>
-							<span style="font-size: 15px;">{{item.title}}</span>
-						</template>
-					</el-statistic>
-				</div>
-			</div>
-			<el-divider />
-		</template>
-		<template #headerLeft> </template>
-		<template #headerRight>
-			<!-- <el-button type="primary" plain icon="Plus" @click="dialogFormVisible=true" style="margin-right: 10px;">新增</el-button> -->
-		</template>
-	</table-list>
-	
-	<!-- 单据详情 -->
-	<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit"> 
-		<!-- 订舱信息及备注 -->
-		<template #remarkList="{formList,saveData}">
-			<el-row :gutter="20">
-				<el-col v-for="(item,index) in saveData.remark" :key="index" :span="6">
-					<el-input v-model="saveData.remark[index]" :rows="3" type="textarea" placeholder="请输入" resize="none" disabled/>
-				</el-col>
-			</el-row>
-		</template>
-		<!-- 一代联系方式/费用 -->
-		<template #order_delegationList="{formList,saveData}">
-			<el-row :gutter="20">
-				<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
-					<el-col :span="6">
-						<p class="pb">一代联系方式</p>
-						<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none" />
-					</el-col>
-					<el-col class="p-r" :span="6">
-						<p class="pb">一代费用</p>
-						<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none"/>
-					</el-col>
-				</template>
-			</el-row>
-		</template>
+	<div>
+		<!-- 顶部搜索 -->
+		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
 		
-		<!-- 应付款 -->
-		<template #AccountsBtn="{saveData,formList}">
-			<div>
-				<el-button type="primary">费用已完结</el-button>
-				<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
-			</div>
-		</template>
-		<template #AccountsPayable="{saveData,formList}">
-			<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumns" :multiple="false" :border="true" ref="accountTable">
-				<template #bottomCon="{tableData}">
-					<el-row :gutter="20">
-						<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
-							<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1" disabled/>
+		<!-- 表格 -->
+		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
+		class="px-2">
+			<template #headerCon>
+				<div style="display: flex;flex-wrap: wrap;text-align: center!important;">
+					<div style="width: 20%;margin-top: 10px;" v-for="(item,index) in statistic" :key="index">
+						<el-statistic :value="item.value" :precision="2" :prefix="item.prefix"
+						value-style="font-weight: bold;">
+							<template #title>
+								<span style="font-size: 15px;">{{item.title}}</span>
+							</template>
+						</el-statistic>
+					</div>
+				</div>
+				<el-divider />
+			</template>
+			<template #headerLeft> </template>
+			<template #headerRight>
+				<!-- <el-button type="primary" plain icon="Plus" @click="dialogFormVisible=true" style="margin-right: 10px;">新增</el-button> -->
+			</template>
+		</table-list>
+		
+		<!-- 单据详情 -->
+		<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit"> 
+			<!-- 订舱信息及备注 -->
+			<template #remarkList="{formList,saveData}">
+				<el-row :gutter="20">
+					<el-col v-for="(item,index) in saveData.remark" :key="index" :span="6">
+						<el-input v-model="saveData.remark[index]" :rows="3" type="textarea" placeholder="请输入" resize="none" disabled/>
+					</el-col>
+				</el-row>
+			</template>
+			<!-- 一代联系方式/费用 -->
+			<template #order_delegationList="{formList,saveData}">
+				<el-row :gutter="20">
+					<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
+						<el-col :span="6">
+							<p class="pb">一代联系方式</p>
+							<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none" />
 						</el-col>
-					</el-row>
-				</template>
-			</table-list>
-		</template>
-	</common-form>
+						<el-col class="p-r" :span="6">
+							<p class="pb">一代费用</p>
+							<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none"/>
+						</el-col>
+					</template>
+				</el-row>
+			</template>
+			
+			<!-- 应付款 -->
+			<template #AccountsBtn="{saveData,formList}">
+				<div>
+					<el-button type="primary">费用已完结</el-button>
+					<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
+				</div>
+			</template>
+			<template #AccountsPayable="{saveData,formList}">
+				<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumns" :multiple="false" :border="true" ref="accountTable">
+					<template #bottomCon="{tableData}">
+						<el-row :gutter="20">
+							<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
+								<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1" disabled/>
+							</el-col>
+						</el-row>
+					</template>
+				</table-list>
+			</template>
+		</common-form>
+	</div>
 	
 </template>
 
