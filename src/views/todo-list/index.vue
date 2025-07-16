@@ -2,18 +2,17 @@
 	<div class="flex flex-justify-around">
 		<!-- <el-row :gutter="20"> -->
 			<!-- <el-col :span="6" :xs="24"> -->
-		   <el-card class="box-card">
+		   <el-card class="box-card input-">
 			  <template v-slot:header>
 				<div class="clearfix">
 				  <span>待办事项列表</span>
 				</div>
 			  </template>
-			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules">
-				  <el-form-item style="flex:1" prop="title">
-				  	<el-input v-model="form.title" placeholder="请输入待办事项" clearable  type="textarea"
-							:rows="3" />
+			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules"@submit.prevent>
+				  <el-form-item style="flex:1" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'">
+				  	<el-input v-model="form.title" @keyup.enter.native="handleAdd" placeholder="今天需要做什么？" clearable @focus="inputStyleTodoListStyle= 1" @blur="inputStyleTodoListStyle= 0"/>
 				  </el-form-item>
-				  <el-form-item >
+				  <el-form-item  class="form-item-height">
 				  	<el-button type="primary" icon="Plus" @click="handleAdd" :loadingAddBtn="loadingAddBtn">添加</el-button>
 				  </el-form-item>
 			  </el-form>
@@ -22,10 +21,10 @@
 					 <div class="flex flex-align-center content" v-for="(item, index) in dataList" :key='index'>
 						 <el-checkbox v-model="item.status" :true-label= 1 :false-label= 0 @change="getRowStatus($event,item)"></el-checkbox>
 						 <div class="content-list">
-							 <p v-if="item.isEditStatus===0" :class="item.status=== 1?'font-line-center':''">{{item.title}}</p>
-							 <el-input v-else v-model="item.title" placeholder="请输入内容" @keyup.enter="handleEdit(item,1)"></el-input>
+							 <p v-if="item.isEditStatus===0" :class="item.status=== 1?'font-line-center':''"  @click="handleEdit(item, 0, index)">{{item.title}}</p>
+							 <el-input :ref="el => { if (el) inputRefs[index] = el }" v-else v-model="item.title" placeholder="请输入内容" @keyup.enter="handleEdit(item,1, index)" @blur="item.isEditStatus= 0"></el-input>
 						 </div>
-						 <el-button class="icon-color-black" icon="Edit" @click="handleEdit(item, 0)"></el-button>
+						 <!-- <el-button class="icon-color-black" icon="Edit" @click="handleEdit(item, 0)"></el-button> -->
 						 <el-button class="icon-color-black" icon="Delete" @click="handleDelete(item)"></el-button>
 					 </div>
 				   </div> 
@@ -38,8 +37,10 @@
 					</div>
 				</template>
 				<div class="btn-padding flex">
-					<el-button style='margin-right: 10px' type="primary" icon="Plus" @click="handleAddRemarks">新增备注</el-button>
-					<view-indicate :view-indicate-role-list="viewIndicateRoleList" :model-type="'remark'"></view-indicate>
+					<el-button class="btn-margin" type="primary" icon="Plus" @click="handleAddRemarks">新增备注</el-button>
+					<view-indicate class="btn-margin" :view-indicate-role-list="viewIndicateRoleList" :model-type="'remark'"></view-indicate>
+					<el-button class="btn-margin" icon="Plus" type="primary" @click="submitFormRemarks" :loading="loadingSaveBtn">保 存</el-button>
+					<el-button type="primary" @click="handleSearcRemarks(1)" :loading="loadingRemarks"  icon="Refresh">刷 新</el-button>
 				</div>
 				<el-form ref="queryParamsRef" :model="queryParams" :inline="true" class="flex flex-align-center" :rules="rules">
 				  <el-form-item style="flex:1">
@@ -50,19 +51,19 @@
 				  </el-form-item>
 				</el-form>
 				<div class="flex flex-wrap">
-					<span v-for="(item, index) in dataListRemarks" :key="index"
-						class="input-wrapper mr20 mb20" style="width: 30%">
+					<div v-for="(item, index) in dataListRemarks" :key="index"
+						:class="['input-wrapper','mr20','mb20','border','no-border-input',item.inputStyleremarksStyle=== 1?'focus-style':'']" style="width: 30%">
 						<!-- 漂浮的 div -->
-						<div class="floating-div flex flex-justify-between">
+						<div class="floating-div flex flex-end">
 							<el-button class="icon-color-black" icon="Delete" @click="handleDeleteRemarks(item,index)"></el-button>
 							<!-- <p @click="formRemark.remark.splice(index, 1);">×</p> -->
-							<el-button type="primary" @click="submitFormRemarks(item)" :loading="loadingSaveBtn">保 存</el-button>
+							<!-- <el-button type="primary" @click="submitFormRemarks(item)" :loading="loadingSaveBtn">保 存</el-button> -->
 						</div>
 
 						<!-- el-input -->
 						<el-input v-model="item.content" placeholder="请输入" type="textarea"
-							:rows="6" />
-					</span>
+							:rows="6" @focus="item.inputStyleremarksStyle= 1"  @blur="item.inputStyleremarksStyle= 0"/>
+					</div>
 				</div>
 			</el-card>
 			<!-- </el-col> -->
@@ -71,7 +72,7 @@
 </template>
 
 <script setup>
-	import { toRefs } from 'vue';
+	import { toRefs,ref,nextTick } from 'vue';
 	import {
 		listData,
 		delByIds,
@@ -108,6 +109,8 @@
 	 const loadingSaveBtn = ref(false)
 	 const dataList = ref([]);
 	 const dataListRemarks= ref([])
+	 const inputStyleTodoListStyle = ref(0)
+	 const inputStyleremarksStyle = ref(0)
 	 
 	 // 新增
 	 // 待办事项
@@ -125,9 +128,16 @@
 	 function handleAddRemarks(){
 		 dataListRemarks.value.unshift({content:""})
 	 }
+	 const inputRefs=([])
 	 // 编辑
-	 function handleEdit(item,type){  //type 0 不修改内容  1 调接口修改内容
+	 function handleEdit(item,type,index){  //type 0 不修改内容  1 调接口修改内容
 		 item.isEditStatus= item.isEditStatus=== 0? 1: 0
+		 nextTick(()=>{
+			 if(item.isEditStatus=== 1){
+			 	 inputRefs[index]?.focus()
+			 }
+		 })
+		 
 		 if(type=== 1){
 			 if(item.title){
 				 updateDataForm(item)
@@ -144,22 +154,24 @@
 		 
 	 }
 	 // 模糊搜索
-	 function handleSearcRemarks(){
+	 function handleSearcRemarks(type){
+		 if(type=== 1){
+			 queryParams.value.keyword= ''
+		 }
 		 dataListRemarks.value= []
 		 getListRemarks()
 	 }
 	 // 保存备注
-	 function submitFormRemarks(item){
-		 console.log(item,'item.content')
-		 if(!item.content){
-			 proxy.$modal.msgWarning("请输入备注内容");
-			 return false
-		 }
-		 if(item.id){
-			 updateDataFormRemarks(item)
-		 }else{
-			 addDataFormRemarks(item)
-		 }
+	 function submitFormRemarks(){
+		 // if(!item.content){
+			//  proxy.$modal.msgWarning("请输入备注内容");
+			//  return false
+		 // }
+		 // if(item.id){
+			//  updateDataFormRemarks(item)
+		 // }else{
+			//  addDataFormRemarks(item)
+		 // }
 	 }
 	 /** 查询列表 */
 	 // 待办事项
@@ -190,6 +202,7 @@
 		 loadingAddBtn.value= true
 		addData(form.value).then(response => {
 		  proxy.$modal.msgSuccess("新增成功");
+		  form.value.title=""
 		  getList()
 		  // open.value = false;
 		  // getList();
@@ -276,12 +289,17 @@
 	.flex-justify-between{
 		justify-content: space-between
 	}
+	.flex-end{
+		justify-content: flex-end
+	}
 	.box-card{
 		width: 48%;
 		margin: 20px 0;
 	}
 	.content{
 		width: 100%;
+		border-bottom: 1px solid #ddd;
+		padding: 10px 0;
 		.el-checkbox__inner{
 			border-radius: 0
 		}
@@ -295,7 +313,11 @@
 	}
 	.content-list{
 		flex: 1;
-		padding: 0 10px
+		padding: 0 10px;
+		p{
+			width: 100%;
+			margin: 5px 0;
+		}
 	}
 	.icon-color-black{
 	  color: #333;
@@ -303,7 +325,8 @@
 	  border: none
 	}
 	.font-line-center{
-		text-decoration: line-through
+		text-decoration: line-through;
+		text-decoration-color: red
 	}
 	.btn-padding{
 		padding: 10px 0
@@ -311,12 +334,48 @@
 	.flex-wrap{
 		flex-wrap: wrap;
 	}
+	.no-border-input{
+		.el-input,.el-textarea{
+			border: 1px solid #fff !important;
+			outline: none !important;
+			box-shadow: none !important;
+			.el-input__wrapper{
+				border: 1px solid #fff !important;
+				outline: none !important;
+				box-shadow: none !important
+			}
+			.el-input__inner,.el-textarea__inner{
+				border: 1px solid #fff !important;
+				outline: none !important;
+				box-shadow: none !important
+			}
+		}
+	}
+	.border{
+		border: 1px solid #dcdfe6;
+		border-radius: 5px;
+	}
 </style>
 <style lang="scss" scoped>
 	.floating-div{
 		margin-bottom: 10px
 	}
 	.box-card{
-		height: 800px
+		height: 800px;
+		overflow-y: scroll;
+		.form-item-height{
+			height: 80px;
+			border: 1px solid #dcdfe6;
+			border-radius: 5px;
+			.el-button{
+				height: 100%
+			}
+		}
+		.btn-margin{
+			margin-right: 10px
+		}
+		.focus-style{
+			border: 1px solid #409EFF
+		}
 	}
 </style>
