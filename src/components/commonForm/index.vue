@@ -31,20 +31,22 @@
 												<el-input 
 												v-model="saveData[vv.key]" 
 												:style="vv.style||'width:100%'"
-												:placeholder="vv.placeholder||'请输入'" clearable
+												:placeholder="vv.placeholder||'请输入'"
+												:clearable="vv.clearable"
 												@input="changeValue" :disabled="vv.disabled"/>
 											</template>
 											<template v-if="vv.type=='textarea'">
 												<el-input v-model="saveData[vv.key]" 
 												type="textarea"
 												:style="vv.style" :rows="4"
-												:placeholder="vv.placeholder||'请输入'" clearable
+												:placeholder="vv.placeholder||'请输入'"
 												@input="changeValue" :disabled="vv.disabled"/>
 											</template>
 											<template v-if="vv.type=='date'">
 												<el-date-picker v-model="saveData[vv.key]" 
 												:style="vv.style||'width:100%'"
 												:placeholder="vv.placeholder" 
+												:clearable="vv.clearable"
 												:value-format="vv.valueFormat||'YYYY-MM-DD'" 
 												:type="vv.dateType||'daterange'" :disabled="vv.disabled"
 												:start-placeholder="vv.startPlaceholder||'开始时间'" 
@@ -56,6 +58,7 @@
 												<el-date-picker v-model="saveData[vv.key]" 
 												:style="vv.style||'width:100%'"
 												:placeholder="vv.placeholder" 
+												:clearable="vv.clearable"
 												:value-format="vv.valueFormat||'YYYY-MM-DD h:m:s'" 
 												:format="vv.format||'YYYY-MM-DD HH:mm:ss'" 
 												:type="vv.dateType||'datetime'" :disabled="vv.disabled"
@@ -67,7 +70,8 @@
 											<template v-if="vv.type=='select'">
 												<el-select v-model="saveData[vv.key]" 
 												:style="vv.style||'width:100%'"
-												:placeholder="vv.placeholder||'请选择'" clearable
+												:placeholder="vv.placeholder||'请选择'" 
+												:clearable="vv.clearable"
 												:disabled="vv.disabled"
 												@change="changeValue">
 													<el-option v-for="vvv in vv.options" 
@@ -81,6 +85,7 @@
 												filterable
 												:style="vv.style||'width:100%'"
 												:disabled="vv.disabled"
+												:clearable="vv.clearable"
 												:multiple="vv.multiple" remote
 												:placeholder="vv.placeholder||'请选择'"
 												:reserve-keyword="vv.reserveKeyword"

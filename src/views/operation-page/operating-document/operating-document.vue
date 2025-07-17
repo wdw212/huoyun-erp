@@ -93,7 +93,7 @@
 		// console.log('onMounted', queryParams);
 		queryParams.value[11].options = await getYWY();
 		queryParams.value[12].options = await getCZY();
-		AccountsColumn.value[10] = {
+		AccountsColumn.value[AccountsColumn.value.length] = {
 			label: '操作',
 			prop: 'actions',
 			actions: [{

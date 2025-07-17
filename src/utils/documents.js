@@ -187,6 +187,13 @@ const commonInfo = [
 		formItem: []
 	},
 	{
+		label: '应收款',
+		soltLabel: 'PaymentBtn',
+		soltName: 'PaymentPayable',
+		noShow: true,
+		formItem: []
+	},
+	{
 		label: '合计',
 		formItem: [
 			{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
@@ -275,11 +282,11 @@ export const formList = ref([
 //应付款列表
 export const AccountsColumn = ref([
 	{
-		label: '费用明细', prop: 'company_header_id',type: 'edit',width: '220px',
+		label: '费用明细', prop: 'company_header_id',type: 'edit',width: '320px',
 		form: {
 			type: 'selectSearch',placeholder: '请选择合作单位',key: 'company_header_id',
 			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers'
+			method: 'get', url: '/company-headers',popover:true
 		}
 	},
 	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
@@ -292,14 +299,14 @@ export const AccountsColumn = ref([
 			type: 'input',key: 'cny_amount',
 		}
 	},
-	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',
+	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '220px',
 		form: {
-			type: 'input',key: 'cny_invoice_number',
+			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true
 		}
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付']
+			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
 		}
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
@@ -307,24 +314,66 @@ export const AccountsColumn = ref([
 			type: 'input',key: 'usd_amount',
 		}
 	},
-	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',
+	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '220px',
 		form: {
-			type: 'input',key: 'usd_invoice_number',
+			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true
 		}
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付']
+			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
 		}
 	},
-	{label: '联系人', type: 'edit', prop: 'contact_person',
+	// {label: '联系人', type: 'edit', prop: 'contact_person',
+	// 	form: {
+	// 		type: 'input',key: 'contact_person',
+	// 	}
+	// },
+	// {label: '联系方式', type: 'edit', prop: 'contact_phone',
+	// 	form: {
+	// 		type: 'input',key: 'contact_phone',
+	// 	}
+	// },
+])
+
+//应收款列表
+export const PaymentColumn = ref([
+	{
+		label: '公司名称', prop: 'company_header_id',type: 'edit',width: '320px',
 		form: {
-			type: 'input',key: 'contact_person',
+			type: 'selectSearch',placeholder: '请选择应收抬头',key: 'company_header_id',
+			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
+			method: 'get', url: '/company-headers',popover:true
 		}
 	},
-	{label: '联系方式', type: 'edit', prop: 'contact_phone',
+	{label: '人民币费用', type: 'edit', prop: 'cny_amount',
 		form: {
-			type: 'input',key: 'contact_phone',
+			type: 'input',key: 'cny_amount',
 		}
 	},
+	{label: '人民币发票', type: 'edit', prop: 'cny_invoice_number',width: '220px',
+		form: {
+			type: 'input',key: 'cny_invoice_number',popover:true
+		}
+	},
+	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
+		form: {
+			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
+		}
+	},
+	{label: '美金费用', type: 'edit', prop: 'usd_amount',
+		form: {
+			type: 'input',key: 'usd_amount',
+		}
+	},
+	{label: '美金发票', type: 'edit', prop: 'usd_invoice_number',width: '220px',
+		form: {
+			type: 'input',key: 'usd_invoice_number',popover:true
+		}
+	},
+	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
+		form: {
+			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
+		}
+	}
 ]);

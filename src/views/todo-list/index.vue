@@ -2,7 +2,7 @@
 	<div class="flex flex-justify-around">
 		<!-- <el-row :gutter="20"> -->
 			<!-- <el-col :span="6" :xs="24"> -->
-		   <el-card class="box-card input-">
+		   <el-card class="box-card input-" style="">
 			  <template v-slot:header>
 				<div class="clearfix">
 				  <span>待办事项列表</span>
@@ -21,7 +21,9 @@
 					 <div class="flex flex-align-center content" v-for="(item, index) in dataList" :key='index'>
 						 <el-checkbox v-model="item.status" :true-label= 1 :false-label= 0 @change="getRowStatus($event,item)"></el-checkbox>
 						 <div class="content-list">
-							 <p v-if="item.isEditStatus===0" :class="item.status=== 1?'font-line-center':''"  @click="handleEdit(item, 0, index)">{{item.title}}</p>
+							 <p v-if="item.isEditStatus===0" @click="handleEdit(item, 0, index)">
+								 <span :class="item.status=== 1?'font-line-center':''">{{item.title}}</span>
+							 </p>
 							 <el-input :ref="el => { if (el) inputRefs[index] = el }" v-else v-model="item.title" placeholder="请输入内容" @keyup.enter="handleEdit(item,1, index)" @blur="item.isEditStatus= 0"></el-input>
 						 </div>
 						 <!-- <el-button class="icon-color-black" icon="Edit" @click="handleEdit(item, 0)"></el-button> -->
@@ -39,7 +41,7 @@
 				<div class="btn-padding flex">
 					<el-button class="btn-margin" type="primary" icon="Plus" @click="handleAddRemarks">新增备注</el-button>
 					<view-indicate class="btn-margin" :view-indicate-role-list="viewIndicateRoleList" :model-type="'remark'"></view-indicate>
-					<el-button class="btn-margin" icon="Plus" type="primary" @click="submitFormRemarks" :loading="loadingSaveBtn">保 存</el-button>
+					<el-button class="btn-margin" type="primary" @click="submitFormRemarks" :loading="loadingSaveBtn">保 存</el-button>
 					<el-button type="primary" @click="handleSearcRemarks(1)" :loading="loadingRemarks"  icon="Refresh">刷 新</el-button>
 				</div>
 				<el-form ref="queryParamsRef" :model="queryParams" :inline="true" class="flex flex-align-center" :rules="rules">
@@ -52,9 +54,9 @@
 				</el-form>
 				<div class="flex flex-wrap">
 					<div v-for="(item, index) in dataListRemarks" :key="index"
-						:class="['input-wrapper','mr20','mb20','border','no-border-input',item.inputStyleremarksStyle=== 1?'focus-style':'']" style="width: 30%">
+						:class="['p-r','input-wrapper','mr20','mb20','border','no-border-input',item.inputStyleremarksStyle=== 1?'focus-style':'']" style="width: 30%">
 						<!-- 漂浮的 div -->
-						<div class="floating-div flex flex-end">
+						<div class="p-a r_0 z-10">
 							<el-button class="icon-color-black" icon="Delete" @click="handleDeleteRemarks(item,index)"></el-button>
 							<!-- <p @click="formRemark.remark.splice(index, 1);">×</p> -->
 							<!-- <el-button type="primary" @click="submitFormRemarks(item)" :loading="loadingSaveBtn">保 存</el-button> -->
@@ -293,8 +295,13 @@
 		justify-content: flex-end
 	}
 	.box-card{
-		width: 48%;
-		margin: 20px 0;
+		margin: 20px 10px;
+	}
+	.box-card:nth-child(1){
+		width: 40%;
+	}
+	.box-card:nth-child(2){
+		flex: 1;
 	}
 	.content{
 		width: 100%;
@@ -325,8 +332,19 @@
 	  border: none
 	}
 	.font-line-center{
-		text-decoration: line-through;
-		text-decoration-color: red
+		// text-decoration: line-through;
+		// text-decoration-color: red
+		position: relative;
+	}
+	.font-line-center::after {
+	  content: "";
+	  position: absolute;
+	  left: 0;
+	  top: 50%;
+	  width: 100%;
+	  height: 3px; /* 控制线条粗细 */
+	  background: red;
+	  transform: translateY(-50%);
 	}
 	.btn-padding{
 		padding: 10px 0

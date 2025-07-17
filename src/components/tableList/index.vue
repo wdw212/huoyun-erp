@@ -71,6 +71,7 @@
 		ElButton
 	} from 'element-plus'
 	import commonFormItem from "@/components/commonForm/formItem";
+	import { httpPost, httpGet } from '@/api/apiCommon';
 
 	const props = defineProps({
 		tableConfig: {},

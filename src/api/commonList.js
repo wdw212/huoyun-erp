@@ -24,7 +24,9 @@ export async function getCZY() {
 export async function getTT(keyword) {
 	var params = {
 		is_paginate: 0,
-		keyword: keyword
+	}
+	if(keyword){
+		params.keyword = keyword;
 	}
 	let res = await httpGet('/company-headers', params);
 	return res.data||[]

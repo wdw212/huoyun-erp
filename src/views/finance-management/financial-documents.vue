@@ -70,6 +70,17 @@
 					</template>
 				</table-list>
 			</template>
+			
+			<!-- 应收款 -->
+			<template #PaymentBtn="{saveData,formList}">
+				<div>
+					<el-button type="primary" @click="addPayment()">添加应收款</el-button>
+				</div>
+			</template>
+			<template #PaymentPayable="{saveData,formList}">
+				<table-list :tableConfig="tableConfigPayment" :tableColumn="PaymentColumns" :multiple="false" :border="true" ref="paymentTable"></table-list>
+			</template>
+			
 		</common-form>
 	</div>
 	
@@ -83,16 +94,18 @@
 	import { httpPost, httpGet } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX } from '@/api/commonList';
-	import { queryParams, formList, statistic, AccountsColumn } from '@/utils/documents';
+	import { getYWY, getCZY, getYWLX, getTT } from '@/api/commonList';
+	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn } from '@/utils/documents';
 	const { proxy } = getCurrentInstance();
 	
 	const formListNew = ref([]);
 	const AccountsColumns = ref([]);
+	const PaymentColumns = ref([]);
 	
 	const YWY = ref([]);  //业务员
 	const CZY = ref([]);  //操作员
 	const YWLX = ref([]); //业务类型
+	const TT = ref([]); //抬头/公司名称
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
@@ -106,19 +119,34 @@
 		YWY.value = await getYWY();
 		CZY.value = await getCZY();
 		YWLX.value = await getYWLX();
+		TT.value = await getTT();
 		queryParams.value[11].options = YWY.value;
 		queryParams.value[12].options = CZY.value;
 		formListNew.value = JSON.parse(JSON.stringify(formList.value))
+		formListNew.value[0].formData[2].noShow = false;
 		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
 		formListNew.value[0].formData[0].formItem[4].options = YWY.value;
 		
+		// 应付款
 		AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
 		AccountsColumns.value.forEach((item,index)=>{
 			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
 				AccountsColumns.value[index].form.disabled = true;
 			}
 		})
-		// AccountsColumns.value[7].noShow = false;
+		
+		// 应收款
+		PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
+		PaymentColumns.value[PaymentColumns.value.length] = {
+			label: '操作',
+			prop: 'actions',
+			actions: [{
+				label: '删除',
+				type: 'danger',
+				onClick: (row, index) => paymentDelete(row, index)
+			}],
+			width: '70px'
+		}
 		// console.log('formListNew', formListNew)
 	})
 	
@@ -196,6 +224,9 @@
 				proxy.$refs.commonForm.resetKey(formListNew.value);
 				console.log('应付款信息', res.order_payments)
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
+				
+				proxy.$refs.paymentTable.tableData = [];
+				addPayment();
 			}, 500)
 		});
 	}
@@ -212,6 +243,7 @@
 						} else {
 							formList[index].formData[i].formItem[ii].defaultValue = data[vv.key];
 						}
+						formList[index].formData[i].formItem[ii].disabled = true;
 					})
 				}
 			})
@@ -222,6 +254,11 @@
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('编辑行:', row)
+		var saveData = {
+			...data,
+			order_payments: proxy.$refs.accountTable.tableData,
+			order_receipts: proxy.$refs.paymentTable.tableData
+		};
 		console.log('确认提交', data)
 	}
 	
@@ -231,6 +268,30 @@
 		requestMethod: httpGet,
 		isQuery: false
 	})
+	
+	//应付款表格数据
+	const tableConfigPayment = ref({
+		url: '/orders',
+		requestMethod: httpGet,
+		isQuery: false
+	})
+	const addPayment = () => {
+		proxy.$refs.paymentTable.tableData.push({
+			company_header_id: '',
+			no_invoice_remark: '',
+			cny_amount: '',
+			cny_invoice_number:'',
+			cny_is_cashed: 0,
+			usd_amount: '',
+			usd_invoice_number: '',
+			usd_is_cashed: 0
+		});
+	}
+	const paymentDelete = (row) => {
+		const rowIndex = proxy.$refs.paymentTable.tableData.findIndex(item => item === row);
+		proxy.$refs.paymentTable.tableData.splice(row.index, 1)
+		// console.log('paymentDelete', row, rowIndex)
+	}
 	
 </script>
 
