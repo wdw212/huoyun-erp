@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-justify-around">
+	<div class="flex flex-justify-around" id="todoList">
 		<!-- <el-row :gutter="20"> -->
 			<!-- <el-col :span="6" :xs="24"> -->
 		   <el-card class="box-card input-" style="">
@@ -9,7 +9,7 @@
 				</div>
 			  </template>
 			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules"@submit.prevent>
-				  <el-form-item style="flex:1" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'">
+				  <el-form-item style="flex:1;color: #000;" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'">
 				  	<el-input v-model="form.title" @keyup.enter.native="handleAdd" placeholder="今天需要做什么？" clearable @focus="inputStyleTodoListStyle= 1" @blur="inputStyleTodoListStyle= 0"/>
 				  </el-form-item>
 				  <el-form-item  class="form-item-height">
@@ -45,8 +45,8 @@
 					<el-button type="primary" @click="handleSearcRemarks(1)" :loading="loadingRemarks"  icon="Refresh">刷 新</el-button>
 				</div>
 				<el-form ref="queryParamsRef" :model="queryParams" :inline="true" class="flex flex-align-center" :rules="rules">
-				  <el-form-item style="flex:1">
-					<el-input v-model="queryParams.keyword" placeholder="请输入备注关键字" clearable />
+				  <el-form-item style="flex:1;">
+					<el-input v-model="queryParams.keyword" placeholder="请输入备注关键字" clearable style="color: #000!important" />
 				  </el-form-item>
 				  <el-form-item >
 					<el-button type="primary" icon="search" @click="handleSearcRemarks" :loading="loadingRemarks">搜索</el-button>
@@ -54,7 +54,7 @@
 				</el-form>
 				<div class="flex flex-wrap">
 					<div v-for="(item, index) in dataListRemarks" :key="index"
-						:class="['p-r','input-wrapper','mr20','mb20','border','no-border-input',item.inputStyleremarksStyle=== 1?'focus-style':'']" style="width: 30%">
+						:class="['color-2','p-r','input-wrapper','mr20','mb20','border','no-border-input',item.inputStyleremarksStyle=== 1?'focus-style':'']" style="width: 30%">
 						<!-- 漂浮的 div -->
 						<div class="p-a r_0 z-10">
 							<el-button class="icon-color-black" icon="Delete" @click="handleDeleteRemarks(item,index)"></el-button>
@@ -279,6 +279,9 @@
 </script>
 
 <style lang="scss">
+	#todoList .el-input__inner{
+		color: #000;
+	}
 	.flex{
 		display: flex;
 	}
@@ -306,7 +309,7 @@
 	.content{
 		width: 100%;
 		border-bottom: 1px solid #ddd;
-		padding: 10px 0;
+		padding: 6px 0;
 		.el-checkbox__inner{
 			border-radius: 0
 		}
@@ -324,6 +327,7 @@
 		p{
 			width: 100%;
 			margin: 5px 0;
+			color: #000;
 		}
 	}
 	.icon-color-black{
@@ -365,7 +369,8 @@
 			.el-input__inner,.el-textarea__inner{
 				border: 1px solid #fff !important;
 				outline: none !important;
-				box-shadow: none !important
+				box-shadow: none !important;
+				color: #000;
 			}
 		}
 	}
@@ -382,7 +387,7 @@
 		height: 800px;
 		overflow-y: scroll;
 		.form-item-height{
-			height: 80px;
+			// height: 80px;
 			border: 1px solid #dcdfe6;
 			border-radius: 5px;
 			.el-button{
