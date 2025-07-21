@@ -8,11 +8,13 @@
 				  <span>待办事项列表</span>
 				</div>
 			  </template>
+			  <div style="padding: 30px 50px">
 			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules"@submit.prevent>
-				  <el-form-item style="flex:1;color: #000;" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'">
-				  	<el-input v-model="form.title" @keyup.enter.native="handleAdd" placeholder="今天需要做什么？" clearable @focus="inputStyleTodoListStyle= 1" @blur="inputStyleTodoListStyle= 0"/>
+				  <!-- <el-form-item style="flex:1;color: #000;margin-right: 10px" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'"> -->
+				  <el-form-item style="flex:1;color: #000;margin-right: 10px" prop="title" class="form-item-height focus-border-color form-item-style">
+				  	<el-input  v-model="form.title" @keyup.enter.native="handleAdd" placeholder="今天需要做什么？" clearable @focus="inputStyleTodoListStyle= 1" @blur="inputStyleTodoListStyle= 0"/>
 				  </el-form-item>
-				  <el-form-item  class="form-item-height">
+				  <el-form-item  class="form-item-height form-item-style">
 				  	<el-button type="primary" icon="Plus" @click="handleAdd" :loadingAddBtn="loadingAddBtn">添加</el-button>
 				  </el-form-item>
 			  </el-form>
@@ -30,6 +32,7 @@
 						 <el-button class="icon-color-black" icon="Delete" @click="handleDelete(item)"></el-button>
 					 </div>
 				   </div> 
+			  </div>
 			  </div>
 			</el-card>
 			<el-card class="box-card">
@@ -298,14 +301,15 @@
 		justify-content: flex-end
 	}
 	.box-card{
+		box-sizing: border-box;
 		margin: 20px 10px;
+		flex: 1
 	}
 	.box-card:nth-child(1){
-		width: 40%;
+		// padding: 30px 50px
 	}
-	.box-card:nth-child(2){
-		flex: 1;
-	}
+	// .box-card:nth-child(2){
+	// }
 	.content{
 		width: 100%;
 		border-bottom: 1px solid #ddd;
@@ -374,6 +378,25 @@
 			}
 		}
 	}
+	.focus-border-color{
+		.el-input{
+			height: 100% !important;
+			// transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
+		}
+		.el-input__wrapper{
+		}
+		.is-focus{
+			padding: 0;
+			.el-input__inner{
+				width: 100%;
+				height: 100% !important;
+				box-shadow: 0px 0px 4px #409EFF !important;
+				padding: 0 10px
+				// box-shadow .15s ease-in-out
+			}
+		}
+		
+	}
 	.border{
 		border: 1px solid #dcdfe6;
 		border-radius: 5px;
@@ -387,12 +410,16 @@
 		height: 800px;
 		overflow-y: scroll;
 		.form-item-height{
-			// height: 80px;
-			border: 1px solid #dcdfe6;
-			border-radius: 5px;
+			height: 60px;
+			
 			.el-button{
 				height: 100%
 			}
+		}
+		.form-item-style{
+			border: 1px solid #dcdfe6;
+			border-radius: 5px;
+			font-size: 16px;
 		}
 		.btn-margin{
 			margin-right: 10px
