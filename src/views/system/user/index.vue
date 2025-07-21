@@ -55,7 +55,7 @@
 
 		<!-- 添加或修改用户配置对话框 -->
 		<el-dialog :title="title" v-model="open" width="1000px" append-to-body>
-			<el-form :model="form" :rules="rules" ref="userRef" label-width="100px">
+			<el-form :model="form" :rules="btnType==='add'?rules:[]" ref="userRef" label-width="100px">
 				<el-row>
 					<el-form-item label="用户昵称" prop="name" style="width: 300px">
 						<el-input v-model="form.name" placeholder="请输入" maxlength="30" />
@@ -66,8 +66,9 @@
 					</el-form-item>
 
 					<el-form-item label="用户密码" prop="password" style="width: 300px">
-						<el-input v-model="form.password" placeholder="请输入" type="password" maxlength="20"
-							show-password />
+						<el-input v-model="form.password" 
+						:placeholder="btnType==='add'?'请输入':'不修改请留空'" 
+						type="password" maxlength="20" show-password />
 					</el-form-item>
 
 					<el-form-item label="角色" prop="role_id" style="width: 300px">
@@ -91,13 +92,13 @@
 					</el-form-item>
 
 					<el-form-item label="入职时间" prop="hire_date" style="width: 300px">
-						<el-date-picker v-model="form.hire_date" placeholder="请选择" format-value="YYYY-MM-DD"
-							type="date"></el-date-picker>
+						<el-date-picker v-model="form.hire_date" placeholder="请选择" 
+						format="YYYY-MM-DD" value-format="YYYY-MM-DD" type="date"></el-date-picker>
 					</el-form-item>
 
 					<el-form-item label="离职时间" prop="leave_date" style="width: 300px">
 						<el-date-picker v-model="form.leave_date" placeholder="请选择" format="YYYY-MM-DD"
-							type="date"></el-date-picker>
+						value-format="YYYY-MM-DD" type="date"></el-date-picker>
 					</el-form-item>
 					<el-form-item label="提成比例" prop="base_rate" style="width: 300px"  v-if="btnType==='add'">
 						<el-input v-model="form.base_rate" type="number" placeholder="≤1万时的提成比例(%)" />
@@ -193,7 +194,6 @@
 					<el-form-item label="提成单价" prop="unit_price" style="width: 300px">
 						<el-input v-model="form2.unit_price" type="number" placeholder="请输入" />
 					</el-form-item>
-
 				</el-row>
 				<el-form-item label="备注" prop="remark" style="width: 300px">
 					<el-input v-model="form2.remark" type="textarea" rows="3" placeholder="请输入" />
@@ -578,7 +578,7 @@
 			// postOptions.value = response.posts;
 			// roleOptions.value = response.roles;
 			// form.value.postIds = response.postIds;
-			// form.value.roleIds = response.roleIds;
+			form.value.role_id = response.roles;
 			open.value = true;
 			title.value = "修改用户";
 			form.password = "";

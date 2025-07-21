@@ -20,10 +20,11 @@ const useUserStore = defineStore("user", {
 		id: "",
 		name: "",
 		avatar: "",
-		userRole: null,  //当前登录人的角色
+		userRole: null, //当前登录人的角色
 		roles: [],
 		permissions: [],
-		userRoleCode: null  //当前登录人的角色code
+		userRouteList: [],
+		userRoleCode: null //当前登录人的角色code
 	}),
 	actions: {
 		// 登录
@@ -52,64 +53,38 @@ const useUserStore = defineStore("user", {
 		},
 		// 获取用户信息
 		getInfo() {
+			// var roleInfo = getRole
 			return new Promise((resolve, reject) => {
 				getInfo()
 					.then((res) => {
 						console.log(res, "获取用户信息");
-
-						// const user = res.user;
-						// let avatar = user.avatar || "";
-						// if (!isHttp(avatar)) {
-						//   avatar = isEmpty(avatar)
-						//     ? defAva
-						//     : import.meta.env.VITE_APP_BASE_API + avatar;
-						// }
-						/* if (res.roles && res.roles.length > 0) {
-						  // 验证返回的roles是否是一个非空数组
-						  this.roles = res.roles;
-						  this.permissions = res.permissions;
-						} else {
-						  this.roles = ["ROLE_DEFAULT"];
-						} */
-						this.roles = ["admin"];
-						this.permissions = ["*:*:*"];
 						this.id = res.id;
 						this.name = res.name;
 						this.avatar = "";
-						this.userRole= res.roles;
-						this.userRoleCode= res.role.code;
-						resolve(res);
+						this.userRole = res.role;
+						this.userRoleCode = res.role.code;
+						this.userRouteList = res.permissions||[];
+						if(res.role&&res.role.code=='SUPER_ADMIN'){
+							this.roles = [res.role.code];
+							this.permissions = ["*:*:*"];
+							resolve(res);
+						}else if (res.roles) {
+							// 验证返回的roles是否是一个非空数组
+							this.roles = [res.role.code];
+							resolve(res);
+						} else {
+							this.roles = ["viewer"];
+							this.permissions = [];
+							resolve(res);
+						}
 					})
 					.catch((error) => {
 						reject(error);
 					});
-
-				// 测试用
-				// console.log("获取用户信息");
-				// let res = {
-				//   code: 200,
-				//   msg: "操作成功",
-				//   permissions: ["*:*:*"],
-				//   roles: ["admin"],
-				//   user: {
-				//     admin: true,
-				//     avatar: null,
-				//     createBy: "admin",
-				//     createTime: "2025-03-10 16:36:42",
-				//     delFlag: "0",
-				//     dept: {},
-				//     nickName: "若依",
-				//     userName: "admin",
-				//   },
-				// };
-
-				// this.id = "1";
-				// this.name = "测试用户";
-				// this.avatar = "";
-				// this.roles = res.roles;
-				// this.permissions = res.permissions;
-				// resolve(res);
 			});
+		},
+		setPermissions(permissions){
+			this.permissions = permissions;
 		},
 		// 退出系统
 		logOut() {

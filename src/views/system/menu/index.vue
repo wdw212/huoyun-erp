@@ -36,8 +36,8 @@
 				</template>
 			</el-table-column>
 			<el-table-column prop="sort" label="排序" align="center"></el-table-column>
+			<el-table-column prop="path" label="路由地址" align="center"></el-table-column>
 			<el-table-column prop="code" label="编码" align="center"></el-table-column>
-			<el-table-column prop="component" label="组件路径" align="center"></el-table-column>
 			<el-table-column prop="status" label="状态" align="center">
 				<template #default="scope">
 					<!-- <dict-tag :options="sys_normal_disable" :value="scope.row.status" /> -->
@@ -60,8 +60,8 @@
 		</el-table>
 
 		<!-- 添加或修改菜单对话框 -->
-		<el-dialog :title="title" v-model="open" width="680px" append-to-body>
-			<el-form ref="menuRef" :model="form" :rules="rules" label-width="100px">
+		<el-dialog :title="title" v-model="open" width="900px" append-to-body>
+			<el-form ref="menuRef" :model="form" :rules="rules" label-width="auto">
 				<el-row>
 					<el-col :span="24">
 						<el-form-item label="上级菜单">
@@ -164,7 +164,7 @@
 							<el-input v-model="form.component" placeholder="请输入组件路径" />
 						</el-form-item>
 					</el-col>
-					<el-col :span="12" v-if="form.type != 0">
+					<el-col :span="12" >
 						<el-form-item>
 							<el-input v-model="form.code" placeholder="请输入编码" maxlength="100" />
 							<template #label>

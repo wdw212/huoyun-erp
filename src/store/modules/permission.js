@@ -1,11 +1,11 @@
 import auth from "@/plugins/auth";
 import router, {
 	constantRoutes,
-	dynamicRoutes
 } from "@/router";
 import {
 	getRouters
 } from "@/api/menu";
+import useUserStore from "@/store/modules/user";
 import Layout from "@/layout/index";
 import ParentView from "@/components/ParentView";
 import InnerLink from "@/layout/components/InnerLink";
@@ -139,29 +139,29 @@ const routerList = [{
 }, {
 	alwaysShow: true,
 	children: [{
-		component: "operation-page/operating-document/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "操作单据",
+			component: "operation-page/operating-document/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "操作单据",
+			},
+			name: "OperatingDocument",
+			path: "operating-document",
 		},
-		name: "OperatingDocumentOld",
-		path: "operating-document-old",
-	},
-	// {
-	// 	component: "operation-page/operating-document/operating-document",
-	// 	hidden: false,
-	// 	meta: {
-	// 		icon: "edit",
-	// 		link: null,
-	// 		noCache: false,
-	// 		title: "操作单据新",
-	// 	},
-	// 	name: "OperatingDocument",
-	// 	path: "operating-document",
-	// },
+		// {
+		// 	component: "operation-page/operating-document/operating-document",
+		// 	hidden: false,
+		// 	meta: {
+		// 		icon: "edit",
+		// 		link: null,
+		// 		noCache: false,
+		// 		title: "操作单据新",
+		// 	},
+		// 	name: "OperatingDocuments",
+		// 	path: "operating-documents",
+		// },
 	],
 	component: "Layout",
 	hidden: false,
@@ -177,84 +177,85 @@ const routerList = [{
 }, {
 	alwaysShow: true,
 	children: [{
-		component: "company/type/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "公司类型",
+			component: "company/type/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "公司类型",
+			},
+			name: "Type",
+			path: "type",
+		}, {
+			component: "company/headers/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "公司抬头",
+			},
+			name: "Headers",
+			path: "headers",
+		}, {
+			component: "company/contracts/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "公司合同",
+			},
+			name: "Contracts",
+			path: "contracts",
+		}, {
+			component: "company/contacts/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "公司通讯录",
+			},
+			name: "Contacts",
+			path: "contacts",
+		}, {
+			component: "company/regions/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "地区列表",
+			},
+			name: "Regions",
+			path: "regions",
+		}, {
+			component: "company/loading-addresses/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "装柜信息",
+			},
+			name: "LoadingAddresses",
+			path: "loadingAddresses",
 		},
-		name: "Type",
-		path: "type",
-	}, {
-		component: "company/headers/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "公司抬头",
-		},
-		name: "Headers",
-		path: "headers",
-	}, {
-		component: "company/contracts/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "公司合同",
-		},
-		name: "Contracts",
-		path: "contracts",
-	}, {
-		component: "company/contacts/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "公司通讯录",
-		},
-		name: "Contacts",
-		path: "contacts",
-	}, {
-		component: "company/regions/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "地区列表",
-		},
-		name: "Regions",
-		path: "regions",
-	}, {
-		component: "company/loading-addresses/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "装柜信息",
-		},
-		name: "LoadingAddresses",
-		path: "loadingAddresses",
-	},
-	{
-		component: "company/send-and-receive/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "收发通信息",
-		},
-		name: "SendAndReceive",
-		path: "SendAndReceive",
-	}],
+		{
+			component: "company/send-and-receive/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "收发通信息",
+			},
+			name: "SendAndReceive",
+			path: "SendAndReceive",
+		}
+	],
 	component: "Layout",
 	hidden: false,
 	meta: {
@@ -304,7 +305,7 @@ const routerList = [{
 		},
 		name: "FinancialDocuments",
 		path: "financial-documents",
-	},{
+	}, {
 		component: "finance-management/profit-statistics",
 		hidden: false,
 		meta: {
@@ -315,7 +316,7 @@ const routerList = [{
 		},
 		name: "ProfitStatistics",
 		path: "profit-statistics",
-	},{
+	}, {
 		component: "finance-management/salary-settlement",
 		hidden: false,
 		meta: {
@@ -338,7 +339,7 @@ const routerList = [{
 	name: "FinanceManagement",
 	path: "/finance-management",
 	redirect: "noRedirect",
-},{
+}, {
 	// alwaysShow: true,
 	component: "Layout",
 	hidden: false,
@@ -363,8 +364,7 @@ const routerList = [{
 		name: "todoListIndex",
 		path: "todo-list-index",
 	}],
-  }
-];
+}];
 
 
 
@@ -374,7 +374,7 @@ const usePermissionStore = defineStore("permission", {
 		addRoutes: [],
 		defaultRoutes: [],
 		topbarRouters: [],
-		sidebarRouters: [],
+		sidebarRouters: []
 	}),
 	actions: {
 		setRoutes(routes) {
@@ -392,45 +392,137 @@ const usePermissionStore = defineStore("permission", {
 		},
 		generateRoutes(roles) {
 			return new Promise((resolve) => {
-				// 向后端请求路由数据
-				// getRouters().then(res => {
-				//   const sdata = JSON.parse(JSON.stringify(res.data))
-				//   const rdata = JSON.parse(JSON.stringify(res.data))
-				//   const defaultData = JSON.parse(JSON.stringify(res.data))
-				//   const sidebarRoutes = filterAsyncRouter(sdata)
-				//   const rewriteRoutes = filterAsyncRouter(rdata, false, true)
-				//   const defaultRoutes = filterAsyncRouter(defaultData)
-				//   const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
-				//   asyncRoutes.forEach(route => { router.addRoute(route) })
-				//   this.setRoutes(rewriteRoutes)
-				//   this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
-				//   this.setDefaultRoutes(sidebarRoutes)
-				//   this.setTopbarRoutes(defaultRoutes)
-				//   resolve(rewriteRoutes)
-				// })
-
+				let data = routerList;
+				var dynamicRoutes = [];
+				
 				// 本地路由数据
 				// console.log("本地路由数据");
-				let data = routerList;
 				const sdata = JSON.parse(JSON.stringify(data));
 				const rdata = JSON.parse(JSON.stringify(data));
 				const defaultData = JSON.parse(JSON.stringify(data));
 				const sidebarRoutes = filterAsyncRouter(sdata);
 				const rewriteRoutes = filterAsyncRouter(rdata, false, true);
 				const defaultRoutes = filterAsyncRouter(defaultData);
-				const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
-				asyncRoutes.forEach((route) => {
-					router.addRoute(route);
-				});
 				this.setRoutes(rewriteRoutes);
-				this.setSidebarRouters(constantRoutes.concat(sidebarRoutes));
 				this.setDefaultRoutes(sidebarRoutes);
 				this.setTopbarRoutes(defaultRoutes);
-				resolve(rewriteRoutes);
+				
+				// const asyncRoutes = filterDynamicRoutes(defaultRoutes);
+				// asyncRoutes.forEach((route) => {
+				// 	router.addRoute(route);
+				// });
+				// this.setSidebarRouters(constantRoutes.concat(sidebarRoutes));
+				
+				// 向后端请求路由数据
+				// 10,11,13,14   useUserStore    sidebarRouters
+				getRouters().then(res => {
+					console.log("动态路由数据", res.data);
+					var userRouteList = JSON.parse(JSON.stringify(res.data));
+					dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
+					console.log('dynamicRoutes', dynamicRoutes, rewriteRoutes)
+					const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+					asyncRoutes.forEach((route) => {
+						router.addRoute(route);
+					});
+					this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
+					resolve(dynamicRoutes);
+				})
+				// console.log("动态路由数据", useUserStore().permissions, res.data);
+				// var userRouteList = useUserStore().userRouteList;
+				// dynamicRoutes = dynamicSetRoute(userRouteList);
+				// console.log('dynamicRoutes', dynamicRoutes, this.accessRoutes)
+				// const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+				// asyncRoutes.forEach((route) => {
+				// 	router.addRoute(route);
+				// });
+				// this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
+				// resolve(dynamicRoutes);
+				
+				
+				// getRouters().then(res => {
+				// 	const sdata = JSON.parse(JSON.stringify(res.data))
+				// 	const rdata = JSON.parse(JSON.stringify(res.data))
+				// 	const defaultData = JSON.parse(JSON.stringify(res.data))
+				// 	const sidebarRoutes = filterAsyncRouter(sdata)
+				// 	const rewriteRoutes = filterAsyncRouter(rdata, false, true)
+				// 	const defaultRoutes = filterAsyncRouter(defaultData)
+				// 	const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
+				// 	asyncRoutes.forEach(route => {
+				// 		router.addRoute(route)
+				// 	})
+				// 	this.setRoutes(rewriteRoutes)
+				// 	this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
+				// 	this.setDefaultRoutes(sidebarRoutes)
+				// 	this.setTopbarRoutes(defaultRoutes)
+				// 	resolve(rewriteRoutes)
+				// })
 			});
 		},
 	},
 });
+
+//动态路由
+function dynamicSetRoute (routeList){
+	var route = [];
+	routeList.forEach(item=>{
+		var routeInfo = {
+			alwaysShow: item.type==0?true:false,
+			component: item.component||"Layout",
+			meta: {
+				icon: item.icon || 'edit',
+				title: item.name,
+				noCache: item.is_cache==1?true:false,
+			},
+			name: item.path,
+			path: item.code,
+			redirect: "noRedirect",
+		}
+		if(item.children){
+			if(item.children.length==1){
+				delete routeInfo.alwaysShow;
+			}
+			if(item.children.length>0){
+				routeInfo = dynamicChildren(item.children, routeInfo);
+			}
+		}
+		route.push(routeInfo);
+	})
+	return route;
+}
+
+function dynamicChildren(childrenRoutr, routeInfo) {
+	routeInfo.children = [];
+	var permissions = useUserStore().permissions;
+	var roles = useUserStore().roles;
+	childrenRoutr.forEach((el) => {
+		if(el.type==2){  //按钮
+			if(!routeInfo.permissions){
+				routeInfo.permissions = [];
+			}
+			routeInfo.permissions.push(routeInfo.path+':'+el.name);
+			permissions.push(routeInfo.path+':'+el.name);
+			useUserStore().setPermissions(permissions);
+		}else{  // 0目录  1菜单
+			var route = {
+				alwaysShow: el.type==0?true:false,
+				component: el.component||"Layout",
+				meta: {
+					icon: el.icon || 'edit',
+					title: el.name,
+					noCache: el.is_cache==1?true:false,
+				},
+				name: el.path,
+				path: el.code,
+				permissions: []
+			}
+			if(el.children&&el.children.length>0){
+				route = dynamicChildren(el.children, route);
+			}
+			routeInfo.children.push(route)
+		}
+	});
+	return routeInfo;
+}
 
 // 遍历后台传来的路由字符串，转换为组件对象
 function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {

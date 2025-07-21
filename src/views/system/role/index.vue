@@ -245,7 +245,8 @@
 
 	/** 提交按钮 */
 	function submitForm() {
-		if (!isMenu) {
+		console.log('isMenu', isMenu.value, form.value);
+		if (!isMenu.value) {
 			proxy.$refs["roleRef"].validate(valid => {
 				if (valid) {
 					if (form.value.id != undefined) {
@@ -254,7 +255,6 @@
 							open.value = false;
 							getList();
 						});
-
 					} else {
 						addRole(form.value).then(response => {
 							proxy.$modal.msgSuccess("新增成功");
