@@ -27,61 +27,88 @@
 		</table-list>
 		
 		<!-- 单据详情 -->
-		<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit"> 
-			<!-- 订舱信息及备注 -->
-			<template #remarkList="{formList,saveData}">
-				<el-row :gutter="20">
-					<el-col v-for="(item,index) in saveData.remark" :key="index" :span="6">
-						<el-input v-model="saveData.remark[index]" :rows="3" type="textarea" placeholder="请输入" resize="none" disabled/>
-					</el-col>
-				</el-row>
-			</template>
-			<!-- 一代联系方式/费用 -->
-			<template #order_delegationList="{formList,saveData}">
-				<el-row :gutter="20">
-					<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
-						<el-col :span="6">
-							<p class="pb">一代联系方式</p>
-							<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none" />
-						</el-col>
-						<el-col class="p-r" :span="6">
-							<p class="pb">一代费用</p>
-							<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none"/>
-						</el-col>
-					</template>
-				</el-row>
-			</template>
-			
-			<!-- 应付款 -->
-			<template #AccountsBtn="{saveData,formList}">
-				<div>
-					<el-button type="primary">费用已完结</el-button>
-					<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
-				</div>
-			</template>
-			<template #AccountsPayable="{saveData,formList}">
-				<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumns" :multiple="false" :border="true" ref="accountTable">
-					<template #bottomCon="{tableData}">
+		<el-dialog v-model="dialogFormVisible" title="单据详情" width="80%" :close-on-click-modal="false">
+			<el-card>
+				<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit" 
+				@cancel="dialogFormVisible = false;">
+					<!-- 订舱信息及备注 -->
+					<template #remarkList="{formList,saveData}">
 						<el-row :gutter="20">
-							<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
-								<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1" disabled/>
+							<el-col v-for="(item,index) in saveData.remark" :key="index" :span="6">
+								<el-input v-model="saveData.remark[index]" :rows="3" type="textarea" placeholder="请输入" resize="none" disabled/>
 							</el-col>
 						</el-row>
 					</template>
-				</table-list>
-			</template>
-			
-			<!-- 应收款 -->
-			<template #PaymentBtn="{saveData,formList}">
-				<div>
-					<el-button type="primary" @click="addPayment()">添加应收款</el-button>
-				</div>
-			</template>
-			<template #PaymentPayable="{saveData,formList}">
-				<table-list :tableConfig="tableConfigPayment" :tableColumn="PaymentColumns" :multiple="false" :border="true" ref="paymentTable"></table-list>
-			</template>
-			
-		</common-form>
+					<!-- 一代联系方式/费用 -->
+					<template #order_delegationList="{formList,saveData}">
+						<el-row :gutter="20">
+							<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
+								<el-col :span="6">
+									<p class="pb">一代联系方式</p>
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none" />
+								</el-col>
+								<el-col class="p-r" :span="6">
+									<p class="pb">一代费用</p>
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none"/>
+								</el-col>
+							</template>
+						</el-row>
+					</template>
+					
+					<!-- 应付款 -->
+					<template #AccountsBtn="{saveData,formList}">
+						<div>
+							<el-button type="primary">费用已完结</el-button>
+							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
+						</div>
+					</template>
+					<template #AccountsPayable="{saveData,formList}">
+						<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumns" :multiple="false" :border="true" ref="accountTable">
+							<template #bottomCon="{tableData}">
+								<el-row :gutter="20">
+									<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
+										<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1" disabled/>
+									</el-col>
+								</el-row>
+							</template>
+						</table-list>
+					</template>
+					
+					<!-- 应收款 -->
+					<template #PaymentBtn="{saveData,formList}">
+						<div>
+							<el-button type="primary" @click="addPayment()">添加应收款</el-button>
+						</div>
+					</template>
+					<template #PaymentPayable="{saveData,formList}">
+						<table-list :tableConfig="tableConfigPayment" :tableColumn="PaymentColumns" :multiple="false" :border="true" ref="paymentTable"></table-list>
+					</template>
+					
+					<!-- 船公司网址 -->
+					<template #shoppingCompany="{saveData,formList}">
+						<el-form-item style="width: 100%;" label="" label-width="auto">
+							<el-tooltip class="box-item" effect="dark"
+								:content="saveData.phone ? saveData.phone :'暂无电话'"
+								placement="top">
+								<el-button type="primary" @click="">添加船公司网址</el-button>
+							</el-tooltip>
+						</el-form-item>
+					</template>
+					
+					<!-- 落箱数据 -->
+					<template #template11="{saveData,formList}">
+						<el-form-item style="width: 100%;" label="落箱数据" label-width="auto">
+							<el-button type="primary" @click="">生成</el-button>
+						</el-form-item>
+					</template>
+					<template #boxInfo>
+						<box-info :boxData="boxData" class="mt-2 "></box-info>
+					</template>
+					
+				</common-form>
+			</el-card>
+		</el-dialog>
+		
 	</div>
 	
 </template>
@@ -91,6 +118,7 @@
 	import SearchTop from "@/components/searchTop/index";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
+	import BoxInfo from "@/components/document/boxInfo";
 	import { httpPost, httpGet } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
@@ -205,6 +233,7 @@
 		requestMethod: httpGet,
 		isQuery: true
 	})
+	const dialogFormVisible = ref(false);
 	// 操作处理方法
 	const handleEdit = (row) => {
 		// console.log('编辑行:', row)
@@ -213,7 +242,7 @@
 			// for(var key in proxy.$refs.commonForm.saveData){
 			// 	proxy.$refs.commonForm.saveData[key] = res[key];
 			// }
-			proxy.$refs.commonForm.dialogFormVisible = true;
+			dialogFormVisible.value = true;
 			var formLists = JSON.parse(JSON.stringify(formList.value));
 			formListNew.value = detailInfo(formLists, res);
 			formListNew.value[0].formData[0].formItem[0].options = YWLX.value;

@@ -83,5 +83,24 @@ export const optionsComm = {
 		{label: '等通知电放',value: 2}, 
 		{label: '已电放',value: 3}, 
 		{label: '已seawaybil',value: 4}
+	],
+	'完结状态': [
+		{label: '已完结',value: '已完结'}, 
+		{label: '未完结',value: '未完结'}, 
+	],
+	'放行': [
+		{label: '已放行',value: '已放行'}, 
+		{label: '未放行',value: '未放行'}, 
+	],
+	'柜型': [
+		{label: '20GP', value: '20GP'},
+		{label: '40HQ', value: '40HQ'},
+		{label: '45HQ', value: '45HQ'},
+		{label: '40RH', value: '40RH'},
+		{label: '其他', value: '其他'},
+	],
+	'是否进港': [
+		{label: '已进港',value: '已进港'},
+		{label: '未进港',value: '未进港'}, 
 	]
 }

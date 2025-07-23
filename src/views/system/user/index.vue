@@ -171,7 +171,8 @@
 			<el-form :model="form2" :rules="rules2" ref="userRef2" label-width="100px">
 				<el-row>
 					<el-form-item label="月份" prop="month_code" style="width: 300px">
-						<el-date-picker v-model="form2.month_code" placeholder="请选择" format="YYYY-MM"
+						<el-date-picker v-model="form2.month_code" placeholder="请选择" 
+						format="YYYY-MM" value-format="YYYY-MM"
 							type="date"></el-date-picker>
 					</el-form-item>
 

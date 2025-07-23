@@ -116,14 +116,15 @@
 	})
 
 	onMounted(() => {
-		// console.log('组件', props.tableColumn);
+		// console.log('tableColumn', props.tableColumn);
+		tableData.value = [];
 		if (props.tableConfig.isQuery) {
 			init();
 		}
 	})
 
 	watch(props.tableConfig, (newVal) => {
-		console.log('tableConfig变更', newVal);
+		// console.log('tableConfig变更', newVal);
 		if (newVal.page) {
 			pageInit.value = newVal.page;
 		}

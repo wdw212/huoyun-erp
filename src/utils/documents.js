@@ -208,7 +208,7 @@ export const formList = ref([
 		tabName: '操作单据',
 		formData: [
 			{
-				label: '操作单据',
+				label: '',
 				formItem: [
 					{
 						type: 'select',
@@ -266,7 +266,36 @@ export const formList = ref([
 	},
 	{
 		tabName: '箱子信息',
-		formData:[]
+		formData:[
+			{
+				label: '',
+				formItem: [
+					{ type: 'input',value: '',label: '提单号',placeholder: '请输入提单号',key: 'bl_no'},
+					{ type: 'input',value: '',label: '船名/航次',placeholder: '请输入船名/航次',key: 'ship_name' },
+					{ span: 12 },
+					{ type: 'select',value: '',label: '截单状态',placeholder: '请选择截单状态',key: 'template1',options: [] },
+					{ type: 'dateTime',value: '',label: '开港时间',placeholder: '请选择开港时间',key: 'template2', format: 'YYYY-MM-DD HH:mm' },
+					{ type: 'date',value: '',label: '实际开船时间',placeholder: '请选择实际开船时间',key: 'template3', dateType: 'date' },
+					{ label: '', soltName: 'shoppingCompany' },
+					{ type: 'dateTime',value: '',label: '截单时间',placeholder: '请选择截单时间',key: 'template5', format: 'YYYY-MM-DD HH:mm' },
+					{ type: 'dateTime',value: '',label: '截港时间',placeholder: '请选择截港时间',key: 'template6', format: 'YYYY-MM-DD HH:mm' },
+					{ type: 'date',value: '',label: '实际到港时间',placeholder: '请选择实际到港时间',key: 'template7', dateType: 'date' },
+					{ type: 'select',value: '',label: '进港码头',placeholder: '请选择进港码头',key: 'template8',options: [] },
+					{ type: 'select',value: '',label: '保险',placeholder: '请选择保险',key: 'template9',options: [] },
+					{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'template10',options: [] },
+					{ label: '落箱数据', soltName: 'template11' },
+					{ type: 'select',value: '',label: '结单状态',placeholder: '请选择结单状态',key: 'template12',options: optionsComm['完结状态'] },
+					{ type: 'select',value: '',label: '提单状态',placeholder: '请选择提单状态',key: 'template13',options: [] },
+					{ type: 'select',value: '',label: '是否放行',placeholder: '请选择是否放行',key: 'template14',options: optionsComm['放行'] },
+					{ span: 12 },
+					{ type: 'textarea',value: '',label: '备注',placeholder: '请输入备注',key: 'template15' },
+				]
+			},
+			{
+				soltName: 'boxInfo',
+				noCard: true
+			}
+		]
 	},
 	{
 		tabName: '提单信息',

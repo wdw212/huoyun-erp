@@ -1,21 +1,23 @@
 <template>
 	
-	<!-- 顶部搜索 -->
-	<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"
-	:btnShow="false">
-		<template #fromCon>
-			<el-button type="primary" icon="Plus" @click="">添加月份工资结算</el-button>
-		</template>
-	</search-top>
-	
-	<!-- 表格 -->
-	<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="false">
-		<template #header>
-			<el-col :span="1.5">
-				<el-button type="primary" plain icon="Plus" @click="">新增</el-button>
-			</el-col>
-		</template>
-	</table-list>
+	<div>
+		<!-- 顶部搜索 -->
+		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"
+		:btnShow="false">
+			<template #fromCon>
+				<el-button type="primary" icon="Plus" @click="">添加月份工资结算</el-button>
+			</template>
+		</search-top>
+		
+		<!-- 表格 -->
+		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="false">
+			<template #header>
+				<el-col :span="1.5">
+					<el-button type="primary" plain icon="Plus" @click="">新增</el-button>
+				</el-col>
+			</template>
+		</table-list>
+	</div>
 	
 </template>
 

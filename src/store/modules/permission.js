@@ -407,55 +407,21 @@ const usePermissionStore = defineStore("permission", {
 				this.setDefaultRoutes(sidebarRoutes);
 				this.setTopbarRoutes(defaultRoutes);
 				
-				// const asyncRoutes = filterDynamicRoutes(defaultRoutes);
-				// asyncRoutes.forEach((route) => {
-				// 	router.addRoute(route);
-				// });
-				// this.setSidebarRouters(constantRoutes.concat(sidebarRoutes));
-				
 				// 向后端请求路由数据
-				// 10,11,13,14   useUserStore    sidebarRouters
-				getRouters().then(res => {
-					console.log("动态路由数据", res.data);
-					var userRouteList = JSON.parse(JSON.stringify(res.data));
-					dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
-					console.log('dynamicRoutes', dynamicRoutes, rewriteRoutes)
-					const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
-					asyncRoutes.forEach((route) => {
-						router.addRoute(route);
-					});
-					this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
-					resolve(dynamicRoutes);
-				})
-				// console.log("动态路由数据", useUserStore().permissions, res.data);
-				// var userRouteList = useUserStore().userRouteList;
-				// dynamicRoutes = dynamicSetRoute(userRouteList);
-				// console.log('dynamicRoutes', dynamicRoutes, this.accessRoutes)
-				// const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
-				// asyncRoutes.forEach((route) => {
-				// 	router.addRoute(route);
-				// });
-				// this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
-				// resolve(dynamicRoutes);
-				
-				
 				// getRouters().then(res => {
-				// 	const sdata = JSON.parse(JSON.stringify(res.data))
-				// 	const rdata = JSON.parse(JSON.stringify(res.data))
-				// 	const defaultData = JSON.parse(JSON.stringify(res.data))
-				// 	const sidebarRoutes = filterAsyncRouter(sdata)
-				// 	const rewriteRoutes = filterAsyncRouter(rdata, false, true)
-				// 	const defaultRoutes = filterAsyncRouter(defaultData)
-				// 	const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
-				// 	asyncRoutes.forEach(route => {
-				// 		router.addRoute(route)
-				// 	})
-				// 	this.setRoutes(rewriteRoutes)
-				// 	this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
-				// 	this.setDefaultRoutes(sidebarRoutes)
-				// 	this.setTopbarRoutes(defaultRoutes)
-				// 	resolve(rewriteRoutes)
+				// 	console.log("动态路由数据", res.data);
+				// 	var userRouteList = JSON.parse(JSON.stringify(res.data));
 				// })
+				
+				// console.log('dynamicRoutes', dynamicRoutes, rewriteRoutes)
+				var userRouteList = useUserStore().userRouteList;
+				dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
+				const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+				asyncRoutes.forEach((route) => {
+					router.addRoute(route);
+				});
+				this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
+				resolve(dynamicRoutes);
 			});
 		},
 	},

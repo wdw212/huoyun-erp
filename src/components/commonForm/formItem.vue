@@ -122,13 +122,13 @@
 	const updateItem = (item) => {
 		newItem.value = item;
 		resetKey();
-		console.log('updateItem', newItem.value);
+		// console.log('updateItem', newItem.value);
 	}
 
 	const resetKey = (reset) => {
 		// saveData.value = newItem.value.defaultValue || newItem.value.value || '';
 		saveData.value = props.formValue;
-		console.log('formItem', saveData.value);
+		// console.log('formItem', saveData.value);
 	}
 
 	const remoteMethod = async (val) => {
@@ -168,7 +168,7 @@
 
 	onMounted(() => {
 		newItem.value = props.item;
-		console.log('formItem', props);
+		// console.log('formItem', props);
 		resetKey()
 	})
 
