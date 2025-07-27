@@ -267,32 +267,34 @@ const routerList = [{
 	name: "Company",
 	path: "/company",
 	redirect: "noRedirect",
-}, {
-	alwaysShow: true,
-	children: [{
-		component: "business-management/files-management/index",
-		hidden: false,
-		meta: {
-			icon: "edit",
-			link: null,
-			noCache: false,
-			title: "文件管理",
-		},
-		name: "FilesManagement",
-		path: "files-management",
-	}],
-	component: "Layout",
-	hidden: false,
-	meta: {
-		icon: "edit",
-		link: null,
-		noCache: false,
-		title: "业务管理",
-	},
-	name: "BusinessManagement",
-	path: "/business-management",
-	redirect: "noRedirect",
-}, {
+}, 
+// {
+// 	alwaysShow: true,
+// 	children: [{
+// 		component: "business-management/files-management/index",
+// 		hidden: false,
+// 		meta: {
+// 			icon: "edit",
+// 			link: null,
+// 			noCache: false,
+// 			title: "文件管理",
+// 		},
+// 		name: "FilesManagement",
+// 		path: "files-management",
+// 	}],
+// 	component: "Layout",
+// 	hidden: false,
+// 	meta: {
+// 		icon: "edit",
+// 		link: null,
+// 		noCache: false,
+// 		title: "业务管理",
+// 	},
+// 	name: "BusinessManagement",
+// 	path: "/business-management",
+// 	redirect: "noRedirect",
+// }, 
+{
 	alwaysShow: true,
 	children: [{
 		component: "finance-management/financial-documents",
@@ -364,6 +366,31 @@ const routerList = [{
 		name: "todoListIndex",
 		path: "todo-list-index",
 	}],
+},{
+	alwaysShow: true,
+	children: [{
+		component: "business-management/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "商务列表",
+		},
+		name: "businessManagementList",
+		path: "business-management-list",
+	}],
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "商务管理",
+	},
+	name: "BusinessManagement",
+	path: "/business-management",
+	redirect: "noRedirect",
 }];
 
 

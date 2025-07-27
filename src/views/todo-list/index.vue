@@ -168,15 +168,11 @@
 	 }
 	 // 保存备注
 	 function submitFormRemarks(){
-		 // if(!item.content){
-			//  proxy.$modal.msgWarning("请输入备注内容");
-			//  return false
-		 // }
-		 // if(item.id){
-			//  updateDataFormRemarks(item)
-		 // }else{
-			//  addDataFormRemarks(item)
-		 // }
+		 if(dataListRemarks.value.some(item => !item.content)){
+			 proxy.$modal.msgWarning("每一项备注不能为空，请检查");
+			 return false
+		 }
+		 updateDataFormRemarks()
 	 }
 	 /** 查询列表 */
 	 // 待办事项
@@ -242,13 +238,12 @@
 		}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
 	 	.finally(()=>{ loadingSaveBtn.value = false });
 	}
-	function updateDataFormRemarks(item){
-		console.log(item,'item')
+	function updateDataFormRemarks(){
 		loadingSaveBtn.value= true
-		let data={
-			id: item.id,
-			content: item.content
+		let data = {
+			items: JSON.stringify(dataListRemarks.value)
 		}
+		console.log(typeof data)
 		updateDataRemarks(data).then(response => {
 		  proxy.$modal.msgSuccess("修改成功");
 		  getListRemarks()

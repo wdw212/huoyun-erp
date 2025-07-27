@@ -41,7 +41,12 @@
 
 		<el-table v-loading="loading" :data="dataList">
 			<!-- <el-table-column label="编号" align="center" prop="id" v-if="columns[0].visible" /> -->
-			<el-table-column label="类型" align="center" prop="company_type.name" v-if="columns[0].visible" />
+			<el-table-column label="类型" align="center" prop="company_type.name" v-if="columns[0].visible" >
+				<template #default="scope">
+					<!-- {{scope.row.company_type_name}} -->
+					<div v-for=" (item, index) in scope.row.company_type_name" key= "index">{{item.label}}</div>
+				</template>
+			</el-table-column>
 			<el-table-column label="业务员" align="center" prop="admin_user.name" v-if="columns[1].visible" />
 			<el-table-column label="公司名称" align="center" prop="company_name" v-if="columns[2].visible" />
 			<el-table-column label="税号" align="center" prop="tax_number" v-if="columns[3].visible" />
@@ -381,6 +386,9 @@
 	function getList() {
 		loading.value = true;
 		listData(queryParams.value).then(response => {
+			response.data.forEach(item =>{
+				item.company_type_name= company_type.value.filter(v => item.company_type.includes(v.value))
+			})
 			dataList.value = response.data;
 			total.value = response.meta.total;
 			loading.value = false;

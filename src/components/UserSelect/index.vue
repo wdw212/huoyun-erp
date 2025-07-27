@@ -40,10 +40,18 @@ import { watch,onMounted} from "vue";
 	}) 
 	const { roleTypeUserIdList } = toRefs(props)
 	// 计算 props 的属性变化，同步本地值
-	const innerValue = computed({
-		get:()=>{return props.value},
-		set:(val)=>{Emit("update:value", val)}
+	// const innerValue = computed({
+	// 	get:()=>{return props.value?props.value: []},
+	// 	set:(val)=>{Emit("update:value", val)}
+	// });
+	const innerValue = ref(props.value || []);
+	watch(() => props.value, (newVal) => {
+	  innerValue.value = newVal || [];
 	});
+	
+	watch(innerValue, (newVal) => {
+	  Emit("update:value", newVal);
+	}, { deep: true });
 	watchEffect(() => {
 	  if (props.btnType !== 'add'){
 		  if (props.roleTypeUserIdList && options.value) {
@@ -52,7 +60,19 @@ import { watch,onMounted} from "vue";
 		      select: props.roleTypeUserIdList.includes(item.id)
 		    }))
 		  }
+	  }else{
+		  // console.log(options.value.find(item =>item.id=== userStore.id).id,'options.value.find(item =>item.id=== userStore.id).id')
+		  // if(options.value && options.value.length>0){
+		  		if(userStore.userRoleCode === props.userType && props.btnType === 'add'){
+		  			if(options.value.find(item =>item.id=== userStore.id)){
+						console.log(options.value.find(item =>item.id=== userStore.id).id,'options.value.find(item =>item.id=== userStore.id).id')
+		  				innerValue.value[0]= options.value.find(item =>item.id=== userStore.id).id
+		  				options.value.find(item =>item.id=== userStore.id).select= true
+		  			}
+		  		}		
+		  	// }
 	  }
+	  console.log(props.btnType,'props.btnType')
 	  
 	})
 	function userDataSelect(){
@@ -60,15 +80,8 @@ import { watch,onMounted} from "vue";
 			is_paginate: 0,
 			code: props.userType? props.userType: ''
 		}).then(response => {
+			console.log(1111)
 			options.value= response.data
-			if(options.value && options.value.length>0){
-				if(userStore.userRoleCode === props.userType && props.btnType === 'add'){
-					if(options.value.find(item =>item.id=== userStore.id)){
-						innerValue.value[0]= options.value.find(item =>item.id=== userStore.id).id
-						options.value.find(item =>item.id=== userStore.id).select= true
-					}
-				}
-			}
 		}).catch(() =>{})
 		.finally(()=>{})
 	}

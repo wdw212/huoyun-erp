@@ -47,7 +47,7 @@ export function listDataRemarks(params) {
 // 新增
 export function addDataRemarks(data) {
 	return request({
-		url: '/remarks',
+		url: '/remarks/batch-store-or-update',
 		method: 'post',
 		data: data
 	})
@@ -56,8 +56,8 @@ export function addDataRemarks(data) {
 // 修改
 export function updateDataRemarks(data) {
 	return request({
-		url: '/remarks/' + data.id,
-		method: 'put',
+		url: '/remarks/batch-store-or-update',
+		method: 'post',
 		data: data
 	})
 }
