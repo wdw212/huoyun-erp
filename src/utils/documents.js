@@ -328,7 +328,7 @@ export const AccountsColumn = ref([
 			type: 'input',key: 'cny_amount',
 		}
 	},
-	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '220px',
+	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '200px',
 		form: {
 			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true
 		}
@@ -343,7 +343,7 @@ export const AccountsColumn = ref([
 			type: 'input',key: 'usd_amount',
 		}
 	},
-	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '220px',
+	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '200px',
 		form: {
 			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true
 		}
@@ -380,7 +380,7 @@ export const PaymentColumn = ref([
 			type: 'input',key: 'cny_amount',
 		}
 	},
-	{label: '人民币发票', type: 'edit', prop: 'cny_invoice_number',width: '220px',
+	{label: '人民币发票', type: 'edit', prop: 'cny_invoice_number',width: '200px',
 		form: {
 			type: 'input',key: 'cny_invoice_number',popover:true
 		}
@@ -395,7 +395,7 @@ export const PaymentColumn = ref([
 			type: 'input',key: 'usd_amount',
 		}
 	},
-	{label: '美金发票', type: 'edit', prop: 'usd_invoice_number',width: '220px',
+	{label: '美金发票', type: 'edit', prop: 'usd_invoice_number',width: '200px',
 		form: {
 			type: 'input',key: 'usd_invoice_number',popover:true
 		}

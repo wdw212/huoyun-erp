@@ -150,18 +150,18 @@ const routerList = [{
 			name: "OperatingDocument",
 			path: "operating-document",
 		},
-		// {
-		// 	component: "operation-page/operating-document/operating-document",
-		// 	hidden: false,
-		// 	meta: {
-		// 		icon: "edit",
-		// 		link: null,
-		// 		noCache: false,
-		// 		title: "操作单据新",
-		// 	},
-		// 	name: "OperatingDocuments",
-		// 	path: "operating-documents",
-		// },
+		{
+			component: "operation-page/operating-document/operating-document",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "操作单据新"
+			},
+			name: "OperatingDocuments",
+			path: "operatingDocuments",
+		},
 	],
 	component: "Layout",
 	hidden: false,
@@ -435,20 +435,23 @@ const usePermissionStore = defineStore("permission", {
 				this.setTopbarRoutes(defaultRoutes);
 				
 				// 向后端请求路由数据
-				// getRouters().then(res => {
-				// 	console.log("动态路由数据", res.data);
-				// 	var userRouteList = JSON.parse(JSON.stringify(res.data));
-				// })
+				// var userRouteList = useUserStore().userRouteList;
+				// dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
+				// const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+				// asyncRoutes.forEach((route) => {
+				// 	router.addRoute(route);
+				// });
+				// this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
+				// resolve(dynamicRoutes);
 				
-				// console.log('dynamicRoutes', dynamicRoutes, rewriteRoutes)
-				var userRouteList = useUserStore().userRouteList;
-				dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
+				// 本地路由
+				dynamicRoutes = filterAsyncRouter(defaultRoutes);
 				const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
 				asyncRoutes.forEach((route) => {
 					router.addRoute(route);
 				});
-				this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
-				resolve(dynamicRoutes);
+				this.setSidebarRouters(constantRoutes.concat(rewriteRoutes));
+				resolve(rewriteRoutes);
 			});
 		},
 	},

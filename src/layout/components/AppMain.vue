@@ -19,6 +19,7 @@
 	const tagsViewStore = useTagsViewStore()
 
 	onMounted(() => {
+		console.log('cachedViews',tagsViewStore.cachedViews)
 		addIframe()
 	})
 

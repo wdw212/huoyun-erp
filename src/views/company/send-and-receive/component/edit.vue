@@ -122,7 +122,7 @@
 				</div>
 			<!-- </template> -->
 		</div>
-		<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%" :append-to-body='true'>
+		<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%">
 			<el-input v-model="form.generate_information" placeholder="请输入生成信息" :rows="10" type="textarea" id="myTextarea"/>
 		</el-dialog>
 	</div>

@@ -36,7 +36,7 @@
 			@pagination="getList" /> -->
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="500px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="500px">
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="标签名称" prop="name">
 					<el-input v-model="form.name" placeholder="请输入标签名称" />

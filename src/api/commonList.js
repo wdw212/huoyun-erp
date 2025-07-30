@@ -41,6 +41,52 @@ export async function getYWLX() {
 	return res.data||[]
 }
 
+//船公司列表
+export async function getCGS() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/shipping-companies', params);
+	return res.data||[]
+}
+
+//码头列表
+export async function getMT() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/wharves', params);
+	return res.data||[]
+}
+
+//车队列表
+export async function getCHD() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/fleets', params);
+	return res.data||[]
+}
+
+//箱子类型列表
+export async function getXZLX() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/container-types', params);
+	return res.data||[]
+}
+
+//落箱/预落堆场码头列表
+export async function getLX() {
+	var params = {
+		is_paginate: 0,
+	}
+	let res = await httpGet('/yard-wharves', params);
+	return res.data||[]
+}
+
+
 //其他选项
 export const optionsComm = {
 	'付款方式': [
@@ -85,12 +131,12 @@ export const optionsComm = {
 		{label: '已seawaybil',value: 4}
 	],
 	'完结状态': [
-		{label: '已完结',value: '已完结'}, 
-		{label: '未完结',value: '未完结'}, 
+		{label: '已完结',value: 1}, 
+		{label: '未完结',value: 0}, 
 	],
 	'放行': [
-		{label: '已放行',value: '已放行'}, 
-		{label: '未放行',value: '未放行'}, 
+		{label: '已放行',value: 1}, 
+		{label: '未放行',value: 0}, 
 	],
 	'柜型': [
 		{label: '20GP', value: '20GP'},
@@ -100,7 +146,7 @@ export const optionsComm = {
 		{label: '其他', value: '其他'},
 	],
 	'是否进港': [
-		{label: '已进港',value: '已进港'},
-		{label: '未进港',value: '未进港'}, 
+		{label: '已进港',value: 1},
+		{label: '未进港',value: 0}, 
 	]
 }

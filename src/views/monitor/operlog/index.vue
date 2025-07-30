@@ -149,7 +149,7 @@
       />
 
       <!-- 操作日志详细 -->
-      <el-dialog title="操作日志详细" v-model="open" width="800px" append-to-body>
+      <el-dialog title="操作日志详细" v-model="open" width="800px">
          <el-form :model="form" label-width="100px">
             <el-row>
                <el-col :span="12">

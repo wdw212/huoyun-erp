@@ -1,5 +1,5 @@
 <template>
-	<div class="app-container">
+	<div class="app-container p-r">
 		<el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
 			<el-form-item label="用户名称" prop="username">
 				<el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable style="width: 240px"
@@ -54,7 +54,7 @@
 
 
 		<!-- 添加或修改用户配置对话框 -->
-		<el-dialog :title="title" v-model="open" width="1000px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="1000px">
 			<el-form :model="form" :rules="btnType==='add'?rules:[]" ref="userRef" label-width="100px">
 				<el-row>
 					<el-form-item label="用户昵称" prop="name" style="width: 300px">
@@ -167,7 +167,7 @@
 		</el-dialog>
 
 		<!-- 添加或修改用户配置对话框 -->
-		<el-dialog :title="title2" v-model="open2" width="700px" append-to-body>
+		<el-dialog :title="title2" v-model="open2" width="700px">
 			<el-form :model="form2" :rules="rules2" ref="userRef2" label-width="100px">
 				<el-row>
 					<el-form-item label="月份" prop="month_code" style="width: 300px">

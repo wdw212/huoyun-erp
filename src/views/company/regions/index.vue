@@ -43,7 +43,7 @@
 			@pagination="getList" />
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="60%" append-to-body>
+		<el-dialog :title="title" v-model="open" width="60%">
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-row :gutter="10">
 					<el-col :span="12">

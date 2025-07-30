@@ -21,7 +21,7 @@
 	
 </template>
 
-<script setup>
+<script setup name="SalarySettlement">
 	import { ref, onMounted, h } from "vue";
 	import SearchTop from "@/components/searchTop/index";
 	import TableList from "@/components/tableList/index";

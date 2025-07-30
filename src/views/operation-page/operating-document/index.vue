@@ -111,7 +111,7 @@
 
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="1400px" append-to-body :close-on-click-modal="false">
+		<el-dialog :title="title" v-model="open" width="1400px" :close-on-click-modal="false">
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
 				<el-card>
 					<el-tabs v-model="activeName" class="demo-tabs">

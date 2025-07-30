@@ -47,7 +47,7 @@
 			@pagination="getList" />
 
 		<!-- 添加或修改公告对话框 -->
-		<el-dialog :title="title" v-model="open" width="800px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="800px">
 			<el-form ref="noticesRef" :model="form" :rules="rules" label-width="60px">
 				<el-form-item label="标题" prop="title">
 					<el-input v-model="form.title" placeholder="请输入标题" />

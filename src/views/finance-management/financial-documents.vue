@@ -113,7 +113,7 @@
 	
 </template>
 
-<script setup>
+<script setup name="FinancialDocuments">
 	import { ref, onMounted, h, getCurrentInstance } from "vue";
 	import SearchTop from "@/components/searchTop/index";
 	import TableList from "@/components/tableList/index";

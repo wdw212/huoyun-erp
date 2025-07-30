@@ -60,7 +60,7 @@
 		</el-table>
 
 		<!-- 添加或修改菜单对话框 -->
-		<el-dialog :title="title" v-model="open" width="900px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="900px" :modal="true">
 			<el-form ref="menuRef" :model="form" :rules="rules" label-width="auto">
 				<el-row>
 					<el-col :span="24">

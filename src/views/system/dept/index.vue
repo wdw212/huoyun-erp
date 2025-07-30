@@ -38,7 +38,7 @@
 			@pagination="getList" /> -->
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="500px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="500px">
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="上级部门" prop="parent_id">
 					<el-select v-model="form.parent_id" placeholder="请选择上级部门" clearable>

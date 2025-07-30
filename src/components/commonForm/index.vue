@@ -147,8 +147,9 @@
 	}
 
 	const changeValue = (val, item) => {
-		// saveData.value[val.key] = val.value;
+		saveData.value[val.key] = val.value;
 		// console.log('itemChange', val, saveData.value);
+		emit('itemChange', saveData.value);
 	}
 
 	onMounted(() => {
@@ -156,7 +157,7 @@
 		resetKey(props.formList)
 	})
 
-	const emit = defineEmits(['confirm', 'cancel'])
+	const emit = defineEmits(['confirm', 'cancel', 'itemChange'])
 	defineExpose({
 		saveData,
 		resetKey

@@ -45,7 +45,7 @@
 			v-model:limit="queryParams.pageSize" @pagination="getList" />
 
 		<!-- 添加或修改角色配置对话框 -->
-		<el-dialog :title="title" v-model="open" width="500px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="500px">
 			<el-form ref="roleRef" :model="form" :rules="rules" label-width="100px">
 				<div v-if="!isMenu">
 					<el-form-item label="角色名称" prop="name">

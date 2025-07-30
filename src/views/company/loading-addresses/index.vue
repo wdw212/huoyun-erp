@@ -86,7 +86,7 @@
 			@pagination="getList" />
 
 		<!-- 添加或修改对话框 -->
-		<el-dialog :title="title" v-model="open" width="500px" append-to-body>
+		<el-dialog :title="title" v-model="open" width="500px">
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="省份" prop="region_id">
 					<!-- <el-input v-model="form.region_id" placeholder="请输入" /> -->
