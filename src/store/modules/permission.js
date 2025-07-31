@@ -435,23 +435,23 @@ const usePermissionStore = defineStore("permission", {
 				this.setTopbarRoutes(defaultRoutes);
 				
 				// 向后端请求路由数据
-				// var userRouteList = useUserStore().userRouteList;
-				// dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
-				// const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
-				// asyncRoutes.forEach((route) => {
-				// 	router.addRoute(route);
-				// });
-				// this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
-				// resolve(dynamicRoutes);
-				
-				// 本地路由
-				dynamicRoutes = filterAsyncRouter(defaultRoutes);
+				var userRouteList = useUserStore().userRouteList;
+				dynamicRoutes = filterAsyncRouter(dynamicSetRoute(userRouteList));
 				const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
 				asyncRoutes.forEach((route) => {
 					router.addRoute(route);
 				});
-				this.setSidebarRouters(constantRoutes.concat(rewriteRoutes));
-				resolve(rewriteRoutes);
+				this.setSidebarRouters(constantRoutes.concat(dynamicRoutes));
+				resolve(dynamicRoutes);
+				
+				// 本地路由
+				// dynamicRoutes = filterAsyncRouter(defaultRoutes);
+				// const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+				// asyncRoutes.forEach((route) => {
+				// 	router.addRoute(route);
+				// });
+				// this.setSidebarRouters(constantRoutes.concat(rewriteRoutes));
+				// resolve(rewriteRoutes);
 			});
 		},
 	},

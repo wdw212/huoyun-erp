@@ -8,11 +8,12 @@
 					<el-text type="primary" class="hand" @click="addBox">添加箱号</el-text>
 				</el-row>
 			</template>
-			<el-aside width="200px">{{boxList.length}}--{{props.isOperate}}
-				<div v-for="(item, index) in boxList" :key="index"
+			<el-aside width="200px">
+			<!-- {{boxList.length}}--{{props.isOperate}} -->
+				<div v-for="(item, index) in state.boxList" :key="index"
 					style="text-align: center;">
-					<el-popconfirm class="box-item" title="是否删除选中项" @confirm=""
-					:disabled="isOperate&&boxIndex==index?false:true">
+					<el-popconfirm class="box-item" title="是否删除选中项" @confirm="deleteBox"
+					:disabled="props.isOperate&&boxIndex==index?false:true">
 						<template #reference>
 							<el-text size="large" class="hand"
 							:type="boxIndex==index?'primary':''" @click="changeBox(index)">
@@ -95,7 +96,8 @@
 		watch,
 		defineExpose,
 		defineEmits,
-		onMounted
+		onMounted,
+		reactive
 	} from "vue";
 	import {
 		Calendar,
@@ -113,18 +115,18 @@
 	
 	const { proxy } = getCurrentInstance();
 	const props = defineProps({
-		boxData: {
-			type: Array,
+		isOperate: {
+			type: Boolean,
 			default: () => {
-				return {}
+				return true
 			}
 		},
-		isOperate: true
 	})
 	
 	const MT = ref([]);
 	const CHD = ref([]);
 	const XZLX = ref([]);
+	const YT = ref([]);
 	const LX = ref([]);
 	
 	const formListBox = ref([]);
@@ -134,50 +136,77 @@
 		MT.value = await getMT();
 		CHD.value = await getCHD();
 		XZLX.value = await getXZLX();
-		LX.value = await getLX();
+		YT.value = await getLX({type: '0'});
+		LX.value = await getLX({type: 1});
 		formList.value[0].formData[0].formItem[2].options = XZLX.value;
+		formList.value[0].formData[0].formItem[4].options = YT.value;
 		formList.value[0].formData[0].formItem[5].options = MT.value;
 		formList.value[0].formData[0].formItem[6].options = LX.value;
 		formList.value[0].formData[0].formItem[12].options = CHD.value;
 		formListBox.value = JSON.parse(JSON.stringify(formList.value));
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
-		addBox();
 	})
 	
 	const openPackForm = ref(false);
 	
-	const boxList = reactive([]);   //箱子列表数据
+	const state = reactive({
+		boxList: [],      //箱子列表数据
+	});
 	const boxIndex = ref(0);   //选中箱子列表下标
 	// 添加箱号
-	const addBox = () => {
-		var data = JSON.parse(JSON.stringify(proxy.$refs.boxInfoForm.saveData));
-		data.no = '箱号';
-		boxList.push(data);
+	const addBox = (isNew) => {
+		var data = {
+			cargo_weight: '',
+			container_type_id: '',
+			driver: '',
+			drop_off_wharf_id: '',
+			fleet_id: '',
+			is_entered_port: '',
+			loading_at: '',
+			no: '箱号',
+			pre_pull_wharf_id: '',
+			seal_number: '',
+			serial_number: '',
+			wharf_id: '',
+			container_items: [],
+			container_loading_address: []
+		}
+		state.boxList.push(data);
+		// console.log('boxList新增', state.boxList)
 	}
 	// 切换选中箱号
 	const changeBox = (index) => {
 		boxIndex.value = index;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
-		proxy.$refs.boxInfoForm.saveData = boxList[index];
-		// var formLists = JSON.parse(JSON.stringify(formList.value));
-		// formListBox.value = detailInfo(formLists, boxList[index]);
-		console.log('boxList', boxList, proxy.$refs.boxInfoForm.saveData)
+		proxy.$refs.boxInfoForm.changeSave(state.boxList[index]);
+		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
-	
+	// 删除选中箱号
+	const deleteBox = () => {
+		state.boxList.splice(boxIndex.value, 1);
+		boxIndex.value = 0;
+		proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
+		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
+	}
+	//箱子数据回显
+	const defaultBox = (val) => {
+		Object.assign(state.boxList, val);
+		if(val.length>0){
+			boxIndex.value = 0;
+			proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
+		}
+		console.log('boxList', state.boxList)
+	}
 	
 	//单据信息变更
 	const itemChange = (data) => {
-		Object.assign(boxList[boxIndex.value], data);
-		// console.log('单据信息变更', data, boxList)
+		Object.assign(state.boxList[boxIndex.value], data);
+		var newBox = JSON.parse(JSON.stringify(state.boxList));
+		emit('boxInfoChange', newBox);
+		// console.log('单据信息变更', data, state.boxList)
 	}
 	// 单据信息提交
 	const confirmSubmit = (data) => {
-		// console.log('编辑行:', row)
-		var saveData = {
-			...data,
-			order_payments: proxy.$refs.accountTable.tableData,
-			order_receipts: proxy.$refs.paymentTable.tableData
-		};
 		console.log('确认提交', data)
 	}
 
@@ -324,9 +353,10 @@
 		// console.log('paymentDelete', row, rowIndex)
 	}
 
-	const emit = defineEmits([])
+	const emit = defineEmits(['boxInfoChange'])
 	defineExpose({
-		
+		defaultBox,
+		addBox
 	})
 </script>
 

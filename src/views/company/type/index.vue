@@ -72,7 +72,7 @@
 	</div>
 </template>
 
-<script setup name="Company-type">
+<script setup name="CompanyType">
 	import {
 		listCompanyType,
 		getCompanyType,

@@ -24,7 +24,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup name="PullDownOptions">
 	import {
 		ref
 	} from 'vue'

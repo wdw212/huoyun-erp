@@ -131,7 +131,7 @@
 	</div>
 </template>
 
-<script setup name="Contracts">
+<script setup name="CompanyContracts">
 	import {
 		listData
 	} from "@/api/company/send-and-receive";

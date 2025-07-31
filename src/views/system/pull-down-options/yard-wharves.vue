@@ -97,6 +97,7 @@
 	const data = reactive({
 		form: {},
 		queryParams: {
+			is_paginate: 1,
 			page: 1,
 			pageSize: 15,
 			title: null

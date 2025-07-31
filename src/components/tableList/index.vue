@@ -17,9 +17,9 @@
 			:border="border" :size="size" :height="height" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
-			<template v-for="(item,index) in tableColumn" :key="index" v-show="!item.noShow">
+			<template v-for="(item,index) in tableColumn" :key="index">
 				<!-- 操作列 -->
-				<el-table-column v-if="item.type=='edit'" :fixed="item.fixed" :label="item.label"
+				<el-table-column v-if="item.type=='edit'&&!item.noShow" :fixed="item.fixed" :label="item.label"
 					:align="item.align||'center'" :width="item.width">
 					<template #default="{row,index}">
 						<common-form-item :item="item.form" :formValue="row[item.prop]"
@@ -28,7 +28,7 @@
 				</el-table-column>
 
 				<!-- 操作按钮列 -->
-				<el-table-column v-else-if="item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
+				<el-table-column v-else-if="!item.noShow&&item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
 					:label="item.label" :align="item.align||'center'" :width="item.width">
 					<template #default="{row}">
 						<action-buttons :row="row" :actions="item.actions" />
@@ -37,7 +37,7 @@
 
 				<!-- 展示列 -->
 				<el-table-column
-					v-else-if="item.prop!='actions'&&(!toolbar||(toolbar&&columns[index]&&columns[index].visible))"
+					v-else-if="!item.noShow&&item.prop!='actions'&&(!toolbar||(toolbar&&columns[index]&&columns[index].visible))"
 					:label="item.label" :align="item.align||'center'" :prop="item.prop" :width="item.width"
 					:show-overflow-tooltip="item.tooltip||false" :formatter="item.formatter">
 				</el-table-column>
@@ -201,7 +201,8 @@
 	const emit = defineEmits(['selectionChange'])
 	defineExpose({
 		tableData,
-		updateTableData
+		updateTableData,
+		getList
 	})
 
 	// 定义独立的操作按钮组件

@@ -118,6 +118,11 @@
 	}, {
 		deep: true
 	})
+	
+	const updateValue = (val) => {
+		saveData.value = val;
+		console.log('updateValue-formItem数据回显', saveData.value);
+	}
 
 	const updateItem = (item) => {
 		newItem.value = item;
@@ -174,7 +179,8 @@
 
 	const emit = defineEmits(['changeValue'])
 	defineExpose({
-		updateItem
+		updateItem,
+		updateValue
 	})
 </script>
 

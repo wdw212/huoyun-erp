@@ -2,11 +2,11 @@
 	
 	<div class="p-r">
 		<!-- 顶部搜索 -->
-		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
+		<search-top ref="searchTop" :queryParams="queryParamsDocu" @search="searchConfirm"></search-top>
 		
 		<!-- 表格 -->
 		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2">
+		class="px-2" ref="tableList">
 			<template #headerCon></template>
 			<template #headerLeft> </template>
 			<template #headerRight>
@@ -44,13 +44,13 @@
 							<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
 								<el-col :span="6">
 									<p class="pb">一代联系方式</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none" />
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" resize="none" />
 								</el-col>
 								<el-col class="p-r" :span="6">
 									<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
 									@click="saveData.order_delegation_header.remark.splice(index, 1)"><Close /></el-icon>
 									<p class="pb">一代费用</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" disabled resize="none"/>
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" resize="none"/>
 								</el-col>
 							</template>
 						</el-row>
@@ -83,7 +83,7 @@
 						</el-form-item>
 					</template>
 					<template #boxInfo>
-						<box-info :boxData="boxData" class="mt-2 "></box-info>
+						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
 					</template>
 					
 				</common-form>
@@ -99,20 +99,33 @@
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import BoxInfo from "@/components/document/boxInfo";
-	import { httpPost, httpGet } from '@/api/apiCommon';
+	import { httpPost, httpGet, httpPut } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY } from '@/api/commonList';
-	import { queryParams, formList, AccountsColumn } from '@/utils/documents';
+	import { getYWY, getCZY, getYWLX, getTT } from '@/api/commonList';
+	import { queryParamsDocu, formList, AccountsColumn } from '@/utils/documents';
+	import { detailInfo } from '@/utils/common'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
-	const formListNew = JSON.parse(JSON.stringify(formList.value));
+	const editId = ref('');
+	const formListNew = ref([]);
+	
+	const YWY = ref([]);  //业务员
+	const CZY = ref([]);  //操作员
+	const YWLX = ref([]); //业务类型
+	const TT = ref([]); //抬头/公司名称
 	
 	onMounted(async ()=>{
-		// console.log('onMounted', queryParams);
-		queryParams.value[11].options = await getYWY();
-		queryParams.value[12].options = await getCZY();
+		YWY.value = await getYWY();
+		CZY.value = await getCZY();
+		YWLX.value = await getYWLX();
+		TT.value = await getTT();
+		
+		// queryParamsDocu.value[11].options = YWY.value;
+		// queryParamsDocu.value[12].options = CZY.value;
+		AccountsColumn.value[4].noShow = true;
+		AccountsColumn.value[7].noShow = true;
 		AccountsColumn.value[AccountsColumn.value.length] = {
 			label: '操作',
 			prop: 'actions',
@@ -123,6 +136,11 @@
 			}],
 			width: '70px'
 		}
+		
+		formList.value[0].formData[0].formItem[0].options = YWLX.value;
+		formList.value[0].formData[0].formItem[4].options = YWY.value;
+		formList.value[0].formData[2].noShow = true;
+		formListNew.value = JSON.parse(JSON.stringify(formList.value));
 		console.log('formListNew', formListNew)
 	})
 	
@@ -133,26 +151,20 @@
 	/** 查询列表 */
 	const tableColumn = ref([
 		{label: '工作编号', prop: 'job_no', formatter: (row)=> row.job_no || '无'},
+		{label: '委托抬头', prop: 'propcolumn'},
 		{label: '操作模式', prop: 'order_type.name'},
 		{label: '提单号', prop: 'bl_no'},
-		{label: '操作', prop: 'propcolumn'},
-		{label: '业务员', prop: 'business_user.name'},
-		{label: '合作单位', prop: 'propcolumn'},
 		{label: '柜型', prop: 'container_type'},
+		{label: '目的港', prop: 'destination_port'},
 		{label: '开船日期', prop: 'sailing_at'},
+		{label: '到港日期', prop: 'arrival_at'},
+		{label: '业务员', prop: 'business_user.name'},
 		{label: '提货', prop: 'is_delivery', formatter: (row)=> row.is_delivery === 1 ? '已提货' : '未提货'},
-		{label: '应付人民币', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应付美金', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应收人民币', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应收美金', prop: 'propcolumn'},
-		{label: '利润归属月份', prop: 'propcolumn'},
-		{label: '总利润', prop: 'propcolumn'},
-		{label: '税后折扣', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '是否开票', prop: 'bl_status', formatter: (row)=> row.bl_status === 1 ? '未开票' : '已开票'},
+		{label: '文件', prop: 'propcolumn'},
+		{label: '费用完结', prop: 'propcolumn'},
+		{label: '创建时间', prop: 'created_at'},
+		{label: '备注', prop: 'remark'},
+		
 		{ 
 			label: '操作',
 			prop: 'actions',
@@ -182,14 +194,28 @@
 	})
 	const addDocument = () => {
 		dialogFormVisible.value = true;
-	}
-	// 操作处理方法
-	const handleEdit = (row) => {
-		formListNew.value = JSON.parse(JSON.stringify(formList.value));
+		editId.value = '';
 		setTimeout(function(){
+			proxy.$refs.boxInfo.addBox(true);
 			proxy.$refs.accountTable.tableData = [];
 			addAccount();
 		}, 200)
+	}
+	// 操作处理方法
+	const handleEdit = (row) => {
+		httpGet(`/orders/${row.id}`).then(res => {
+			dialogFormVisible.value = true;
+			editId.value = row.id;
+			setTimeout(function(){
+				var data = {};
+				for(var key in proxy.$refs.commonForm.saveData){
+					data[key] = res[key];
+				}
+				proxy.$refs.boxInfo.defaultBox(res.containers);
+				proxy.$refs.commonForm.changeSave(data);
+				proxy.$refs.accountTable.updateTableData(res.order_payments);
+			}, 500)
+		});
 	}
 	
 	const addAccount = () => {
@@ -210,11 +236,40 @@
 		// console.log('accountsDelete', row, rowIndex)
 	}
 	
+	const containers = ref([]);
+	// 箱子信息变更
+	const boxInfoChange = (data) => {
+		containers.value = data;
+	}
+	
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('编辑行:', row)
-		console.log('确认提交', data);
-		var order_payments = proxy.$refs.accountTable.tableData;
+		var order_payments = proxy.$refs.accountTable.tableData
+		var params = {
+			...data,
+			containers: containers.value,
+			orderPaymentsList: order_payments,
+			order_payments: JSON.stringify(order_payments),
+			// order_files: '',
+		}
+		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		delete params['undefined'];
+		console.log('确认提交', params);
+		// return;
+		if (editId.value) {
+			httpPut(`/orders/${editId.value}`, params).then(res => {
+				dialogFormVisible.value = false;
+				proxy.$modal.msgSuccess("修改成功!");
+				proxy.$refs.tableList.getList();
+			});
+		} else {
+			httpPost(`/orders`, params).then(res => {
+				dialogFormVisible.value = false;
+				proxy.$modal.msgSuccess("新增成功!");
+				proxy.$refs.tableList.getList();
+			});
+		}
 	}
 	// 单据取消
 	const cancelForm = (data) => {

@@ -76,7 +76,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup name="todoListIndex">
 	import { toRefs,ref,nextTick } from 'vue';
 	import {
 		listData,

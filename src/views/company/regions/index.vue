@@ -95,7 +95,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup name="CompanyRegions">
 	import {
 		listData,
 		getData,

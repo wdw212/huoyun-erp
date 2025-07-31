@@ -15,6 +15,93 @@ export const statistic = ref([
 	{ title: '毛利利润总和', value: 0, prefix: '￥' }
 ])
 
+export const queryParamsDocu = ref([
+	{
+		type: 'input',
+		value: '',
+		placeholder: '编号、提单号、分箱数据',
+		key: 'keyword'
+	},
+	{
+		type: 'date',
+		// dateType: 'month',
+		value: '',
+		startPlaceholder: '开船开始日期',
+		endPlaceholder: '开船结束日期',
+		key: 'sailing_at'
+	},
+	{
+		type: 'date',
+		dateType: 'month',
+		value: '',
+		placeholder: '请选择月份',
+		key: 'finish_at'
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择类型',
+		key: 'order_type_id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择操作类型完结',
+		key: 'is_fee_finish',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择委托抬头',
+		key: 'company_header_id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择业务员',
+		key: 'business_user_id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择商务',
+		key: 'commerce_user_id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择提货',
+		key: 'is_delivery',
+		options: optionsComm['提货']
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择付款方式',
+		key: 'payment_method',
+		options: optionsComm['付款方式']
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择销货单位',
+		key: 'seller_id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '请选择操作票数',
+		key: 'caozuoyuepiao',
+		options: []
+	},
+])
+
 export const queryParams = ref([
 	{
 		type: 'input',

@@ -91,7 +91,7 @@
 	</div>
 </template>
 
-<script setup name="Operlog">
+<script setup name="Log">
 	import {
 		list
 	} from "@/api/system/log";

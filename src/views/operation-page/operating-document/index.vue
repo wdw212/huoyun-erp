@@ -918,7 +918,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup name="OperatingDocument">
 	import {
 		listData,
 		getData,

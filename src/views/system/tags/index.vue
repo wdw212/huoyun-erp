@@ -52,7 +52,7 @@
 	</div>
 </template>
 
-<script setup name="NoticeTag">
+<script setup name="Tags">
 	import {
 		listNoticeTag,
 		getNoticeTag,

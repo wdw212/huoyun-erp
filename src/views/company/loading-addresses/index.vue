@@ -162,7 +162,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup name="CompanyLoadingAddress">
 	import {
 		listData,
 		getData,

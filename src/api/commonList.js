@@ -77,10 +77,11 @@ export async function getXZLX() {
 	return res.data||[]
 }
 
-//落箱/预落堆场码头列表
-export async function getLX() {
+//预落堆场码头列表
+export async function getLX(data={}) {
 	var params = {
 		is_paginate: 0,
+		...data
 	}
 	let res = await httpGet('/yard-wharves', params);
 	return res.data||[]
