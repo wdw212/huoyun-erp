@@ -436,6 +436,7 @@
 	}
 	
 	const cancel = () =>{
+		roleTypeUserIdList.value= []
 	    Emit('handleCancle');
 	  // openView.value= false
 	}

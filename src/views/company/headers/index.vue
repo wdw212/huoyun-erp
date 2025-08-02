@@ -56,8 +56,9 @@
 			<el-table-column label="开户行" align="center" prop="bank_name" v-if="columns[7].visible" />
 			<el-table-column label="账户" align="center" prop="bank_account" v-if="columns[8].visible" />
 			<el-table-column label="创建人" align="center" prop="admin_user.name" v-if="columns[9].visible" />
-			<el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
+			<el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
 				<template #default="scope">
+					<el-button plain type="primary" icon="Edit" @click="handleShare(scope.row)">分享</el-button>
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
 					<el-button v-if="deleteBtnType.includes(userStore.userRoleCode) || userStore.id=== scope.row.admin_user.id" plain type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
 				</template>
@@ -156,9 +157,31 @@
 						</el-form-item>
 					</el-col>
 
+					<el-col :span="12">
+						<el-form-item label="公司类型" prop="company_type">
+							<!-- <el-input v-model="form.company_type_id" placeholder="请输入公司名称" /> -->
+							<el-select v-model="form.company_type" placeholder="请选择公司类型" multiple :disabled="userStore.userRoleCode === 'BUSINESS'">
+								<el-option v-for="item in company_type" :key="item.value" :label="item.label"
+									:value="item.value" />
+							</el-select>
+						</el-form-item>
+					</el-col>
+				</el-row>
+			</el-form>
+			<template #footer>
+				<div class="dialog-footer">
+					<el-button type="primary" @click="submitForm">保 存</el-button>
+					<el-button @click="cancel">取 消</el-button>
+				</div>
+			</template>
+		</el-dialog>
+		<!-- 分享 -->
+		<el-dialog title="分享" v-model="openShare" width="800px">
+			<el-form ref="formRefShare" :model="formShare" :rules="rules" label-width="120px">
+				<el-row :gutter="10">
 					<el-col :span="12" v-if="userStore.userRoleCode !== 'BUSINESS'">
 						<el-form-item label="业务员" prop="business_user_ids">
-							<UserSelect :value="form.business_user_ids" @update:value="form.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.business_user_ids" @update:value="form.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-input v-model="form.admin_user_id" placeholder="请输入业务员" /> -->
 							<!-- <el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
 								<el-option v-for="item in admin_user" :key="item.value" :label="item.label"
@@ -166,19 +189,18 @@
 							</el-select> -->
 						</el-form-item>
 					</el-col>
-
-					<el-col :span="12">
+		
+					<!-- <el-col :span="12">
 						<el-form-item label="公司类型" prop="company_type">
-							<!-- <el-input v-model="form.company_type_id" placeholder="请输入公司名称" /> -->
 							<el-select v-model="form.company_type" placeholder="请选择公司类型" multiple>
 								<el-option v-for="item in company_type" :key="item.value" :label="item.label"
 									:value="item.value" />
 							</el-select>
 						</el-form-item>
-					</el-col>
+					</el-col> -->
 					<el-col :span="12">
 						<el-form-item label="操作员" prop="operation_user_ids">
-							<UserSelect :value="form.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
 							</el-select> -->
@@ -186,7 +208,7 @@
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="单证员" prop="document_user_ids">
-							<UserSelect :value="form.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 							</el-select> -->
@@ -196,8 +218,8 @@
 			</el-form>
 			<template #footer>
 				<div class="dialog-footer">
-					<el-button type="primary" @click="submitForm">保 存</el-button>
-					<el-button @click="cancel">取 消</el-button>
+					<el-button type="primary" @click="submitFormShare">保 存</el-button>
+					<el-button @click="cancelShare">取 消</el-button>
 				</div>
 			</template>
 		</el-dialog>
@@ -230,6 +252,7 @@
 
 	const dataList = ref([]);
 	const open = ref(false);
+	const openShare = ref(false);
 	const loading = ref(true);
 	const ids = ref([]);
 	const single = ref(true);
@@ -304,11 +327,11 @@
 		{
 			label: '应付抬头',
 			value: 1
-		},
-		{
-			label: '应收抬头',
-			value: 2
 		}
+		// {
+		// 	label: '应收抬头',
+		// 	value: 2
+		// }
 	]);
 	// 操作员
 	const OPERATION_USER = ref([])
@@ -364,6 +387,7 @@
 
 	const data = reactive({
 		form: {},
+		formShare: {},
 		queryParams: {
 			page: 1,
 			pageSize: 15,
@@ -379,7 +403,8 @@
 	const {
 		queryParams,
 		form,
-		rules
+		rules,
+		formShare,
 	} = toRefs(data);
 
 	/** 查询列表 */
@@ -398,6 +423,10 @@
 	// 取消按钮
 	function cancel() {
 		open.value = false;
+		reset();
+	}
+	function cancelShare() {
+		openShare.value = false;
 		reset();
 	}
 
@@ -419,11 +448,15 @@
 			qq: null,
 			distinction: null,
 			delivery_address: null,
-			remark: null,
+			remark: null
+		};
+		formShare.value = {
+			id: null,
 			business_user_ids: null,
 			operation_user_ids: null,
 			document_user_ids: null
-		};
+		}
+		roleTypeUserIdList.value= []
 		proxy.resetForm("formRef");
 	}
 
@@ -451,7 +484,23 @@
 			form.value.business_user_ids.push(userStore.id)
 		}
 	}
-
+	// 分享
+	function handleShare(row){
+		reset();
+		const _id = row.id || ids.value
+		getData(_id).then(response => {
+			console.log(response,'response')
+			form.value = response;
+			openShare.value = true;
+			btnType.value= 'share'
+			if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
+				roleTypeUserIdList.value.push(row.admin_user.id)
+			}else{
+				roleTypeUserIdList.value= ''
+			}
+			
+		});
+	}
 	/** 修改按钮操作 */
 	function handleUpdate(row) {
 		reset();
@@ -462,11 +511,11 @@
 			open.value = true;
 			title.value = "修改";
 			btnType.value= 'edit'
-			if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
-				roleTypeUserIdList.value.push(row.admin_user.id)
-			}else{
-				roleTypeUserIdList.value= ''
-			}
+			// if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
+			// 	roleTypeUserIdList.value.push(row.admin_user.id)
+			// }else{
+			// 	roleTypeUserIdList.value= ''
+			// }
 			
 		});
 	}
@@ -550,7 +599,7 @@
 	
 	// 必填
 	function checkInfo(){
-		if((!form.value.business_user_ids || form.value.business_user_ids.length=== 0) && (!form.value.operation_user_ids || form.value.operation_user_ids.length=== 0) && (!form.value.document_user_ids || form.value.document_user_ids.length=== 0)){
+		if((!formShare.value.business_user_ids || formShare.value.business_user_ids.length=== 0) && (!formShare.value.operation_user_ids || formShare.value.operation_user_ids.length=== 0) && (!formShare.value.document_user_ids || formShare.value.document_user_ids.length=== 0)){
 			proxy.$modal.msgWarning("请选择至少一个共享人");
 			return false;
 		}

@@ -4,18 +4,18 @@
 			<!-- <el-col :span="6" :xs="24"> -->
 		   <el-card class="box-card input-" style="">
 			  <template v-slot:header>
-				<div class="clearfix">
+				<div class="clearfix title-font-family">
 				  <span>待办事项列表</span>
 				</div>
 			  </template>
 			  <div style="padding: 30px 50px">
 			  <el-form ref="formRef" :model="form" :inline="true" class="flex flex-align-center" :rules="rules"@submit.prevent>
 				  <!-- <el-form-item style="flex:1;color: #000;margin-right: 10px" prop="title" :class="inputStyleTodoListStyle=== 1?'form-item-height no-border-input focus-style':'form-item-height no-border-input'"> -->
-				  <el-form-item style="flex:1;color: #000;margin-right: 10px" prop="title" class="form-item-height focus-border-color form-item-style">
+				  <el-form-item style="flex:1;color: #000;margin-right: 10px" prop="title" class="form-item-height focus-border-color form-item-style font-size-18">
 				  	<el-input  v-model="form.title" @keyup.enter.native="handleAdd" placeholder="今天需要做什么？" clearable @focus="inputStyleTodoListStyle= 1" @blur="inputStyleTodoListStyle= 0"/>
 				  </el-form-item>
 				  <el-form-item  class="form-item-height form-item-style">
-				  	<el-button type="primary" icon="Plus" @click="handleAdd" :loadingAddBtn="loadingAddBtn">添加</el-button>
+				  	<el-button type="primary" @click="handleAdd" :loadingAddBtn="loadingAddBtn">添加</el-button>
 				  </el-form-item>
 			  </el-form>
 			  <div>
@@ -37,7 +37,7 @@
 			</el-card>
 			<el-card class="box-card">
 				<template v-slot:header>
-					<div class="clearfix">
+					<div class="clearfix title-font-family">
 					  <span>备注</span>
 					</div>
 				</template>
@@ -48,7 +48,7 @@
 					<el-button type="primary" @click="handleSearcRemarks(1)" :loading="loadingRemarks"  icon="Refresh">刷 新</el-button>
 				</div>
 				<el-form ref="queryParamsRef" :model="queryParams" :inline="true" class="flex flex-align-center" :rules="rules">
-				  <el-form-item style="flex:1;">
+				  <el-form-item style="width: 60%;">
 					<el-input v-model="queryParams.keyword" placeholder="请输入备注关键字" clearable style="color: #000!important" />
 				  </el-form-item>
 				  <el-form-item >
@@ -382,15 +382,21 @@
 		}
 		.is-focus{
 			padding: 0;
+			width: 100%;
+			height: 100% !important;
+			box-shadow: 0px 0px 10px #409EFF !important;
 			.el-input__inner{
-				width: 100%;
-				height: 100% !important;
-				box-shadow: 0px 0px 4px #409EFF !important;
 				padding: 0 10px
 				// box-shadow .15s ease-in-out
 			}
 		}
 		
+	}
+	.font-size-18{
+		.el-input__inner{
+			font-size: 18px;
+			// line-height: 2em;
+		}
 	}
 	.border{
 		border: 1px solid #dcdfe6;
@@ -421,6 +427,10 @@
 		}
 		.focus-style{
 			border: 1px solid #409EFF
+		}
+		.title-font-family{
+			font-family: '楷体';
+			font-size: 20px
 		}
 	}
 </style>

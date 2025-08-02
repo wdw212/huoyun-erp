@@ -122,7 +122,7 @@
 				</el-form-item>
 				<el-form-item label="业务员" prop="business_user_ids">
 					<UserSelect :value="form.business_user_ids" @update:value="form.business_user_ids= $event"
-						:user-type="'BUSINESS'" :btn-type="btnType"></UserSelect>
+						:user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 					<!-- <el-input v-model="form.business_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.business_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in BUSINESS_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -131,7 +131,7 @@
 
 				<el-form-item label="操作员" prop="operation_user_ids">
 					<UserSelect :value="form.operation_user_ids" @update:value="form.operation_user_ids= $event"
-						:user-type="'OPERATE'" :btn-type="btnType"></UserSelect>
+						:user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 					<!-- <el-input v-model="form.operation_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -140,7 +140,7 @@
 
 				<el-form-item label="单证员" prop="document_user_ids">
 					<UserSelect :value="form.document_user_ids" @update:value="form.document_user_ids= $event"
-						:user-type="'DOCUMENT'" :btn-type="btnType"></UserSelect>
+						:user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 					<!-- <el-input v-model="form.document_user_id" placeholder="请输入" /> -->
 					<!-- <el-select v-model="form.document_user_ids" placeholder="请选择" clearable filterable>
 						<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
@@ -320,6 +320,7 @@
 			document_user_ids: null,
 			remark: null
 		};
+		roleTypeUserIdList.value= []
 		proxy.resetForm("formRef");
 	}
 
@@ -349,14 +350,16 @@
 		const _id = row.id || ids.value
 		getData(_id).then(response => {
 			form.value = response;
+			handleDeptData(form.value.region_id)
 			open.value = true;
 			title.value = "修改";
 			btnType.value = 'edit'
 			if (!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id) {
 				roleTypeUserIdList.value.push(row.admin_user.id)
 			} else {
-				roleTypeUserIdList.value = ''
+				roleTypeUserIdList.value = []
 			}
+			console.log(roleTypeUserIdList.value,'roleTypeUserIdList.value')
 		});
 	}
 	// 必填
@@ -412,6 +415,7 @@
 	const name = ref('')
 	// 省市区展示
 	const handleDeptData = (regionId) => {
+		console.log(regionId,'regionId')
 		findPath(REGION_OPTIONS.value, regionId);
 	}
 	// 根据分组id获取分组名

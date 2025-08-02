@@ -31,6 +31,8 @@
 			<!-- <el-table-column label="编号" align="center" prop="id" /> -->
 			<el-table-column label="发布人" align="center" prop="adminUser.name" />
 			<el-table-column label="标题" align="center" prop="title" />
+			<el-table-column label="排序" align="center" prop="title" />
+			<el-table-column label="公告类型" align="center" prop="title" />
 			<!-- <el-table-column label="内容" align="center" prop="content" /> -->
 			<el-table-column label="创建时间" align="center" prop="created_at" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -48,9 +50,17 @@
 
 		<!-- 添加或修改公告对话框 -->
 		<el-dialog :title="title" v-model="open" width="800px">
-			<el-form ref="noticesRef" :model="form" :rules="rules" label-width="60px">
+			<el-form ref="noticesRef" :model="form" :rules="rules" label-width="100px">
 				<el-form-item label="标题" prop="title">
 					<el-input v-model="form.title" placeholder="请输入标题" />
+				</el-form-item>
+				<el-form-item label="排序" prop="title">
+					<el-input v-model="form.title" placeholder="请输入排序" type="Number"/>
+				</el-form-item>
+				<el-form-item label="公告类型" prop="company_type_id">
+					<el-select v-model="queryParams.notices_type_id" placeholder="请选择公告类型" clearable>
+						<el-option v-for="item in notices_type" :key="item.value" :label="item.label" :value="item.value" />
+					</el-select>
 				</el-form-item>
 				<el-form-item label="内容">
 					<editor v-model="form.content" :min-height="300" />
@@ -88,6 +98,32 @@
 	const multiple = ref(true);
 	const total = ref(0);
 	const title = ref("");
+	const notices_type = ref([
+		{
+			value: 1,
+			label: '公司公告'
+		},
+		{
+			value: 2,
+			label: '操作公告'
+		},
+		{
+			value: 3,
+			label: '业务公告'
+		},
+		{
+			value: 4,
+			label: '单证公告'
+		},
+		{
+			value: 5,
+			label: '财务公告'
+		},
+		{
+			code: 6,
+			value: '商务公告'
+		}
+	]);  //公告类型
 
 	const data = reactive({
 		form: {},

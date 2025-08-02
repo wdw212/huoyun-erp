@@ -6,6 +6,9 @@
 		<top-nav v-if="settingsStore.topNav" id="topmenu-container" class="topmenu-container" />
 
 		<div class="right-menu">
+			<div class="">
+				<el-button type="text" style="color: #333" @click="handleView">公告</el-button>
+			</div>
 			<template v-if="appStore.device !== 'mobile'">
 				<header-search id="header-search" class="right-menu-item" />
 
@@ -48,6 +51,7 @@
 				</el-dropdown>
 			</template>
 		</div>
+		<notices-look  :openView.sync='openView'  @update:openView="openView= $event"/>
 	</div>
 </template>
 
@@ -66,6 +70,7 @@
 	import useAppStore from '@/store/modules/app'
 	import useUserStore from '@/store/modules/user'
 	import useSettingsStore from '@/store/modules/settings'
+	import noticesLook from '@/views/system/notices/component/notices-look'	
 
 	const appStore = useAppStore()
 	const userStore = useUserStore()
@@ -109,6 +114,11 @@
 
 	function toggleTheme() {
 		settingsStore.toggleTheme()
+	}
+	const openView= ref(false)
+	// 查看公告
+	function handleView(){
+		openView.value= true
 	}
 </script>
 

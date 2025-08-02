@@ -277,7 +277,7 @@ const commonInfo = [
 		label: '应收款',
 		soltLabel: 'PaymentBtn',
 		soltName: 'PaymentPayable',
-		noShow: true,
+		// noShow: true,
 		formItem: []
 	},
 	{
