@@ -53,7 +53,7 @@
 			<el-table-column label="销货单位" align="center" prop="seller.name" />
 			<el-table-column label="类型" align="center" prop="type">
 				<template #default="scope">
-					{{ TYPE.find(item => item.value == scope.row.type).label }}
+					{{ TYPE.find(item => item.value == scope.row.type)?.label }}
 				</template>
 			</el-table-column>
 			<el-table-column label="电话" align="center" prop="phone" />
@@ -345,8 +345,8 @@
 		const month = today.getMonth() + 1; // 注意：月份从 0 开始，所以需要加 1
 		const day = today.getDate();
 		// const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-		const arr1 = expire_at.split(" ");
-		const arr2 = arr1[0].split("-");
+		const arr1 = expire_at?.split(" ");
+		const arr2 = arr1? arr1[0].split("-"): [];
 
 		if (year > parseInt(arr2[0])) {
 			return true;
