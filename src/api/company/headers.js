@@ -42,3 +42,11 @@ export function delByIds(id) {
 		method: 'delete'
 	})
 }
+// 分享
+export function shareData(data) {
+	return request({
+		url: '/company-headers/'+data.id+'/share',
+		method: 'post',
+		data: data
+	})
+}

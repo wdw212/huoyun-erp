@@ -179,9 +179,9 @@
 		<el-dialog title="分享" v-model="openShare" width="800px">
 			<el-form ref="formRefShare" :model="formShare" :rules="rules" label-width="120px">
 				<el-row :gutter="10">
-					<el-col :span="12" v-if="userStore.userRoleCode !== 'BUSINESS'">
+					<el-col :span="12">
 						<el-form-item label="业务员" prop="business_user_ids">
-							<UserSelect :value="formShare.business_user_ids" @update:value="form.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.business_user_ids" @update:value="formShare.business_user_ids= $event" :user-type="'BUSINESS'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList" :disabled="formShare.company_type && formShare.company_type.length=== 1&& formShare.company_type.includes(1)"></UserSelect>
 							<!-- <el-input v-model="form.admin_user_id" placeholder="请输入业务员" /> -->
 							<!-- <el-select v-model="form.admin_user_id" placeholder="请选择业务员" clearable>
 								<el-option v-for="item in admin_user" :key="item.value" :label="item.label"
@@ -200,7 +200,7 @@
 					</el-col> -->
 					<el-col :span="12">
 						<el-form-item label="操作员" prop="operation_user_ids">
-							<UserSelect :value="formShare.operation_user_ids" @update:value="form.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.operation_user_ids" @update:value="formShare.operation_user_ids= $event" :user-type="'OPERATE'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.operation_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in OPERATION_USER" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
 							</el-select> -->
@@ -208,7 +208,7 @@
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="单证员" prop="document_user_ids">
-							<UserSelect :value="formShare.document_user_ids" @update:value="form.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
+							<UserSelect :value="formShare.document_user_ids" @update:value="formShare.document_user_ids= $event" :user-type="'DOCUMENT'" :btn-type="btnType" :role-type-user-id-list="roleTypeUserIdList"></UserSelect>
 							<!-- <el-select v-model="form.document_user_ids" placeholder="请选择操作员" filterable clearable multiple>
 								<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 							</el-select> -->
@@ -232,7 +232,8 @@
 		getData,
 		delByIds,
 		addData,
-		updateData
+		updateData,
+		shareData
 	} from "@/api/company/headers";
 
 	import {
@@ -452,9 +453,10 @@
 		};
 		formShare.value = {
 			id: null,
-			business_user_ids: null,
-			operation_user_ids: null,
-			document_user_ids: null
+			company_type: null,
+			business_user_ids: [],
+			operation_user_ids: [],
+			document_user_ids: []
 		}
 		roleTypeUserIdList.value= []
 		proxy.resetForm("formRef");
@@ -479,27 +481,33 @@
 		title.value = "新增";
 		btnType.value= 'add'
 		form.value.company_type= [0]
-		if(userStore.userRoleCode === 'BUSINESS'){
-			form.value.business_user_ids= []
-			form.value.business_user_ids.push(userStore.id)
-		}
+		// if(userStore.userRoleCode === 'BUSINESS'){
+		// 	form.value.business_user_ids= []
+		// 	form.value.business_user_ids.push(userStore.id)
+		// }
 	}
 	// 分享
 	function handleShare(row){
 		reset();
 		const _id = row.id || ids.value
-		getData(_id).then(response => {
-			console.log(response,'response')
-			form.value = response;
-			openShare.value = true;
-			btnType.value= 'share'
-			if(!roleTypeList.value.includes(userStore.userRoleCode) && userStore.id !== row.admin_user.id){
-				roleTypeUserIdList.value.push(row.admin_user.id)
-			}else{
-				roleTypeUserIdList.value= ''
-			}
-			
-		});
+		formShare.value.id = row.id;
+		formShare.value.company_type = row.company_type;
+		openShare.value = true;
+		btnType.value= 'share'
+		roleTypeUserIdList.value= []
+	}
+	// 分享保存
+	function submitFormShare(){
+		if(!checkInfo()) return;
+		let params = JSON.parse(JSON.stringify(formShare.value));
+		params.business_user_ids = JSON.stringify(params.business_user_ids);
+		params.operation_user_ids = JSON.stringify(params.operation_user_ids);
+		params.document_user_ids = JSON.stringify(params.document_user_ids);
+		shareData(params).then(response => {
+			proxy.$modal.msgSuccess("分享成功");
+			openShare.value = false;
+			getList();
+		}).catch((err) => {			proxy.$modal.msgWarning(err);});
 	}
 	/** 修改按钮操作 */
 	function handleUpdate(row) {
@@ -522,14 +530,12 @@
 
 	/** 提交按钮 */
 	function submitForm() {
-		console.log(form.value,'form.value')
-		if(!checkInfo()) return;
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
 				let params = JSON.parse(JSON.stringify(form.value));
-				params.business_user_ids = JSON.stringify(params.business_user_ids);
-				params.operation_user_ids = JSON.stringify(params.operation_user_ids);
-				params.document_user_ids = JSON.stringify(params.document_user_ids);
+				// params.business_user_ids = JSON.stringify(params.business_user_ids);
+				// params.operation_user_ids = JSON.stringify(params.operation_user_ids);
+				// params.document_user_ids = JSON.stringify(params.document_user_ids);
 				params.company_type = JSON.stringify(params.company_type);
 				if (form.value.id != null) {
 					updateData(params).then(response => {
