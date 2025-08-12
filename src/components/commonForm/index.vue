@@ -149,7 +149,7 @@
 	})
 	watch(props.formList, (newVal) => {
 		console.log('props.formList', newVal)
-		resetKey(newVal);
+		resetKey(newVal, false, true);
 	}, {
 		deep: true
 	})
@@ -164,17 +164,22 @@
 		deep: true
 	})
 
-	const resetKey = (formList, reset) => {
-		tabsList.value = [];
+	const resetKey = (formList, reset, isTab) => {
+		if(!isTab){
+			tabsList.value = [];
+		}
 		var data = JSON.parse(JSON.stringify(saveData));
 		formList.forEach((item, index) => {
-			if (index == 0) {
-				activeName.value = item.tabName;
+			if(!isTab){
+				if (index == 0) {
+					activeName.value = item.tabName;
+				}
+				tabsList.value.push({
+					label: item.tabName,
+					name: item.tabName
+				})
 			}
-			tabsList.value.push({
-				label: item.tabName,
-				name: item.tabName
-			})
+			
 			item.formData && item.formData.forEach((v, i) => {
 				if(v.key){
 					data[v.key] = {};
@@ -200,6 +205,7 @@
 	}
 	
 	const remoteMethod = async (val, vv) => {
+		console.log('val, vv', val, vv)
 		if(val){
 			var methodType = vv.method=='get'?httpGet:httpPost;
 			let res = await methodType(vv.url, {

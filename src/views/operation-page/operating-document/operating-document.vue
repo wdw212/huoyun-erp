@@ -37,7 +37,7 @@
 					</template>
 					<!-- 一代联系方式/费用 -->
 					<template #order_delegationBtn="{formList,saveData}">
-						<el-button type="primary" @click="saveData.order_delegation_header.remark.push({contact_phone: '', fee: ''})">增加</el-button>
+						<el-button type="primary" @click="addDelegation(saveData)">增加</el-button>
 					</template>
 					<template #order_delegationList="{formList,saveData}">
 						<el-row :gutter="20">
@@ -48,7 +48,7 @@
 								</el-col>
 								<el-col class="p-r" :span="6">
 									<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
-									@click="saveData.order_delegation_header.remark.splice(index, 1)"><Close /></el-icon>
+									@click="saveData['order_delegation_header.remark'].splice(index, 1)"><Close /></el-icon>
 									<p class="pb">一代费用</p>
 									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" resize="none"/>
 								</el-col>
@@ -86,6 +86,16 @@
 						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
 					</template>
 					
+					<!-- 提单信息 -->
+					<template #billInfo>
+						<bill-form ref="billInfo"></bill-form>
+					</template>
+					
+					<!-- 文件上传 -->
+					<template #fileInfo>
+						<file-Table ref="fileInfo" @uploadFile="uploadFile"></file-Table>
+					</template>
+					
 				</common-form>
 			</el-card>
 		</el-dialog>
@@ -99,10 +109,12 @@
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import BoxInfo from "@/components/document/boxInfo";
-	import { httpPost, httpGet, httpPut } from '@/api/apiCommon';
+	import FileTable from "@/components/document/fileTable";
+	import BillForm from '@/components/BillForm.vue'
+	import { httpPost, httpGet, httpPut, httpDelete } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX, getTT } from '@/api/commonList';
+	import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
 	import { queryParamsDocu, formList, AccountsColumn } from '@/utils/documents';
 	import { detailInfo } from '@/utils/common'
 	const { proxy } = getCurrentInstance();
@@ -115,12 +127,24 @@
 	const CZY = ref([]);  //操作员
 	const YWLX = ref([]); //业务类型
 	const TT = ref([]); //抬头/公司名称
+	const CGS = ref([]); //船公司
+	const DZY = ref([]); //单证员
+	const SW = ref([]); //商务
+	const XHDW = ref([]); //销货单位
+	const MT = ref([]); //码头
+	
 	
 	onMounted(async ()=>{
 		YWY.value = await getYWY();
 		CZY.value = await getCZY();
 		YWLX.value = await getYWLX();
 		TT.value = await getTT();
+		CGS.value = await getCGS();
+		DZY.value = await getDZY();
+		SW.value = await getSW();
+		XHDW.value = await getXHDW();
+		MT.value = await getMT();
+		
 		
 		// queryParamsDocu.value[11].options = YWY.value;
 		// queryParamsDocu.value[12].options = CZY.value;
@@ -139,6 +163,13 @@
 		
 		formList.value[0].formData[0].formItem[0].options = YWLX.value;
 		formList.value[0].formData[0].formItem[4].options = YWY.value;
+		formList.value[0].formData[0].formItem[5].options = CZY.value;
+		formList.value[0].formData[0].formItem[6].options = DZY.value;
+		formList.value[0].formData[0].formItem[7].options = SW.value;
+		formList.value[0].formData[0].formItem[8].options = CGS.value;
+		formList.value[1].formData[0].formItem[0].options = XHDW.value;
+		formList.value[1].formData[0].formItem[1].options = TT.value;
+		formList.value[2].formData[0].formItem[10].options = MT.value;
 		formList.value[0].formData[2].noShow = true;
 		formListNew.value = JSON.parse(JSON.stringify(formList.value));
 		console.log('formListNew', formListNew)
@@ -175,12 +206,12 @@
 				},
 				{
 					label: '复制',
-					onClick: (row) => handleEdit(row)
+					onClick: (row) => handleCopy(row)
 				},
 				{
 					label: '删除',
 					type: 'danger',
-					onClick: (row) => handleEdit(row)
+					onClick: (row) => handleDelete(row)
 				},
 			],
 			fixed: "right",
@@ -201,7 +232,7 @@
 			addAccount();
 		}, 200)
 	}
-	// 操作处理方法
+	// 编辑操作处理方法
 	const handleEdit = (row) => {
 		httpGet(`/orders/${row.id}`).then(res => {
 			dialogFormVisible.value = true;
@@ -214,7 +245,54 @@
 				proxy.$refs.boxInfo.defaultBox(res.containers);
 				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
+				
+				proxy.$refs.fileInfo.dafultFile(res.order_files);
 			}, 500)
+		});
+	}
+	//单据复制
+	function handleCopy(row) {
+		httpGet(`/orders/${row.id}`).then(res => {
+			dialogFormVisible.value = true;
+			editId.value = '';
+			setTimeout(function(){
+				var data = {};
+				for(var key in proxy.$refs.commonForm.saveData){
+					data[key] = res[key];
+				}
+				proxy.$refs.boxInfo.defaultBox(res.containers);
+				proxy.$refs.commonForm.changeSave(data);
+				proxy.$refs.accountTable.updateTableData(res.order_payments);
+				
+				proxy.$refs.fileInfo.dafultFile(res.order_files);
+			}, 500)
+		});
+	}
+	//单据删除
+	const deleteIds = ref([]);
+	function handleDelete(row) {
+		const _ids = row.id || deleteIds.value;
+		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+			return httpDelete('/orders/'+_ids);
+		}).then(() => {
+			proxy.$refs.tableList.getList();
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
+	
+	// 委托抬头-一代联系人
+	const addDelegation = () => {
+		var data = proxy.$refs.commonForm.saveData['order_delegation_header.remark'];
+		data.push({contact_phone: '', fee: ''})
+		proxy.$refs.commonForm.changeSave({
+			'order_delegation_header.remark': data
+		});
+	}
+	const deleteDelegation = (index) => {
+		var data = proxy.$refs.commonForm.saveData['order_delegation_header.remark'];
+		data.splice(index, 1);
+		proxy.$refs.commonForm.changeSave({
+			'order_delegation_header.remark': data
 		});
 	}
 	
@@ -242,6 +320,13 @@
 		containers.value = data;
 	}
 	
+	// 文件上传
+	const order_files = ref([]);
+	const uploadFile = (file) => {
+		order_files.value = file;
+		// console.log('uploadFile', file);
+	}
+	
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('编辑行:', row)
@@ -251,7 +336,7 @@
 			containers: containers.value,
 			orderPaymentsList: order_payments,
 			order_payments: JSON.stringify(order_payments),
-			// order_files: '',
+			order_files: order_files.value,
 		}
 		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
 		delete params['undefined'];

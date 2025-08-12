@@ -24,10 +24,9 @@ export function httpPut(url, data) {
 	})
 }
 
-export function httpDelete(url, data) {
+export function httpDelete(url) {
 	return request({
 		url: url,
-		method: 'delete',
-		data: data
+		method: 'delete'
 	})
 }

@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div id="tableList">
 
 		<slot name="headerCon"></slot>
 
@@ -13,8 +13,8 @@
 			</div>
 		</div>
 
-		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey"
-			:border="border" :size="size" :height="height" style="font-size: 12px;">
+		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :max-height="height"
+			:border="border" :size="size" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
 			<template v-for="(item,index) in tableColumn" :key="index">
@@ -99,7 +99,7 @@
 		},
 		height: {
 			type: String,
-			default: 'auto'
+			default: '550'
 		},
 		toolbar: {
 			type: Boolean,
@@ -256,5 +256,9 @@
 <style>
 	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before {
 		border-right: 1px solid #dcdfe6;
+	}
+	
+	/deep/ #tableList .el-table__inner-wrapper{
+		
 	}
 </style>

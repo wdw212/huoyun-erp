@@ -20,6 +20,26 @@ export async function getCZY() {
 	return res.data||[]
 }
 
+//单证员列表
+export async function getDZY() {
+	var params = {
+		is_paginate: 0,
+		code: 'DOCUMENT'
+	}
+	let res = await httpGet('/admin-users', params);
+	return res.data||[]
+}
+
+//商务列表
+export async function getSW() {
+	var params = {
+		is_paginate: 0,
+		code: 'COMMERCE'
+	}
+	let res = await httpGet('/admin-users', params);
+	return res.data||[]
+}
+
 //抬头列表
 export async function getTT(keyword) {
 	var params = {
@@ -87,6 +107,16 @@ export async function getLX(data={}) {
 	return res.data||[]
 }
 
+//销货单位列表
+export async function getXHDW(data={}) {
+	var params = {
+		is_paginate: 0,
+		...data
+	}
+	let res = await httpGet('/sellers', params);
+	return res.data||[]
+}
+
 
 //其他选项
 export const optionsComm = {
@@ -95,8 +125,8 @@ export const optionsComm = {
 		{label: '付款买单', value: 2},
 	],
 	'提货': [
-		{label: '已提货', value: '1'},
 		{label: '未提货', value: '0'},
+		{label: '已提货', value: '1'},
 		{label: '超期未提货', value: '2'},
 	],
 	'发票': [
@@ -149,5 +179,10 @@ export const optionsComm = {
 	'是否进港': [
 		{label: '已进港',value: 1},
 		{label: '未进港',value: 0}, 
+	],
+	'保险': [
+		{label: '保险1', value: '保险1'},
+		{label: '保险2', value: '保险2'},
+		{label: '保险3', value: '保险3'},
 	]
 }
