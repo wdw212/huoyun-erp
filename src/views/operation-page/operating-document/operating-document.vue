@@ -78,7 +78,7 @@
 					
 					<!-- 落箱数据 -->
 					<template #template11="{saveData,formList}">
-						<el-form-item style="width: 100%;" label="落箱数据" label-width="auto">
+						<el-form-item style="width: 100%;" label="落箱数据" label-width="120px">
 							<el-button type="primary" @click="">生成</el-button>
 						</el-form-item>
 					</template>
@@ -115,7 +115,7 @@
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
 	import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
-	import { queryParamsDocu, formList, AccountsColumn } from '@/utils/documents';
+	import { queryParamsDocu, formList, AccountsColumn, amountFormDoc } from '@/utils/documents';
 	import { detailInfo } from '@/utils/common'
 	const { proxy } = getCurrentInstance();
 	
@@ -161,17 +161,19 @@
 			width: '70px'
 		}
 		
-		formList.value[0].formData[0].formItem[0].options = YWLX.value;
-		formList.value[0].formData[0].formItem[4].options = YWY.value;
-		formList.value[0].formData[0].formItem[5].options = CZY.value;
-		formList.value[0].formData[0].formItem[6].options = DZY.value;
-		formList.value[0].formData[0].formItem[7].options = SW.value;
-		formList.value[0].formData[0].formItem[8].options = CGS.value;
-		formList.value[1].formData[0].formItem[0].options = XHDW.value;
-		formList.value[1].formData[0].formItem[1].options = TT.value;
-		formList.value[2].formData[0].formItem[10].options = MT.value;
-		formList.value[0].formData[2].noShow = true;
 		formListNew.value = JSON.parse(JSON.stringify(formList.value));
+		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
+		formListNew.value[0].formData[0].formItem[4].options = YWY.value;
+		formListNew.value[0].formData[0].formItem[5].options = CZY.value;
+		formListNew.value[0].formData[0].formItem[6].options = DZY.value;
+		formListNew.value[0].formData[0].formItem[7].options = SW.value;
+		formListNew.value[0].formData[0].formItem[8].options = CGS.value;
+		formListNew.value[1].formData[0].formItem[0].options = XHDW.value;
+		formListNew.value[1].formData[0].formItem[1].options = TT.value;
+		formListNew.value[2].formData[0].formItem[10].options = MT.value;
+		
+		formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
+		formListNew.value[5].formData[1].noShow = true;
 		console.log('formListNew', formListNew)
 	})
 	

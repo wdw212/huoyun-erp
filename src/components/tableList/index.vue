@@ -240,6 +240,9 @@
 </script>
 
 <style scoped>
+	#tableList{
+		padding-bottom: 30px;
+	}
 	.action-buttons {
 		display: flex;
 		flex-wrap: wrap;
@@ -256,9 +259,5 @@
 <style>
 	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before {
 		border-right: 1px solid #dcdfe6;
-	}
-	
-	/deep/ #tableList .el-table__inner-wrapper{
-		
 	}
 </style>

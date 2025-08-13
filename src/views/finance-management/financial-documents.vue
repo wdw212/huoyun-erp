@@ -97,12 +97,22 @@
 					
 					<!-- 落箱数据 -->
 					<template #template11="{saveData,formList}">
-						<el-form-item style="width: 100%;" label="落箱数据" label-width="auto">
+						<el-form-item style="width: 100%;" label="落箱数据" label-width="120px">
 							<el-button type="primary" @click="">生成</el-button>
 						</el-form-item>
 					</template>
 					<template #boxInfo>
-						<box-info :boxData="boxData" class="mt-2 "></box-info>
+						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
+					</template>
+					
+					<!-- 提单信息 -->
+					<template #billInfo>
+						<bill-form ref="billInfo"></bill-form>
+					</template>
+					
+					<!-- 文件上传 -->
+					<template #fileInfo>
+						<file-Table ref="fileInfo" @uploadFile="uploadFile"></file-Table>
 					</template>
 					
 				</common-form>
@@ -119,11 +129,13 @@
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import BoxInfo from "@/components/document/boxInfo";
+	import FileTable from "@/components/document/fileTable";
+	import BillForm from '@/components/BillForm.vue'
 	import { httpPost, httpGet } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX, getTT } from '@/api/commonList';
-	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn } from '@/utils/documents';
+	import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
+	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn, amountFormFin } from '@/utils/documents';
 	const { proxy } = getCurrentInstance();
 	
 	const formListNew = ref([]);
@@ -134,6 +146,11 @@
 	const CZY = ref([]);  //操作员
 	const YWLX = ref([]); //业务类型
 	const TT = ref([]); //抬头/公司名称
+	const CGS = ref([]); //船公司
+	const DZY = ref([]); //单证员
+	const SW = ref([]); //商务
+	const XHDW = ref([]); //销货单位
+	const MT = ref([]); //码头
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
@@ -148,12 +165,26 @@
 		CZY.value = await getCZY();
 		YWLX.value = await getYWLX();
 		TT.value = await getTT();
+		CGS.value = await getCGS();
+		DZY.value = await getDZY();
+		SW.value = await getSW();
+		XHDW.value = await getXHDW();
+		MT.value = await getMT();
+		
 		queryParams.value[11].options = YWY.value;
 		queryParams.value[12].options = CZY.value;
+		
 		formListNew.value = JSON.parse(JSON.stringify(formList.value))
-		formListNew.value[0].formData[2].noShow = false;
 		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
 		formListNew.value[0].formData[0].formItem[4].options = YWY.value;
+		formListNew.value[0].formData[0].formItem[5].options = CZY.value;
+		formListNew.value[0].formData[0].formItem[6].options = DZY.value;
+		formListNew.value[0].formData[0].formItem[7].options = SW.value;
+		formListNew.value[0].formData[0].formItem[8].options = CGS.value;
+		formListNew.value[1].formData[0].formItem[0].options = XHDW.value;
+		formListNew.value[1].formData[0].formItem[1].options = TT.value;
+		formListNew.value[2].formData[0].formItem[10].options = MT.value;
+		formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
 		
 		// 应付款
 		AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
@@ -161,6 +192,7 @@
 			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
 				AccountsColumns.value[index].form.disabled = true;
 			}
+			AccountsColumns.value[index].noShow = false;
 		})
 		
 		// 应收款
@@ -193,18 +225,18 @@
 		{label: '柜型', prop: 'container_type'},
 		{label: '开船日期', prop: 'sailing_at'},
 		{label: '提货', prop: 'is_delivery', formatter: (row)=> row.is_delivery === 1 ? '已提货' : '未提货'},
-		{label: '应付人民币', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应付美金', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应收人民币', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '应收美金', prop: 'propcolumn'},
-		{label: '利润归属月份', prop: 'propcolumn'},
+		{label: '应付人民币', prop: 'payment_total_cny_amount'},
+		{label: '兑付情况', prop: 'payment_cny_cashed_status'},
+		{label: '应付美金', prop: 'payment_total_usd_amount'},
+		{label: '兑付情况', prop: 'payment_usd_cashed_status'},
+		{label: '应收人民币', prop: 'receipt_total_cny_amount'},
+		{label: '兑付情况', prop: 'receipt_cny_cashed_status'},
+		{label: '应收美金', prop: 'receipt_total_usd_amount'},
+		{label: '利润归属月份', prop: 'receipt_usd_cashed_status'},
 		{label: '总利润', prop: 'propcolumn'},
 		{label: '税后折扣', prop: 'propcolumn'},
 		{label: '兑付情况', prop: 'propcolumn'},
-		{label: '是否开票', prop: 'bl_status', formatter: (row)=> row.bl_status === 1 ? '未开票' : '已开票'},
+		{label: '是否开票', prop: 'invoice_status', formatter: (row)=> row.invoice_status === 1 ? '已开票' : '未开票'},
 		{ 
 			label: '操作',
 			prop: 'actions',
@@ -229,35 +261,46 @@
 		}
 	]);
 	const tableConfig = ref({
-		url: '/orders',
+		url: '/orders/finance-index',
 		requestMethod: httpGet,
 		isQuery: true
 	})
+	
+	const editId = ref('');
 	const dialogFormVisible = ref(false);
-	// 操作处理方法
+	// 单据编辑
 	const handleEdit = (row) => {
 		// console.log('编辑行:', row)
 		console.log('proxy', proxy.$refs)
 		httpGet(`/orders/${row.id}`).then(res => {
-			// for(var key in proxy.$refs.commonForm.saveData){
-			// 	proxy.$refs.commonForm.saveData[key] = res[key];
-			// }
 			dialogFormVisible.value = true;
-			var formLists = JSON.parse(JSON.stringify(formList.value));
-			formListNew.value = detailInfo(formLists, res);
-			formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
-			formListNew.value[0].formData[0].formItem[4].options = YWY.value;
-			console.log('编辑行', formListNew.value)
-			
+			editId.value = row.id;
 			setTimeout(function(){
-				proxy.$refs.commonForm.resetKey(formListNew.value);
-				console.log('应付款信息', res.order_payments)
+				var data = {};
+				for(var key in proxy.$refs.commonForm.saveData){
+					data[key] = res[key];
+				}
+				proxy.$refs.boxInfo.defaultBox(res.containers);
+				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
-				
+				proxy.$refs.fileInfo.dafultFile(res.order_files);  //文件
 				proxy.$refs.paymentTable.tableData = [];
 				addPayment();
 			}, 500)
 		});
+	}
+	
+	// 箱子信息变更
+	const containers = ref([]);
+	const boxInfoChange = (data) => {
+		containers.value = data;
+	}
+	
+	// 文件上传
+	const order_files = ref([]);
+	const uploadFile = (file) => {
+		order_files.value = file;
+		// console.log('uploadFile', file);
 	}
 	
 	const detailInfo = (formList, data) => {
@@ -283,25 +326,33 @@
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('编辑行:', row)
-		var saveData = {
+		var order_payments = proxy.$refs.accountTable.tableData
+		var params = {
 			...data,
-			order_payments: proxy.$refs.accountTable.tableData,
-			order_receipts: proxy.$refs.paymentTable.tableData
-		};
-		console.log('确认提交', data)
+			containers: containers.value,
+			orderPaymentsList: order_payments,
+			order_payments: JSON.stringify(order_payments),
+			order_receipts: proxy.$refs.paymentTable.tableData,
+			order_files: order_files.value,
+		}
+		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		delete params['undefined'];
+		console.log('确认提交', params)
+		httpPut(`/orders/${editId.value}`, params).then(res => {
+			dialogFormVisible.value = false;
+			proxy.$modal.msgSuccess("保存成功!");
+			proxy.$refs.tableList.getList();
+		});
 	}
+	
 	
 	//应付款表格数据
 	const tableConfigAccounts = ref({
-		url: '/orders',
-		requestMethod: httpGet,
 		isQuery: false
 	})
 	
 	//应付款表格数据
 	const tableConfigPayment = ref({
-		url: '/orders',
-		requestMethod: httpGet,
 		isQuery: false
 	})
 	const addPayment = () => {

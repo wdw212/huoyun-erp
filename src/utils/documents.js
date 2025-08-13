@@ -282,13 +282,32 @@ const commonInfo = [
 	},
 	{
 		label: '合计',
-		formItem: [
-			{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
-			{ type: 'input',value: '',label: '总计人民币',key: 'title2' },
-			{ type: 'input',value: '',label: '总计美金',key: 'title3' },
-		]
+		formItem: []
 	}
 ]
+
+// 操作单据合计
+export const amountFormDoc = ref([
+	{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
+	{ type: 'input',value: '',label: '总计人民币￥',key: 'title2', span: 6 },
+	{ type: 'input',value: '',label: '总计美金$',key: 'title3', span: 6 },
+])
+
+//财务单据合计信息
+export const amountFormFin = ref([
+	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24 },
+	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', span: 12 },
+	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'title2', span: 12, options: optionsComm['兑付'],clearable: false, defaultValue: 0 },
+	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', span: 12 },
+	{ key: 'title2', span: 6, soltName: '发票未开' },
+	{ type: 'input', labelWidth: '200px',key: 'title2', span: 6, placeholder: '当月美金汇率：0', disabled: true },
+])
 
 export const formList = ref([
 	{ 
@@ -332,7 +351,6 @@ export const formList = ref([
 					{ value: [], label: '', soltName: 'remarkList',key: 'remark',span: 24 },
 				]
 			},
-			...commonInfo
 		]
 	},
 	{
@@ -401,7 +419,15 @@ export const formList = ref([
 				noCard: true
 			}
 		]
-	}
+	},
+	{
+		tabName: '公共',
+		noTab: true,   //不需要展示tab标签
+		commonShow: true,   //是否在每个tab标签下展示
+		formData:[
+			...commonInfo
+		]
+	},
 ])
 
 

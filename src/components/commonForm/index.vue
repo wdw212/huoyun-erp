@@ -6,11 +6,13 @@
 				<el-tab-pane v-for="(item,index) in tabsList" :key="index" :label="item.label"
 					:name="item.label"> </el-tab-pane>
 			</el-tabs>
-			<div v-for="(list,listIndex) in formList" :key="listIndex" v-show="activeName==list.tabName">
+			<div v-for="(list,listIndex) in formList" :key="listIndex" 
+			v-show="activeName==list.tabName||list.commonShow" 
+			:style="list.commonShow?'margin-top: 20px':''" >
 				<template v-for="(item,index) in list.formData" :key="index">
 					<slot :name="item.soltName" :saveData="saveData" :formList="formList" 
 					v-if="item.noCard&&!item.noShow"></slot>
-					<el-card :style="index==0?'':'margin-top: 20px'" v-if="!item.noCard&&!item.noShow">
+					<el-card :style="index==0?'':'margin-top: 20px'"v-if="!item.noCard&&!item.noShow">
 						<div class="pb-1 flex1" v-if="item.label||item.soltLabel">
 							<div v-if="item.label">{{item.label}}</div>
 							<slot :name="item.soltLabel" :saveData="saveData" :formList="formList"></slot>
@@ -23,7 +25,7 @@
 								</template>
 								<template v-else>
 									<el-form-item style="width: 100%;" :rules="vv.rules" :label="vv.label"
-										:prop="vv.key" :label-width="vv.labelWidth||'auto'">
+										:prop="vv.key" :label-width="vv.labelWidth||'120px'">
 										
 										<!-- {{saveData[vv.key]}} -->
 										<!-- <common-form-item :ref="'formItem_'+index+ii" :item="vv"
@@ -170,8 +172,8 @@
 		}
 		var data = JSON.parse(JSON.stringify(saveData));
 		formList.forEach((item, index) => {
-			if(!isTab){
-				if (index == 0) {
+			if(!isTab&&!item.noTab){
+				if (!activeName.value) {
 					activeName.value = item.tabName;
 				}
 				tabsList.value.push({

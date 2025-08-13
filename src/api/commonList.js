@@ -125,9 +125,9 @@ export const optionsComm = {
 		{label: '付款买单', value: 2},
 	],
 	'提货': [
-		{label: '未提货', value: '0'},
-		{label: '已提货', value: '1'},
-		{label: '超期未提货', value: '2'},
+		{label: '未提货', value: 0},
+		{label: '已提货', value: 1},
+		{label: '超期未提货', value: 2},
 	],
 	'发票': [
 		{label: '已开', value: '1'},
