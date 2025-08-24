@@ -282,13 +282,32 @@ const commonInfo = [
 	},
 	{
 		label: '合计',
-		formItem: [
-			{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
-			{ type: 'input',value: '',label: '总计人民币',key: 'title2' },
-			{ type: 'input',value: '',label: '总计美金',key: 'title3' },
-		]
+		formItem: []
 	}
 ]
+
+// 操作单据合计
+export const amountFormDoc = ref([
+	{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
+	{ type: 'input',value: '',label: '总计人民币￥',key: 'title2', span: 6 },
+	{ type: 'input',value: '',label: '总计美金$',key: 'title3', span: 6 },
+])
+
+//财务单据合计信息
+export const amountFormFin = ref([
+	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24 },
+	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', span: 12 },
+	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'title2', span: 12, options: optionsComm['兑付'],clearable: false, defaultValue: 0 },
+	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', span: 12 },
+	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', span: 12 },
+	{ key: 'title2', span: 6, soltName: '发票未开' },
+	{ type: 'input', labelWidth: '200px',key: 'title2', span: 6, placeholder: '当月美金汇率：0', disabled: true },
+])
 
 export const formList = ref([
 	{ 
@@ -313,7 +332,7 @@ export const formList = ref([
 					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operation_user_id',options: [],labelName: 'name', valueName: 'id', },
 					{ type: 'select',value: '',label: '单证员',placeholder: '请选择单证员',key: 'document_user_id',options: [],labelName: 'name', valueName: 'id', },
 					{ type: 'select',value: '',label: '商务',placeholder: '请选择商务',key: 'commerce_user_id',options: [],labelName: 'name', valueName: 'id', },
-					{ type: 'select',value: '',label: '船公司',placeholder: '请选择船公司',key: 'shipping_company_id',options: [] },
+					{ type: 'select',value: '',label: '船公司',placeholder: '请选择船公司',key: 'shipping_company_id',options: [],labelName: 'name', valueName: 'id' },
 					{ type: 'input',value: '',label: '提单号',placeholder: '请输入提单号',key: 'bl_no',rules: rulesInit('请输入提单号') },
 					{ type: 'input',value: '',label: '起运港',placeholder: '请输入起运港',key: 'origin_port',rules: rulesInit('请输入起运港') },
 					{ type: 'input',value: '',label: '目的港',placeholder: '请输入目的港',key: 'destination_port',rules: rulesInit('请输入目的港') },
@@ -332,7 +351,6 @@ export const formList = ref([
 					{ value: [], label: '', soltName: 'remarkList',key: 'booking_info',span: 24 },
 				]
 			},
-			...commonInfo
 		]
 	},
 	{
@@ -341,8 +359,8 @@ export const formList = ref([
 			{
 				label: '委托抬头',
 				formItem: [
-					{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [] },
-					{ type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [] },
+					{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [],labelName: 'name', valueName: 'id', },
+					{ type: 'selectSearch',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [],  labelName: 'company_name', valueName: 'id' },
 					{ type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true },
 					{ type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true },
 					{ label: '', soltName: 'order_delegationBtn' },
@@ -360,19 +378,19 @@ export const formList = ref([
 					{ type: 'input',value: '',label: '提单号',placeholder: '请输入提单号',key: 'bl_no'},
 					{ type: 'input',value: '',label: '船名/航次',placeholder: '请输入船名/航次',key: 'ship_name' },
 					{ span: 12 },
-					{ type: 'select',value: '',label: '截单状态',placeholder: '请选择截单状态',key: 'template1',options: [] },
+					{ type: 'select',value: '',label: '截单状态',placeholder: '请选择截单状态',key: 'template1',options: optionsComm['截单状态'] },
 					{ type: 'dateTime',value: '',label: '开港时间',placeholder: '请选择开港时间',key: 'template2', format: 'YYYY-MM-DD HH:mm' },
 					{ type: 'date',value: '',label: '实际开船时间',placeholder: '请选择实际开船时间',key: 'template3', dateType: 'date' },
 					{ label: '', soltName: 'shoppingCompany' },
 					{ type: 'dateTime',value: '',label: '截单时间',placeholder: '请选择截单时间',key: 'template5', format: 'YYYY-MM-DD HH:mm' },
 					{ type: 'dateTime',value: '',label: '截港时间',placeholder: '请选择截港时间',key: 'template6', format: 'YYYY-MM-DD HH:mm' },
 					{ type: 'date',value: '',label: '实际到港时间',placeholder: '请选择实际到港时间',key: 'template7', dateType: 'date' },
-					{ type: 'select',value: '',label: '进港码头',placeholder: '请选择进港码头',key: 'template8',options: [] },
-					{ type: 'select',value: '',label: '保险',placeholder: '请选择保险',key: 'template9',options: [] },
-					{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'template10',options: [] },
+					{ type: 'select',value: '',label: '进港码头',placeholder: '请选择进港码头',key: 'template8',options: [], labelName: 'name', valueName: 'id', },
+					{ type: 'select',value: '',label: '保险',placeholder: '请选择保险',key: 'template9',options: optionsComm['保险'] },
+					{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'template10',options: optionsComm['提货'] },
 					{ label: '落箱数据', soltName: 'template11' },
 					{ type: 'select',value: '',label: '结单状态',placeholder: '请选择结单状态',key: 'template12',options: optionsComm['完结状态'] },
-					{ type: 'select',value: '',label: '提单状态',placeholder: '请选择提单状态',key: 'template13',options: [] },
+					{ type: 'select',value: '',label: '提单状态',placeholder: '请选择提单状态',key: 'template13',options: optionsComm['提单状态'] },
 					{ type: 'select',value: '',label: '是否放行',placeholder: '请选择是否放行',key: 'template14',options: optionsComm['放行'] },
 					{ span: 12 },
 					{ type: 'textarea',value: '',label: '备注',placeholder: '请输入备注',key: 'template15' },
@@ -386,12 +404,30 @@ export const formList = ref([
 	},
 	{
 		tabName: '提单信息',
-		formData:[]
+		formData:[
+			{
+				soltName: 'billInfo',
+				// noCard: true
+			}
+		]
 	},
 	{
 		tabName: '上传文件',
-		formData:[]
-	}
+		formData:[
+			{
+				soltName: 'fileInfo',
+				noCard: true
+			}
+		]
+	},
+	{
+		tabName: '公共',
+		noTab: true,   //不需要展示tab标签
+		commonShow: true,   //是否在每个tab标签下展示
+		formData:[
+			...commonInfo
+		]
+	},
 ])
 
 
