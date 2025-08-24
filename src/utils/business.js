@@ -19,48 +19,25 @@ export const queryParams = ref([
 	{
 		type: 'input',
 		value: '',
-		placeholder: '请输入关键词',
+		placeholder: '工作编号，目的港，提单号，订舱信息及备注，箱号，自己的备注内容',
 		key: 'keyword'
 	},
 	{
 		type: 'date',
 		dateType: 'month',
 		value: '',
-		placeholder: '开船日期',
-		key: 'sailing_at'
-	},
-	{
-		type: 'date',
-		dateType: 'month',
-		value: '',
-		placeholder: '到港日期',
-		key: 'finish_at'
-	},
-	{
-		type: 'date',
-		dateType: 'month',
-		value: '',
 		placeholder: '创建/归属月份',
-		key: 'finish_at'
+		key: 'start_finishing_date'
 	},
 	{
 		type: 'select',
 		value: '',
 		placeholder: '是否认领',
-		key: 'is_delivery',
+		key: 'is_claimed',
 		options: [
 			{label: '是', value: '1'},
 			{label: '否', value: '0'},
 		]
-	},
-	{
-		type: 'select',
-		value: '',
-		placeholder: '业务员',
-		key: 'business_user_id',
-		labelName: 'name',
-		valueName: 'id',
-		options: []
 	},
 	{
 		type: 'select',
@@ -74,7 +51,32 @@ export const queryParams = ref([
 	{
 		type: 'select',
 		value: '',
-		placeholder: '请选择提货',
+		placeholder: '业务员',
+		key: 'business_user_id',
+		labelName: 'name',
+		valueName: 'id',
+		options: []
+	},
+	{
+		type: 'date',
+		dateType: 'daterange',
+		value: '',
+		startPlaceholder: '开船日期开始时间',
+		endPlaceholder: '开船日期结束时间',
+		placeholder: '开船日期',
+		key: 'start_sailing_dates'
+	},
+	{
+		type: 'date',
+		dateType: 'date',
+		value: '',
+		placeholder: '到港日期',
+		key: 'start_arrival_date'
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '是否提货',
 		key: 'is_delivery',
 		options: optionsComm['提货']
 	},
@@ -90,7 +92,17 @@ export const queryParams = ref([
 		type: 'select',
 		value: '',
 		placeholder: '销货单位',
+		key: 'seller_id',
+		labelName: 'name',
+		valueName: 'id',
+		options: []
+	},
+	{
+		type: 'select',
+		value: '',
+		placeholder: '操作票数',
 		key: 'order_type_id',
+		label: '操作票数 0票',
 		options: []
 	}
 ])
@@ -115,30 +127,6 @@ const rulesInit = (message, type) => {
 		return { required: true, message, trigger: 'blur' }
 	}
 }
-
-const commonInfo = [
-	{
-		label: '应付款',
-		soltLabel: 'AccountsBtn',
-		soltName: 'AccountsPayable',
-		formItem: []
-	},
-	// {
-	// 	label: '应收款',
-	// 	soltLabel: 'PaymentBtn',
-	// 	soltName: 'PaymentPayable',
-	// 	noShow: true,
-	// 	formItem: []
-	// },
-	{
-		label: '合计',
-		formItem: [
-			{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
-			{ type: 'input',value: '',label: '总计人民币',key: 'title2' },
-			{ type: 'input',value: '',label: '总计美金',key: 'title3' },
-		]
-	}
-]
 
 export const formList = ref([
 	{ 
@@ -181,8 +169,7 @@ export const formList = ref([
 					{ label: '订舱信息及备注', soltName: 'remarkBtn' },
 					{ value: [], label: '', soltName: 'remarkList',key: 'remark',span: 24 },
 				]
-			},
-			...commonInfo
+			}
 		]
 	},
 	{
@@ -192,9 +179,9 @@ export const formList = ref([
 				label: '委托抬头',
 				formItem: [
 					{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [] },
-					{ type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [] },
-					{ type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true },
-					{ type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true },
+					// { type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [] },
+					// { type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true },
+					// { type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true },
 					{ label: '', soltName: 'order_delegationBtn' },
 					{ value: [], label: '', soltName: 'order_delegationList',key: 'order_delegation_header.remark',span: 24 },
 				]
@@ -237,70 +224,66 @@ export const formList = ref([
 	{
 		tabName: '提单信息',
 		formData:[]
-	},
-	{
-		tabName: '上传文件',
-		formData:[]
 	}
 ])
 
 
 //应付款列表
-export const AccountsColumn = ref([
-	{
-		label: '费用明细', prop: 'company_header_id',type: 'edit',width: '320px',
-		form: {
-			type: 'selectSearch',placeholder: '请选择合作单位',key: 'company_header_id',
-			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers',popover:true
-		}
-	},
-	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
-		form: {
-			type: 'input',key: 'no_invoice_remark',
-		}
-	},
-	{label: '人民币费用', type: 'edit', prop: 'cny_amount',
-		form: {
-			type: 'input',key: 'cny_amount',
-		}
-	},
-	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '220px',
-		form: {
-			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true
-		}
-	},
-	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
-		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
-		}
-	},
-	{label: '美金费用', type: 'edit', prop: 'usd_amount',
-		form: {
-			type: 'input',key: 'usd_amount',
-		}
-	},
-	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '220px',
-		form: {
-			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true
-		}
-	},
-	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
-		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
-		}
-	},
-	// {label: '联系人', type: 'edit', prop: 'contact_person',
-	// 	form: {
-	// 		type: 'input',key: 'contact_person',
-	// 	}
-	// },
-	// {label: '联系方式', type: 'edit', prop: 'contact_phone',
-	// 	form: {
-	// 		type: 'input',key: 'contact_phone',
-	// 	}
-	// },
-])
+// export const AccountsColumn = ref([
+// 	{
+// 		label: '费用明细', prop: 'company_header_id',type: 'edit',width: '320px',
+// 		form: {
+// 			type: 'selectSearch',placeholder: '请选择合作单位',key: 'company_header_id',
+// 			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
+// 			method: 'get', url: '/company-headers',popover:true
+// 		}
+// 	},
+// 	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
+// 		form: {
+// 			type: 'input',key: 'no_invoice_remark',
+// 		}
+// 	},
+// 	{label: '人民币费用', type: 'edit', prop: 'cny_amount',
+// 		form: {
+// 			type: 'input',key: 'cny_amount',
+// 		}
+// 	},
+// 	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '220px',
+// 		form: {
+// 			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true
+// 		}
+// 	},
+// 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
+// 		form: {
+// 			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
+// 		}
+// 	},
+// 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
+// 		form: {
+// 			type: 'input',key: 'usd_amount',
+// 		}
+// 	},
+// 	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '220px',
+// 		form: {
+// 			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true
+// 		}
+// 	},
+// 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
+// 		form: {
+// 			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
+// 		}
+// 	},
+// 	// {label: '联系人', type: 'edit', prop: 'contact_person',
+// 	// 	form: {
+// 	// 		type: 'input',key: 'contact_person',
+// 	// 	}
+// 	// },
+// 	// {label: '联系方式', type: 'edit', prop: 'contact_phone',
+// 	// 	form: {
+// 	// 		type: 'input',key: 'contact_phone',
+// 	// 	}
+// 	// },
+// ])
 
 //应收款列表
 // export const PaymentColumn = ref([

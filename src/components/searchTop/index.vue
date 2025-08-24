@@ -3,7 +3,7 @@
 		<el-form :model="searchQuery" :inline="true" label-width="auto">
 			<el-form-item v-for="(item,index) in queryParams" :key="item.key"
 			:label="item.label" :prop="item.key" :label-width="item.labelWidth"
-			v-show="!(item.noShow||!moreShow||(moreShow&&!moreShowType&&index>9))">
+			v-show="!(item.noShow||!moreShow||(moreShow&&!moreShowType&&index>showMaxNum -1))">
 				<template v-if="item.type=='input'">
 					<el-input v-model="searchQuery[item.key]" 
 					:placeholder="item.placeholder" clearable :size="item.size||'default'"
@@ -48,7 +48,7 @@
 			<el-form-item v-show="btnShow">
 				<el-button type="primary" plain 
 				:icon="moreShowType?CaretTop:CaretBottom"
-				v-if="moreShow&&queryParams.length>10"
+				v-if="moreShow&&queryParams.length>showMaxNum"
 				@click="moreShowType=!moreShowType">{{moreShowType?'收起':'展开更多'}}</el-button>
 				<el-button type="primary" icon="Search" @click="handleQuery" v-if="searchBtnShow"
 				:size="btnSize||'default'">搜索</el-button>
@@ -97,6 +97,10 @@
 		moreShow: {
 			type: Boolean,
 			default: true
+		},
+		showMaxNum: {   //最大默认显示数量
+			type: Number,
+			default: 10
 		},
 	})
 	

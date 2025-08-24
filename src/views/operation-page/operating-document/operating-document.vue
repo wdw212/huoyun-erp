@@ -24,14 +24,14 @@
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
-						<el-button type="primary" @click="saveData.remark.push('')">订舱信息及备注</el-button>
+						<el-button type="primary" @click="saveData.booking_info.push('')">订舱信息及备注</el-button>
 					</template>
 					<template #remarkList="{formList,saveData}">
 						<el-row :gutter="20">
-							<el-col class="p-r" v-for="(item,index) in saveData.remark" :key="index" :span="6">
+							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
 								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
-								@click="saveData.remark.splice(index, 1)"><Close /></el-icon>
-								<el-input v-model="saveData.remark[index]" :rows="3" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
+								@click="saveData.booking_info.splice(index, 1)"><Close /></el-icon>
+								<el-input v-model="saveData.booking_info[index]" :rows="3" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
 							</el-col>
 						</el-row>
 					</template>

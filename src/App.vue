@@ -23,4 +23,7 @@ onMounted(() => {
 		overflow-y: auto;
 		padding: 0 0 100px;
 	}
+	.cell,.el-input .el-input__inner,.el-select__placeholder{
+		color: #000
+	}
 </style>

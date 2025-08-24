@@ -329,7 +329,7 @@ export const formList = ref([
 					{ type: 'date',value: '',label: '到港日期',placeholder: '请选择到港日期',key: 'arrival_at', dateType: 'date' },
 					{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'is_delivery',options: optionsComm['提货'] },
 					{ label: '订舱信息及备注', soltName: 'remarkBtn' },
-					{ value: [], label: '', soltName: 'remarkList',key: 'remark',span: 24 },
+					{ value: [], label: '', soltName: 'remarkList',key: 'booking_info',span: 24 },
 				]
 			},
 			...commonInfo
