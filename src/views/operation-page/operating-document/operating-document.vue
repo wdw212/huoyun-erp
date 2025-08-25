@@ -302,9 +302,9 @@
 		proxy.$refs.accountTable.tableData.push({
 			company_header_id: '',
 			no_invoice_remark: '',
-			cny_amount: '',
+			cny_amount: '0.00',
 			cny_invoice_number:'',
-			usd_amount: '',
+			usd_amount: '0.00',
 			usd_invoice_number: '',
 			contact_phone: '',
 			contact_person: '',
@@ -340,7 +340,7 @@
 			order_payments: JSON.stringify(order_payments),
 			order_files: order_files.value,
 		}
-		// params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
 		delete params['undefined'];
 		console.log('确认提交', params);
 		// return;
