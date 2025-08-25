@@ -340,7 +340,7 @@
 			order_payments: JSON.stringify(order_payments),
 			order_files: order_files.value,
 		}
-		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		// params.order_delegation_header = JSON.stringify(params.order_delegation_header);
 		delete params['undefined'];
 		console.log('确认提交', params);
 		// return;

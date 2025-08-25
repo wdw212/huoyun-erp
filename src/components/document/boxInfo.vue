@@ -1,7 +1,7 @@
 <template>
 	<div id="boxInfo" class="flex1" style="width: 100%;height: 800px;">
 		
-		<el-card class="mr-2 h-100">
+		<el-card class="mr-2 h-100" style="padding: 8px 10px;">
 			<template #header>
 				<el-row justify="space-between" class="pb">
 					<span class="font-16">箱号列表</span>
@@ -11,16 +11,21 @@
 			<el-aside width="200px">
 			<!-- {{boxList.length}}--{{props.isOperate}} -->
 				<div v-for="(item, index) in state.boxList" :key="index"
-					style="text-align: center;">
-					<el-popconfirm class="box-item" title="是否删除选中项" @confirm="deleteBox"
+					style="display: flex;justify-content: space-between;align-items: center;">
+					<el-text size="large" class="hand"
+					:type="boxIndex==index?'primary':''" @click="changeBox(index)">
+						{{item.no}}
+					</el-text>
+					<view v-if="state.boxList.length> 1">
+						<el-button type="danger" plain size="mine" @click="deleteBox">删除</el-button>
+					</view>
+					
+					<!-- <el-popconfirm class="box-item" title="是否删除选中项" @confirm="deleteBox"
 					:disabled="props.isOperate&&boxIndex==index?false:true">
 						<template #reference>
-							<el-text size="large" class="hand"
-							:type="boxIndex==index?'primary':''" @click="changeBox(index)">
-								{{item.no}}
-							</el-text>
+							
 						</template>
-					</el-popconfirm>
+					</el-popconfirm> -->
 				</div>
 			</el-aside>
 		</el-card>
@@ -361,4 +366,7 @@
 </script>
 
 <style>
+	#boxInfo .el-aside{
+		padding: 8px 10px
+	}
 </style>
