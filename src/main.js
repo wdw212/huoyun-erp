@@ -26,6 +26,7 @@ import 'virtual:svg-icons-register'
 import SvgIcon from '@/components/SvgIcon'
 import elementIcons from '@/components/SvgIcon/svgicon'
 
+
 import './permission' // permission control
 
 import { useDict } from '@/utils/dict'
@@ -47,7 +48,10 @@ import ImagePreview from "@/components/ImagePreview"
 import DictTag from '@/components/DictTag'
 
 const app = createApp(App)
-
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
 // 全局方法挂载
 app.config.globalProperties.useDict = useDict
 app.config.globalProperties.download = download

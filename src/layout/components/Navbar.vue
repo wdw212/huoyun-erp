@@ -6,6 +6,12 @@
 		<top-nav v-if="settingsStore.topNav" id="topmenu-container" class="topmenu-container" />
 
 		<div class="right-menu">
+			<div class="p-r mr-2 flex" @click="handleViewMessage">
+				<el-badge :value="12" class="item" style="display: flex;">
+				  <img src="../../assets/icons/message_icon.png" style="width: 20px;height: 20px;"/>
+				</el-badge>
+				<!-- <div class="p-a radius-c" style="height:40px;font-size: 12px; top: -10px;right: -7px;border: 1px solid #f56c6c;background-color: #f56c6c;color: #fff;">12</div> -->
+			</div>
 			<div class="">
 				<el-button type="text" style="color: #333" @click="handleView">公告</el-button>
 			</div>
@@ -52,6 +58,7 @@
 			</template>
 		</div>
 		<notices-look  :openView.sync='openView'  @update:openView="openView= $event"/>
+		<message-popup v-if="openViewMessage=== true"/>
 	</div>
 </template>
 
@@ -71,6 +78,7 @@
 	import useUserStore from '@/store/modules/user'
 	import useSettingsStore from '@/store/modules/settings'
 	import noticesLook from '@/views/system/notices/component/notices-look'	
+	import messagePopup from '@/views/system/messages/component/popup'	
 
 	const appStore = useAppStore()
 	const userStore = useUserStore()
@@ -116,9 +124,14 @@
 		settingsStore.toggleTheme()
 	}
 	const openView= ref(false)
+	const openViewMessage= ref(false)
 	// 查看公告
 	function handleView(){
 		openView.value= true
+	}
+	// 消息通知
+	function handleViewMessage(){
+		openViewMessage.value= openViewMessage.value=== true?false: true
 	}
 </script>
 

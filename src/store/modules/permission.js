@@ -123,7 +123,19 @@ const routerList = [{
 			},
 			name: "PullDownOptions",
 			path: "pull-down-options",
-		}
+		},
+		{
+			component: "system/messages/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "消息通知",
+			},
+			name: "Messages",
+			path: "messages",
+		},
 	],
 	component: "Layout",
 	hidden: false,

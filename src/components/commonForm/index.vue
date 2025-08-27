@@ -224,13 +224,14 @@
 			if (valid) {
 				var data = {}
 				for(var key in saveData){
+					console.log(key,  saveData[key])
 					if(key.indexOf('.')>-1){
 						var keys = key.split('.');
 						if(!data[keys[0]]){
 							data[keys[0]] = {};
 						}
 						data[keys[0]][keys[1]] = saveData[key];
-					}else{
+					}else if(saveData[key]||saveData[key]===0){
 						data[key] = saveData[key];
 					}
 				}

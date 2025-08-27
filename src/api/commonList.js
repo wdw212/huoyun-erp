@@ -106,8 +106,7 @@ export async function getLX(data={}) {
 	let res = await httpGet('/yard-wharves', params);
 	return res.data||[]
 }
-
-//销货单位列表
+//销货单位
 export async function getXHDW(data={}) {
 	var params = {
 		is_paginate: 0,
@@ -116,8 +115,6 @@ export async function getXHDW(data={}) {
 	let res = await httpGet('/sellers', params);
 	return res.data||[]
 }
-
-
 //其他选项
 export const optionsComm = {
 	'付款方式': [

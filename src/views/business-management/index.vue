@@ -3,12 +3,12 @@
 	<div>
 		<div>
 			<!-- 顶部搜索 -->
-			<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
+			<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm" :showMaxNum="5"></search-top>
 			
-			<div style="display: flex;align-items: center;justify-content: flex-end;position: relative;top: -71px">
+			<!-- <div style="display: flex;align-items: center;justify-content: flex-end;position: relative;top: -71px">
 				<span style="margin-right: 10px">操作票数：0票</span>
 				<search-top ref="searchTop" :queryParams="queryParamsTotal" @search="searchConfirm" :btnShow="false"></search-top>
-			</div>
+			</div> -->
 		</div>
 		
 		<!-- <el-select v-model="queryParams.document_user_id" placeholder="请选择操作费" clearable>
@@ -53,7 +53,7 @@
 					</template>
 					
 					<!-- 应付款 -->
-					<template #AccountsBtn="{saveData,formList}">
+					<!-- <template #AccountsBtn="{saveData,formList}">
 						<div>
 							<el-button type="primary">费用已完结</el-button>
 							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
@@ -69,7 +69,7 @@
 								</el-row>
 							</template>
 						</table-list>
-					</template>
+					</template> -->
 					
 					<!-- 应收款 -->
 					<!-- <template #PaymentBtn="{saveData,formList}">
@@ -119,8 +119,9 @@
 	import { httpPost, httpGet } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX, getTT } from '@/api/commonList';
-	import { queryParams,queryParamsTotal, formList, statistic, AccountsColumn } from '@/utils/business';
+	import { getYWY, getCZY, getYWLX, getTT, getXHDW } from '@/api/commonList';
+	import { queryParams,queryParamsTotal, formList, statistic } from '@/utils/business';
+	import { optionsComm } from '@/api/commonList';
 	const { proxy } = getCurrentInstance();
 	
 	const formListNew = ref([]);
@@ -131,6 +132,7 @@
 	const CZY = ref([]);  //操作员
 	const YWLX = ref([]); //业务类型
 	const TT = ref([]); //抬头/公司名称
+	const XHDW = ref([]); //销货单位
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
@@ -145,8 +147,11 @@
 		CZY.value = await getCZY();
 		YWLX.value = await getYWLX();
 		TT.value = await getTT();
-		queryParams.value[5].options = YWY.value;
-		queryParams.value[6].options = CZY.value;
+		XHDW.value = await getXHDW();
+		queryParams.value[3].options = CZY.value;
+		queryParams.value[4].options = YWY.value;
+		queryParams.value[9].options = XHDW.value;
+		console.log(queryParams.value[3],'queryParams.value[3]')
 		formListNew.value = JSON.parse(JSON.stringify(formList.value))
 		formListNew.value[0].formData[2].noShow = false;
 		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
@@ -177,25 +182,33 @@
 	
 	const searchConfirm = (val) =>{
 		console.log('searchConfirm', val)
+		val.start_sailing_date= val.start_sailing_dates?.[0] ?? ''
+		val.end_sailing_date= val.start_sailing_dates?.[1] ?? ''
+		httpGet('/orders/commerce-index',val).then(res =>{
+			console.log(res,'res')
+			tableConfig.value= res.data?.length>0?res.data: []
+		})
 	}
+	
 	
 	/** 查询列表 */
 	const tableColumn = ref([
-		{label: '工作编号',prop: 'actions'},
-		{label: '起运港',prop: 'actions'},
-		{label: '目的港',prop: 'actions'},
-		{label: '船公司',prop: 'actions'},
-		{label: '提单号',prop: 'actions'},
-		{label: '箱型',prop: 'actions'},
-		{label: '船期',prop: 'actions'},
-		{label: '开船日期',prop: 'actions'},
-		{label: '到港日期',prop: 'actions'},
-		{label: '船舰/归属月份',prop: 'actions'},
-		{label: '操作员',prop: 'actions'},
-		{label: '业务员',prop: 'actions'},
-		{label: '是否提货',prop: 'actions'},
-		{label: '订舱信息',prop: 'actions'},
-		{label: '备注',prop: 'actions'},
+		{label: '序号',prop: 'index'},
+		{label: '工作编号',prop: 'job_no'},
+		{label: '起运港',prop: 'origin_port'},
+		{label: '目的港',prop: 'destination_port'},
+		{label: '船公司',prop: 'shipping_company'},
+		{label: '提单号',prop: 'bl_no'},
+		{label: '箱型',prop: 'container_type'},
+		{label: '船期',prop: 'sailing_schedule'},
+		{label: '开船日期',prop: 'sailing_at'},
+		{label: '到港日期',prop: 'arrival_at'},
+		{label: '船舰/归属月份',prop: 'finish_at'},
+		{label: '操作员',prop: 'operation_user.name'},
+		{label: '业务员',prop: 'business_user.name'},
+		{label: '是否提货',prop: 'is_delivery', formatter: (row)=> optionsComm['提货'].find(item =>item.value=== row.is_delivery)?.label},
+		{label: '订舱信息',prop: 'booking_info'},
+		{label: '备注',prop: 'order_remark'},
 		{ 
 			label: '操作',
 			prop: 'actions',
@@ -214,9 +227,9 @@
 	]);
 	// 请求列表
 	const tableConfig = ref({
-		url: '/orders',
+		url: '/orders/commerce-index',
 		requestMethod: httpGet,
-		isQuery: false
+		isQuery: true
 	})
 	const dialogFormVisible = ref(false);
 	// 操作处理方法
@@ -234,14 +247,14 @@
 			formListNew.value[0].formData[0].formItem[4].options = YWY.value;
 			console.log('编辑行', formListNew.value)
 			
-			setTimeout(function(){
-				proxy.$refs.commonForm.resetKey(formListNew.value);
-				console.log('应付款信息', res.order_payments)
-				proxy.$refs.accountTable.updateTableData(res.order_payments);
+			// setTimeout(function(){
+			// 	proxy.$refs.commonForm.resetKey(formListNew.value);
+			// 	console.log('应付款信息', res.order_payments)
+			// 	proxy.$refs.accountTable.updateTableData(res.order_payments);
 				
-				proxy.$refs.paymentTable.tableData = [];
-				addPayment();
-			}, 500)
+			// 	proxy.$refs.paymentTable.tableData = [];
+			// 	addPayment();
+			// }, 500)
 		});
 	}
 	
@@ -276,19 +289,19 @@
 		console.log('确认提交', data)
 	}
 	
-	//应付款表格数据
-	const tableConfigAccounts = ref({
-		url: '/orders',
-		requestMethod: httpGet,
-		isQuery: false
-	})
+	// //应付款表格数据
+	// const tableConfigAccounts = ref({
+	// 	url: '/orders',
+	// 	requestMethod: httpGet,
+	// 	isQuery: false
+	// })
 	
-	//应付款表格数据
-	const tableConfigPayment = ref({
-		url: '/orders',
-		requestMethod: httpGet,
-		isQuery: false
-	})
+	// //应付款表格数据
+	// const tableConfigPayment = ref({
+	// 	url: '/orders',
+	// 	requestMethod: httpGet,
+	// 	isQuery: false
+	// })
 	const addPayment = () => {
 		proxy.$refs.paymentTable.tableData.push({
 			company_header_id: '',
