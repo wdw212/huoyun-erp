@@ -233,9 +233,9 @@
 		{label: '兑付情况', prop: 'receipt_cny_cashed_status'},
 		{label: '应收美金', prop: 'receipt_total_usd_amount'},
 		{label: '利润归属月份', prop: 'receipt_usd_cashed_status'},
-		{label: '总利润', prop: 'propcolumn'},
-		{label: '税后折扣', prop: 'propcolumn'},
-		{label: '兑付情况', prop: 'propcolumn'},
+		{label: '总利润', prop: 'total_profit'},
+		{label: '税后折扣', prop: 'after_tax_discount'},
+		{label: '兑付情况', prop: 'cashed_status'},
 		{label: '是否开票', prop: 'invoice_status', formatter: (row)=> row.invoice_status === 1 ? '已开票' : '未开票'},
 		{ 
 			label: '操作',

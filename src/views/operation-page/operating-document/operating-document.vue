@@ -1,6 +1,6 @@
 <template>
 	
-	<div class="p-r">
+	<div class="p-r" v-loading="loading">
 		<!-- 顶部搜索 -->
 		<search-top ref="searchTop" :queryParams="queryParamsDocu" @search="searchConfirm"></search-top>
 		
@@ -17,10 +17,10 @@
 		</table-list>
 		
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="单据详情" width="90%" :close-on-click-modal="false">
+		<el-dialog v-model="dialogFormVisible" title="单据详情" width="80%" :close-on-click-modal="false">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
-				@cancel="cancelForm">
+				@cancel="cancelForm" @itemChange="itemChange">
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
@@ -77,8 +77,17 @@
 					</template>
 					
 					<!-- 落箱数据 -->
+					<template #shoppingCompany>
+						<div style="margin-left: 100px;">
+							<el-tooltip class="box-item" effect="dark"
+								:content="shipCompany.phone ? shipCompany.phone :'暂无电话'"
+								placement="top">
+								<el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
+							</el-tooltip>
+						</div>
+					</template>
 					<template #template11="{saveData,formList}">
-						<el-form-item style="width: 100%;" label="落箱数据" label-width="120px">
+						<el-form-item style="width: 100%;" label="落箱数据" label-width="100px">
 							<el-button type="primary" @click="">生成</el-button>
 						</el-form-item>
 					</template>
@@ -114,38 +123,18 @@
 	import { httpPost, httpGet, httpPut, httpDelete } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
 	import { queryParamsDocu, formList, AccountsColumn, amountFormDoc } from '@/utils/documents';
-	import { detailInfo } from '@/utils/common'
+	import { detailInfo, keyStatus } from '@/utils/common'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
 	const editId = ref('');
 	const formListNew = ref([]);
-	
-	const YWY = ref([]);  //业务员
-	const CZY = ref([]);  //操作员
-	const YWLX = ref([]); //业务类型
-	const TT = ref([]); //抬头/公司名称
-	const CGS = ref([]); //船公司
-	const DZY = ref([]); //单证员
-	const SW = ref([]); //商务
-	const XHDW = ref([]); //销货单位
-	const MT = ref([]); //码头
+	const loading = ref(true);
+	const seletData = ref({});
 	
 	
 	onMounted(async ()=>{
-		YWY.value = await getYWY();
-		CZY.value = await getCZY();
-		YWLX.value = await getYWLX();
-		TT.value = await getTT();
-		CGS.value = await getCGS();
-		DZY.value = await getDZY();
-		SW.value = await getSW();
-		XHDW.value = await getXHDW();
-		MT.value = await getMT();
-		
-		
 		// queryParamsDocu.value[11].options = YWY.value;
 		// queryParamsDocu.value[12].options = CZY.value;
 		AccountsColumn.value[4].noShow = true;
@@ -161,20 +150,15 @@
 			width: '70px'
 		}
 		
-		formListNew.value = JSON.parse(JSON.stringify(formList.value));
-		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
-		formListNew.value[0].formData[0].formItem[4].options = YWY.value;
-		formListNew.value[0].formData[0].formItem[5].options = CZY.value;
-		formListNew.value[0].formData[0].formItem[6].options = DZY.value;
-		formListNew.value[0].formData[0].formItem[7].options = SW.value;
-		formListNew.value[0].formData[0].formItem[8].options = CGS.value;
-		formListNew.value[1].formData[0].formItem[0].options = XHDW.value;
-		formListNew.value[1].formData[0].formItem[1].options = TT.value;
-		formListNew.value[2].formData[0].formItem[10].options = MT.value;
-		
-		formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
-		formListNew.value[5].formData[1].noShow = true;
-		console.log('formListNew', formListNew)
+		// formListNew.value = JSON.parse(JSON.stringify(formList.value));
+		keyStatus(formList.value, '操作单据', function(form, seletData){
+			formListNew.value = form;
+			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
+			formListNew.value[5].formData[1].noShow = true;
+			loading.value = false;
+			seletData.value = seletData;
+			console.log('formListNew', formListNew)
+		})
 	})
 	
 	const searchConfirm = (val) =>{
@@ -327,6 +311,22 @@
 	const uploadFile = (file) => {
 		order_files.value = file;
 		// console.log('uploadFile', file);
+	}
+	
+	const shipCompany = ref({});
+	function toShipCompanyUrl() {
+		if (shipCompany.value.tracking_url) {
+			window.open(shipCompany.value.tracking_url)
+		} else {
+			proxy.$modal.msgSuccess("暂无网址");
+		}
+	}
+	const itemChange = (data, val, item) => {
+		if(item.key=='shipping_company_id'){
+			shipCompany.value = item.options.find(v=>{
+				return v.id == val;
+			})
+		}
 	}
 	
 	// 单据信息提交

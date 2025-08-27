@@ -25,7 +25,7 @@
 								</template>
 								<template v-else>
 									<el-form-item style="width: 100%;" :rules="vv.rules" :label="vv.label"
-										:prop="vv.key" :label-width="vv.labelWidth||'120px'">
+										:prop="vv.key" :label-width="vv.labelWidth||'100px'">
 										
 										<!-- {{saveData[vv.key]}} -->
 										<!-- <common-form-item :ref="'formItem_'+index+ii" :item="vv"
@@ -251,11 +251,21 @@
 	}
 
 	const changeValue = (val, item) => {
+		var newVal = val;
+		if(item.inputType){  //输入框禁止输入类型
+			if (item.inputType == 1) {  //英文自动大写，不要输入中文
+				newVal = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+			} else if (item.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
+				newVal = val.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase();
+			} else if (item.inputType == 3) {
+				newVal = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
+			}
+		}
 		var data = JSON.parse(JSON.stringify(saveData));
-		data[item.key] = val;
+		data[item.key] = newVal;
 		Object.assign(saveData, data);
 		// console.log('itemChange', val, saveData);
-		emit('itemChange', data);
+		emit('itemChange', data, val, item);
 	}
 
 	const changeSave = (val) => {

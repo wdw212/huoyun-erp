@@ -150,7 +150,6 @@
 		const {
 			name
 		} = route
-		console.log('缓存路由', route)
 		if (name) {
 			useTagsViewStore().addView(route)
 		}
