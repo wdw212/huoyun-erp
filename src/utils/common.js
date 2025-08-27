@@ -18,13 +18,28 @@ export const detailInfo = (formList, data) => {
 	return formList;
 }
 
+import userStore from "@/store/modules/user";
 import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
+const role = userStore().roles;
+export const commonParam = () => {
+	var params = {
+		WTTT_params: {}
+	};
+	if(role.indexOf('OPERATE')>-1){  //操作员
+		params.WTTT_params.company_type = 0;
+		params.WTTT_params.operation_user_id = userStore().id;
+	}else if(role.indexOf('SUPER_ADMIN')>-1){  //超级管理员
+		
+	}
+	return params;
+}
 const getSelect = async (callBack) => {
+	var params = commonParam();
 	var data = {
 		YWY: await getYWY(),//业务员
 		CZY: await getCZY(),  //操作员
 		YWLX: await getYWLX(), //业务类型
-		TT: await getTT(), //抬头/公司名称
+		WTTT: await getTT(params.WTTT_params), //委托公司抬头
 		CGS: await getCGS(), //船公司
 		DZY: await getDZY(), //单证员
 		SW: await getSW(), //商务
@@ -34,13 +49,12 @@ const getSelect = async (callBack) => {
 	callBack(data);
 }
 
-import userStore from "@/store/modules/user";
 const keyInfo = {
 	disabledKey: [],  //只读状态字段
-	defaultValue: {},  //
+	noShowKey: [],  //不显示的字段
+	defaultValue: {},  //字段默认值
 }
 const setKeyInfo = () => {
-	var role = userStore().roles;
 	if(role.indexOf('OPERATE')>-1){  //操作员
 		keyInfo.disabledKey = ['finish_at','operation_user_id','commerce_user_id','container_type'];
 		keyInfo.defaultValue.operation_user_id = userStore().id;
@@ -66,7 +80,7 @@ export const keyStatus = (formList, page, callBack) => {
 		form[0].formData[0].formItem[7].options = seletData.SW;
 		form[0].formData[0].formItem[8].options = seletData.CGS;
 		form[1].formData[0].formItem[0].options = seletData.XHDW;
-		form[1].formData[0].formItem[1].options = seletData.TT;
+		form[1].formData[0].formItem[1].options = seletData.WTTT;
 		form[2].formData[0].formItem[10].options = seletData.MT;
 		
 		//业务类型默认（代拉代报）

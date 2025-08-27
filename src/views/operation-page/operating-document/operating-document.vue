@@ -31,10 +31,19 @@
 							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
 								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
 								@click="saveData.booking_info.splice(index, 1)"><Close /></el-icon>
-								<el-input v-model="saveData.booking_info[index]" :rows="3" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
+								<el-input v-model="saveData.booking_info[index]" :rows="4" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
 							</el-col>
 						</el-row>
 					</template>
+					
+					<!-- 委托抬头新增 -->
+					<template #addHeader>
+						<el-button type="primary" :icon="Refresh" circle style="margin-left: 10px;"
+						@click="refreshCompanyHead"/>
+						<el-button type="danger" :icon="Plus" circle style="margin-left: 10px;"
+						@click="addCompanyHead"/>
+					</template>
+					
 					<!-- 一代联系方式/费用 -->
 					<template #order_delegationBtn="{formList,saveData}">
 						<el-button type="primary" @click="addDelegation(saveData)">增加</el-button>
@@ -42,12 +51,12 @@
 					<template #order_delegationList="{formList,saveData}">
 						<el-row :gutter="20">
 							<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
-								<el-col :span="6">
+								<el-col class="mt-1" :span="6">
 									<p class="pb">一代联系方式</p>
 									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" resize="none" />
 								</el-col>
-								<el-col class="p-r" :span="6">
-									<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
+								<el-col class="p-r mt-1" :span="6">
+									<el-icon class="p-a r_0 t_0 z-1000 hand" style="margin: 5px 15px;"
 									@click="saveData['order_delegation_header.remark'].splice(index, 1)"><Close /></el-icon>
 									<p class="pb">一代费用</p>
 									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" resize="none"/>
@@ -121,10 +130,11 @@
 	import FileTable from "@/components/document/fileTable";
 	import BillForm from '@/components/BillForm.vue'
 	import { httpPost, httpGet, httpPut, httpDelete } from '@/api/apiCommon';
-	import { Close } from '@element-plus/icons-vue'
+	import { Close, Plus, Refresh } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { queryParamsDocu, formList, AccountsColumn, amountFormDoc } from '@/utils/documents';
-	import { detailInfo, keyStatus } from '@/utils/common'
+	import { queryParamsDocu, formList, AccountsColumn, amountFormDoc, rulesInit } from '@/utils/documents';
+	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
+	import { getTT } from '@/api/commonList';
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -213,8 +223,10 @@
 		dialogFormVisible.value = true;
 		editId.value = '';
 		setTimeout(function(){
+			proxy.$refs.commonForm.resetKey(formListNew.value, true);
 			proxy.$refs.boxInfo.addBox(true);
 			proxy.$refs.accountTable.tableData = [];
+			addDelegation();
 			addAccount();
 		}, 200)
 	}
@@ -267,6 +279,19 @@
 	}
 	
 	// 委托抬头-一代联系人
+	const router = useRouter();
+	function addCompanyHead(){
+		router.push({
+			path: "/company/company-headers",
+			query: {
+				add: true
+			},
+		});
+	}
+	async function refreshCompanyHead(){
+		var WTTT = await getTT(commonParam().WTTT_params); //委托公司抬头
+		formListNew.value[1].formData[0].formItem[1].options = WTTT;
+	}
 	const addDelegation = () => {
 		var data = proxy.$refs.commonForm.saveData['order_delegation_header.remark'];
 		data.push({contact_phone: '', fee: ''})
@@ -313,6 +338,7 @@
 		// console.log('uploadFile', file);
 	}
 	
+	//船公司信息
 	const shipCompany = ref({});
 	function toShipCompanyUrl() {
 		if (shipCompany.value.tracking_url) {
@@ -321,11 +347,34 @@
 			proxy.$modal.msgSuccess("暂无网址");
 		}
 	}
+	//单独字段操作
 	const itemChange = (data, val, item) => {
+		var saveData = proxy.$refs.commonForm.saveData;
+		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
 		if(item.key=='shipping_company_id'){
-			shipCompany.value = item.options.find(v=>{
-				return v.id == val;
-			})
+			shipCompany.value = item.options.find(v=>{return v.id == val})
+		}else if(item.key=='cutoff_status'){
+			formListNew.value[0].formData[0].formItem[17].disabled = val==3?true:false;
+			formListNew.value[0].formData[0].formItem[17].rules = val==1?rulesInit('请选择开船日期', 1):null;
+			formListNew.value[2].formData[0].formItem[7].disabled = val==3?true:false;
+			formListNew.value[2].formData[0].formItem[7].rules = val==1?rulesInit('请选择开船日期', 1):null;
+		}else if(item.key=='order_type_id'){
+			proxy.$refs.commonForm.changeSave({
+				is_delivery: dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?0:1
+			});
+		}else if(item.key=='order_delegation_header.company_header_id'){
+			proxy.$refs.commonForm.changeSave({
+				'order_delegation_header.contact_person': dataNew.contact_person,
+				'order_delegation_header.contact_phone': dataNew.contact_phone
+			});
+		}else if(item.key=='ship_name'||item.key=='ship_no'){
+			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name + '/' + saveData.ship_no;
+			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name + '/' + saveData.ship_no;
+		}else if(item.key=='template8'){
+			formListNew.value[2].formData[0].formItem[10].remark = dataNew.remark;
+		}
+		if(item.popover){
+			
 		}
 	}
 	

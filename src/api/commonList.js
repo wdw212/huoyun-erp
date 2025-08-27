@@ -41,12 +41,10 @@ export async function getSW() {
 }
 
 //抬头列表
-export async function getTT(keyword) {
+export async function getTT(data={}) {
 	var params = {
 		is_paginate: 0,
-	}
-	if(keyword){
-		params.keyword = keyword;
+		...data
 	}
 	let res = await httpGet('/company-headers', params);
 	return res.data||[]
@@ -106,7 +104,8 @@ export async function getLX(data={}) {
 	let res = await httpGet('/yard-wharves', params);
 	return res.data||[]
 }
-//销货单位
+
+//销货单位列表
 export async function getXHDW(data={}) {
 	var params = {
 		is_paginate: 0,
@@ -115,6 +114,8 @@ export async function getXHDW(data={}) {
 	let res = await httpGet('/sellers', params);
 	return res.data||[]
 }
+
+
 //其他选项
 export const optionsComm = {
 	'付款方式': [
@@ -163,8 +164,8 @@ export const optionsComm = {
 		{label: '未完结',value: 0}, 
 	],
 	'放行': [
-		{label: '已放行',value: 1}, 
 		{label: '未放行',value: 0}, 
+		{label: '已放行',value: 1}, 
 	],
 	'柜型': [
 		{label: '20GP', value: '20GP'},
@@ -178,8 +179,7 @@ export const optionsComm = {
 		{label: '未进港',value: 0}, 
 	],
 	'保险': [
-		{label: '保险1', value: '保险1'},
-		{label: '保险2', value: '保险2'},
-		{label: '保险3', value: '保险3'},
+		{label: '不需要',value: 0},
+		{label: '需要',value: 1}, 
 	]
 }

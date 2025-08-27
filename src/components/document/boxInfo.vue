@@ -10,14 +10,13 @@
 			</template>
 			<el-aside width="200px">
 			<!-- {{boxList.length}}--{{props.isOperate}} -->
-				<div v-for="(item, index) in state.boxList" :key="index"
-					style="display: flex;justify-content: space-between;align-items: center;">
-					<el-text size="large" class="hand"
-					:type="boxIndex==index?'primary':''" @click="changeBox(index)">
+				<div v-for="(item, index) in state.boxList" :key="index" @click="changeBox(index)"
+				style="display: flex;justify-content: space-between;align-items: center;">
+					<el-text class="hand" :type="boxIndex==index?'primary':''" >
 						{{item.no}}
 					</el-text>
 					<view v-if="state.boxList.length> 1">
-						<el-button type="danger" plain size="mine" @click="deleteBox">删除</el-button>
+						<el-button type="danger" plain size="small" @click="deleteBox">删除</el-button>
 					</view>
 					
 					<!-- <el-popconfirm class="box-item" title="是否删除选中项" @confirm="deleteBox"

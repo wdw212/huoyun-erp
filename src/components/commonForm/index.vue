@@ -32,77 +32,90 @@
 										:formValue="saveData[vv.key]"
 										@changeValue="(val) => changeValue(val, item)"></common-form-item> -->
 										
-										<el-popover placement="top-start" width="auto" :content="showContent"
-										:disabled="saveData[vv.key]&&vv.popover?false:true" >
-											<template #reference>
-												<template v-if="vv.type=='input'">
-													<el-input v-model="saveData[vv.key]" 
-													:style="vv.style||'width:100%'"
-													:placeholder="vv.placeholder||'请输入'"
-													:clearable="vv.clearable"
-													@input="changeValue($event, vv)" :disabled="vv.disabled"/>
+										<div style="display: flex;width: 100%;flex: 1;">
+											<slot :name="vv.beforeSolt" :saveData="saveData" :item="vv"></slot>
+											
+											<el-popover placement="top-start" width="auto" 
+											:content="vv.remark||saveData[vv.key]" effect="dark"
+											:disabled="(saveData[vv.key]||vv.remark)&&vv.popover?false:true" >
+												<template #reference>
+													<template v-if="vv.type=='show'">
+														<el-input v-model="vv.value"
+														style="width:100%" disabled
+														placeholder="无"/>
+													</template>
+													<template v-if="vv.type=='input'">
+														<el-input v-model="saveData[vv.key]" 
+														:style="vv.style||'width:100%'"
+														:placeholder="vv.placeholder||'请输入'"
+														:clearable="vv.clearable"
+														@input="changeValue($event, vv)" :disabled="vv.disabled"/>
+													</template>
+													<template v-if="vv.type=='textarea'">
+														<el-input v-model="saveData[vv.key]" type="textarea"
+														:style="vv.style" :rows="4"
+														:placeholder="vv.placeholder||'请输入'"
+														@input="changeValue($event, vv)" :disabled="vv.disabled"/>
+													</template>
+													<template v-if="vv.type=='date'">
+														<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
+														:placeholder="vv.placeholder" 
+														:clearable="vv.clearable"
+														:value-format="vv.valueFormat||'YYYY-MM-DD'" 
+														:type="vv.dateType||'daterange'" :disabled="vv.disabled"
+														:start-placeholder="vv.startPlaceholder||'开始时间'" 
+														:end-placeholder="vv.endPlaceholder||'结束时间'" 
+														:range-separator="vv.rangeSeparator||'-'"  
+														@change="changeValue($event, vv)"/>
+													</template>
+													<template v-if="vv.type=='dateTime'">
+														<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
+														:placeholder="vv.placeholder" 
+														:clearable="vv.clearable"
+														:value-format="vv.valueFormat||'YYYY-MM-DD h:m:s'" 
+														:format="vv.format||'YYYY-MM-DD HH:mm:ss'" 
+														:type="vv.dateType||'datetime'" :disabled="vv.disabled"
+														:start-placeholder="vv.startPlaceholder||'开始时间'" 
+														:end-placeholder="vv.endPlaceholder||'结束时间'" 
+														:range-separator="vv.rangeSeparator||'-'"  
+														@change="changeValue($event, vv)"/>
+													</template>
+													<template v-if="vv.type=='select'">
+														<el-select v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
+														:placeholder="vv.placeholder||'请选择'"
+														:clearable="vv.clearable"
+														:disabled="vv.disabled"
+														:filterable="vv.filterable"
+														@change="changeValue($event, vv)">
+															<el-option v-for="v in vv.options" 
+															:key="vv.keyName?v[vv.keyName]:'id'"
+															:label="vv.labelName?v[vv.labelName]:v.label"
+															:value="vv.valueName?v[vv.valueName]:v.value" />
+														</el-select>
+													</template>
+													<template v-if="vv.type=='selectSearch'">
+														<el-select v-model="saveData[vv.key]" filterable
+														:style="vv.style||'width:100%'"
+														:disabled="vv.disabled"
+														:clearable="vv.clearable"
+														:multiple="vv.multiple" remote
+														:placeholder="vv.placeholder||'请选择'"
+														:reserve-keyword="vv.reserveKeyword"
+														:remote-show-suffix="vv.remoteShowSuffix"
+														:remote-method="remoteMethod"
+														:loading="vv.loading"
+														@change="changeValue($event, vv)">
+															<el-option v-for="v in vv.options"
+															:key="vv.keyName?v[vv.keyName]:'id'"
+															:label="vv.labelName?v[vv.labelName]:v.label"
+															:value="vv.valueName?v[vv.valueName]:v.value" />
+														</el-select>
+													</template>
 												</template>
-												<template v-if="vv.type=='textarea'">
-													<el-input v-model="saveData[vv.key]" type="textarea"
-													:style="vv.style" :rows="4"
-													:placeholder="vv.placeholder||'请输入'"
-													@input="changeValue($event, vv)" :disabled="vv.disabled"/>
-												</template>
-												<template v-if="vv.type=='date'">
-													<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
-													:placeholder="vv.placeholder" 
-													:clearable="vv.clearable"
-													:value-format="vv.valueFormat||'YYYY-MM-DD'" 
-													:type="vv.dateType||'daterange'" :disabled="vv.disabled"
-													:start-placeholder="vv.startPlaceholder||'开始时间'" 
-													:end-placeholder="vv.endPlaceholder||'结束时间'" 
-													:range-separator="vv.rangeSeparator||'-'"  
-													@change="changeValue($event, vv)"/>
-												</template>
-												<template v-if="vv.type=='dateTime'">
-													<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
-													:placeholder="vv.placeholder" 
-													:clearable="vv.clearable"
-													:value-format="vv.valueFormat||'YYYY-MM-DD h:m:s'" 
-													:format="vv.format||'YYYY-MM-DD HH:mm:ss'" 
-													:type="vv.dateType||'datetime'" :disabled="vv.disabled"
-													:start-placeholder="vv.startPlaceholder||'开始时间'" 
-													:end-placeholder="vv.endPlaceholder||'结束时间'" 
-													:range-separator="vv.rangeSeparator||'-'"  
-													@change="changeValue($event, vv)"/>
-												</template>
-												<template v-if="vv.type=='select'">
-													<el-select v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
-													:placeholder="vv.placeholder||'请选择'"
-													:clearable="vv.clearable"
-													:disabled="vv.disabled"
-													@change="changeValue($event, vv)">
-														<el-option v-for="v in vv.options" 
-														:key="vv.keyName?v[vv.keyName]:'id'"
-														:label="vv.labelName?v[vv.labelName]:v.label"
-														:value="vv.valueName?v[vv.valueName]:v.value" />
-													</el-select>
-												</template>
-												<template v-if="vv.type=='selectSearch'">
-													<el-select v-model="saveData[vv.key]" filterable
-													:style="vv.style||'width:100%'"
-													:disabled="vv.disabled"
-													:clearable="vv.clearable"
-													:multiple="vv.multiple" remote
-													:placeholder="vv.placeholder||'请选择'"
-													:reserve-keyword="vv.reserveKeyword"
-													:remote-show-suffix="vv.remoteShowSuffix"
-													:remote-method="remoteMethod"
-													:loading="vv.loading"
-													@change="changeValue($event, vv)">
-														<el-option v-for="v in vv.options"
-														:key="vv.keyName?v[vv.keyName]:'id'"
-														:label="vv.labelName?v[vv.labelName]:v.label"
-														:value="vv.valueName?v[vv.valueName]:v.value" />
-													</el-select>
-												</template>
-											</template>
-										</el-popover>
+											</el-popover>
+											
+											<slot :name="vv.afterSolt" :saveData="saveData" :item="vv"></slot>
+										</div>
 										
 									</el-form-item>
 								</template>
@@ -262,6 +275,9 @@
 				newVal = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
 			}
 		}
+		if(item.popover){  //预览
+			
+		}
 		var data = JSON.parse(JSON.stringify(saveData));
 		data[item.key] = newVal;
 		Object.assign(saveData, data);
@@ -281,7 +297,7 @@
 	}
 
 	onMounted(() => {
-		console.log('commonForm', props);
+		// console.log('commonForm', props);
 		resetKey(props.formList)
 	})
 

@@ -47,7 +47,7 @@
 					<div v-for=" (item, index) in scope.row.company_type_name" key= "index">{{item.label}}</div>
 				</template>
 			</el-table-column>
-			<el-table-column label="业务员" align="center" prop="admin_user.name" v-if="columns[1].visible" />
+			<el-table-column label="操作员" align="center" prop="admin_user.name" v-if="columns[1].visible" />
 			<el-table-column label="公司名称" align="center" prop="company_name" v-if="columns[2].visible" />
 			<el-table-column label="税号" align="center" prop="tax_number" v-if="columns[3].visible" />
 			<el-table-column label="区分" align="center" prop="distinction" v-if="columns[4].visible" />
@@ -227,6 +227,7 @@
 </template>
 
 <script setup name="CompanyHeaders">
+	import { ref, onMounted } from "vue";
 	import {
 		listData,
 		getData,
@@ -250,6 +251,13 @@
 	const {
 		proxy
 	} = getCurrentInstance();
+	const route = useRoute();
+	
+	onMounted(()=>{
+		if(route.query.add){
+			handleAdd();
+		}
+	})
 
 	const dataList = ref([]);
 	const open = ref(false);
