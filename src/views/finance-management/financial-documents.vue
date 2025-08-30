@@ -130,7 +130,7 @@
 	import CommonForm from "@/components/commonForm/index";
 	import BoxInfo from "@/components/document/boxInfo";
 	import FileTable from "@/components/document/fileTable";
-	import BillForm from '@/components/BillForm.vue'
+	import BillForm from '@/components/document/BillForm.vue'
 	import { httpPost, httpGet } from '@/api/apiCommon';
 	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
