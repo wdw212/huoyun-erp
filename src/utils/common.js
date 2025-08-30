@@ -19,14 +19,16 @@ export const detailInfo = (formList, data) => {
 }
 
 import userStore from "@/store/modules/user";
-import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
+import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT, getXZLX,getLX } from '@/api/commonList';
 const role = userStore().roles;
+//权限限制
 export const commonParam = () => {
 	var params = {
-		WTTT_params: {}
+		WTTT_params: {
+			company_type: 0
+		}
 	};
 	if(role.indexOf('OPERATE')>-1){  //操作员
-		params.WTTT_params.company_type = 0;
 		params.WTTT_params.operation_user_id = userStore().id;
 	}else if(role.indexOf('SUPER_ADMIN')>-1){  //超级管理员
 		
@@ -45,6 +47,9 @@ const getSelect = async (callBack) => {
 		SW: await getSW(), //商务
 		XHDW: await getXHDW(), //销货单位
 		MT: await getMT(), //码头
+		XZLX: await getXZLX(),  //箱子类型
+		LX: await getLX({type: 1}),  //落箱堆场
+		YT: await getLX({type: '0'}),  //预提
 	}
 	callBack(data);
 }

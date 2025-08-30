@@ -162,8 +162,8 @@
 			default: true
 		},
 	})
-	watch(props.formList, (newVal) => {
-		console.log('props.formList', newVal)
+	watch(()=>props.formList, (newVal) => {
+		// console.log('props.formList', newVal)
 		resetKey(newVal, false, true);
 	}, {
 		deep: true
@@ -270,7 +270,7 @@
 			if (item.inputType == 1) {  //英文自动大写，不要输入中文
 				newVal = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 			} else if (item.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
-				newVal = val.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase();
+				newVal = val.replace(/[^a-zA-Z0-9\+\-\*\s]/g, "").toUpperCase();
 			} else if (item.inputType == 3) {
 				newVal = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
 			}
@@ -293,7 +293,7 @@
 			}
 		}
 		Object.assign(saveData, data);
-		console.log('changeSave-回显', saveData);
+		// console.log('changeSave-回显', saveData);
 	}
 
 	onMounted(() => {

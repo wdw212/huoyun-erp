@@ -12,7 +12,7 @@
 								<h1>CONTAINER LOAD PLAN</h1>
 							</td>
 							<td rowspan="2" valign="middle" style="width:15%;text-align:center"><img
-									src="../assets/logo_pack.jpg" alt="logo" class="logo"></td>
+									src="../../assets/logo_pack.jpg" alt="logo" class="logo"></td>
 							<td rowspan="2" style="width:20%">
 								请在提箱预约前确认序列号是否完成支付
 								<p class="p10 mt40">
@@ -174,11 +174,11 @@
 														<ul v-for="(address, index) in addresses" :key="index"
 															class="address-item">
 															<li>
-																<div class="flex gap-4 mb-4 items-center">
-																	<el-input v-model="address.name"
-																		placeholder="联系人/电话" style="width:300px" />
+																<div class="flex gap-4 items-center">
 																	<el-input v-model="address.address"
 																		placeholder="装柜地址" />
+																	<el-input v-model="address.name"
+																		placeholder="联系人/电话" style="width:300px" />
 																	<el-button @click="deleteAddress(index)"
 																		class="delete-btn" type="primary">删除</el-button>
 																</div>
@@ -252,7 +252,9 @@
 							<td colspan="4">Received By Drayman<br>驾驶员签收及车号
 								<p class="p10 ml10"><el-input v-model="form.value14" placeholder="司机信息" /></p>
 							</td>
-							<td colspan="2">Cont. Tare Wt集装箱皮重</td>
+							<td colspan="2">Cont. Tare Wt集装箱皮重<br>
+								<p class="p10 ml10"><el-input v-model="form.value15" placeholder="集装箱皮重" /></p>
+							</td>
 							<td>Cgo/cont Total WT货/箱总重量</td>
 						</tr>
 					</tbody>
@@ -279,7 +281,7 @@
 									<h1>CONTAINER LOAD PLAN</h1>
 								</td>
 								<td rowspan="2" valign="middle" style="width:15%;text-align:center"><img
-										src="../assets/logo_pack.jpg" alt="logo" class="logo"></td>
+										src="../../assets/logo_pack.jpg" alt="logo" class="logo"></td>
 								<td rowspan="2" style="width:20%">
 									请在提箱预约前确认序列号是否完成支付
 									<p class="p10 mt40">
@@ -474,16 +476,9 @@
 															<ul v-for="(address, index) in addresses" :key="index"
 																class="address-item">
 																<li>
-																	<div class="flex gap-4 mb-4 items-center">
-																		<!-- <el-input v-model="address.name"
-																			placeholder="联系人/电话" style="width:300px" /> -->
-																		{{address.name}}
-																		<!-- <el-input v-model="address.address"
-																			placeholder="装柜地址" /> -->
+																	<div class="flex gap-4 items-center">
 																		{{address.address}}
-																		<!-- <el-button @click="deleteAddress(index)"
-																			class="delete-btn"
-																			type="primary">删除</el-button> -->
+																		{{address.name}}
 																	</div>
 																</li>
 															</ul>
@@ -574,7 +569,11 @@
 										{{form.value14}}
 									</p>
 								</td>
-								<td colspan="2">Cont. Tare Wt集装箱皮重</td>
+								<td colspan="2">Cont. Tare Wt集装箱皮重
+									<p class="p10 ml10">
+										{{form.value15}}
+									</p>
+								</td>
 								<td>Cgo/cont Total WT货/箱总重量</td>
 							</tr>
 						</tbody>
@@ -618,7 +617,8 @@
 		value11: '',
 		value12: '',
 		value13: '',
-		value14: ''
+		value14: '',
+		value15: ''
 	})
 
 	const textarea = ref('')
@@ -735,7 +735,8 @@
 			value11: '',
 			value12: '',
 			value13: '',
-			value14: ''
+			value14: '',
+			value15: ''
 		}
 
 		tableData.value = [{ name: '', no: '', unit: '', quantity: null, formattedValue: null }]
@@ -856,7 +857,7 @@
 	}
 
 	.address-list {
-		padding-top: 50px;
+		padding-top: 10px;
 	}
 
 	.address-list ul li {
@@ -997,6 +998,7 @@
 		vertical-align: top;
 		margin: 0;
 		border-collapse: collapse;
+		min-height: 282px;
 	}
 
 	.bl-none {

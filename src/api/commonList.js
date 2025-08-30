@@ -115,6 +115,16 @@ export async function getXHDW(data={}) {
 	return res.data||[]
 }
 
+//装柜地址列表
+export async function getZGDZ(data={}) {
+	var params = {
+		is_paginate: 0,
+		...data
+	}
+	let res = await httpGet('/loading-addresses', params);
+	return res.data||[]
+}
+
 
 //其他选项
 export const optionsComm = {
@@ -123,7 +133,7 @@ export const optionsComm = {
 		{label: '付款买单', value: 2},
 	],
 	'提货': [
-		{label: '未提货', value: 0},
+		{label: '未提货', value: '0'},
 		{label: '已提货', value: 1},
 		{label: '超期未提货', value: 2},
 	],
@@ -141,7 +151,7 @@ export const optionsComm = {
 		{label: '不符合比例', value: '2'},
 	],
 	'兑付': [
-		{label: '未兑付', value: 0},
+		{label: '未兑付', value: '0'},
 		{label: '已兑付', value: 1},
 	],
 	'费用完结': [
@@ -154,17 +164,17 @@ export const optionsComm = {
 		{label: '开港后截单',value: 3}
 	],
 	'提单状态': [
-		{label: '正常提单',value: 1}, 
+		{label: '正本提单',value: 1}, 
 		{label: '等通知电放',value: 2}, 
 		{label: '已电放',value: 3}, 
 		{label: '已seawaybil',value: 4}
 	],
 	'完结状态': [
 		{label: '已完结',value: 1}, 
-		{label: '未完结',value: 0}, 
+		{label: '未完结',value: '0'}, 
 	],
 	'放行': [
-		{label: '未放行',value: 0}, 
+		{label: '未放行',value: '0'}, 
 		{label: '已放行',value: 1}, 
 	],
 	'柜型': [
@@ -175,11 +185,20 @@ export const optionsComm = {
 		{label: '其他', value: '其他'},
 	],
 	'是否进港': [
-		{label: '已进港',value: 1},
-		{label: '未进港',value: 0}, 
+		{label: '未进港',value: '0'}, 
+		{label: '未进港——预录入已做',value: 1},
+		{label: '已进港',value: 2},
 	],
 	'保险': [
-		{label: '不需要',value: 0},
+		{label: '不需要',value: '0'},
 		{label: '需要',value: 1}, 
-	]
+		{label: '已做',value: 2}, 
+	],
+	'运费情况': [
+		{label: '月结',value: '0'}, 
+		{label: '现金未付',value: 1}, 
+		{label: '现金已付',value: 2},
+		{label: '驮鸟未确认',value: 3},
+		{label: '驮鸟已确认',value: 4},
+	],
 }

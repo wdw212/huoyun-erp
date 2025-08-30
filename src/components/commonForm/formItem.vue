@@ -1,6 +1,6 @@
 <template>
 	<div style="width: 100%;">
-		<el-popover placement="top-start" width="auto" :content="showContent"
+		<el-popover placement="top-start" width="auto" :content="showContent" effect="dark"
 		:disabled="saveData&&newItem.popover?false:true" >
 			<template #reference>
 				<template v-if="newItem.type=='input'">
@@ -44,6 +44,7 @@
 					:placeholder="newItem.placeholder||'请选择'"
 					:clearable="newItem.clearable"
 					:disabled="newItem.disabled"
+					:filterable="newItem.filterable"
 					@change="changeValue">
 						<el-option v-for="vv in newItem.options" 
 						:key="newItem.keyName?vv[newItem.keyName]:'id'"
@@ -99,29 +100,34 @@
 				return {}
 			}
 		},
-		formValue: ''
+		formValue: {
+			type: String,
+			default: () => {
+				return ''
+			}
+		},
 	})
 
 	const saveData = ref(null);
 	const newItem = ref({});
 	watch(props.item, (newVal) => {
-		console.log('formItem.item', newVal);
+		// console.log('formItem.item', newVal);
 		newItem.value = newVal;
 		newItem.value.clearable = newVal.clearable != '' ? newVal.clearable : true;
 		resetKey();
 	}, {
 		deep: true
 	})
-	watch(props.formValue, (newVal) => {
-		console.log('formItem.formValue', newVal);
+	watch(()=>props.formValue, (newVal) => {
+		// console.log('formItem.formValue', newVal);
 		saveData.value = props.formValue;
 	}, {
-		deep: true
+		deep: true, immediate: true
 	})
 	
 	const updateValue = (val) => {
 		saveData.value = val;
-		console.log('updateValue-formItem数据回显', saveData.value);
+		// console.log('updateValue-formItem数据回显', saveData.value);
 	}
 
 	const updateItem = (item) => {
@@ -153,7 +159,17 @@
 		var newItems = {
 			...newItem.value
 		};
-		newItems.value = val;
+		if(newItems.inputType){  //输入框禁止输入类型
+			if (newItems.inputType == 1) {  //英文自动大写，不要输入中文
+				newItems.value = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+			} else if (newItems.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
+				newItems.value = val.replace(/[^a-zA-Z0-9\+\-\*\s]/g, "").toUpperCase();
+			} else if (newItems.inputType == 3) {
+				newItems.value = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
+			}
+		}else{
+			newItems.value = val;
+		}
 		
 		if(newItem.value.type=='select'||newItem.value.type=='selectSearch'){
 			var data = newItem.value.options.find((vv)=>{

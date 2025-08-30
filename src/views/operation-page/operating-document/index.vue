@@ -952,8 +952,8 @@
 		watch
 	} from "vue";
 	// import InvoiceForm from '@/components/InvoiceForm.vue'
-	import BillForm from '@/components/BillForm.vue'
-	import PackForm from '@/components/PackForm.vue'
+	import BillForm from '@/components/document/BillForm.vue'
+	import PackForm from '@/components/document/PackForm.vue'
 	import useUserStore from '@/store/modules/user'
 
 	const baseUrl = import.meta.env.VITE_APP_BASE_API;

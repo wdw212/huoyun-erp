@@ -97,8 +97,9 @@
 					</template>
 					<template #template11="{saveData,formList}">
 						<el-form-item style="width: 100%;" label="落箱数据" label-width="100px">
-							<el-button type="primary" @click="">生成</el-button>
+							<el-button type="primary" @click="createDrop">生成</el-button>
 						</el-form-item>
+						<drop-box ref="dropBox"></drop-box>
 					</template>
 					<template #boxInfo>
 						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
@@ -126,9 +127,10 @@
 	import SearchTop from "@/components/searchTop/index";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
+	import DropBox from "@/components/document/dropBox";
 	import BoxInfo from "@/components/document/boxInfo";
 	import FileTable from "@/components/document/fileTable";
-	import BillForm from '@/components/BillForm.vue'
+	import BillForm from '@/components/document/BillForm.vue'
 	import { httpPost, httpGet, httpPut, httpDelete } from '@/api/apiCommon';
 	import { Close, Plus, Refresh } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
@@ -161,13 +163,13 @@
 		}
 		
 		// formListNew.value = JSON.parse(JSON.stringify(formList.value));
-		keyStatus(formList.value, '操作单据', function(form, seletData){
+		keyStatus(formList.value, '操作单据', function(form, options){
 			formListNew.value = form;
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
 			formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
-			seletData.value = seletData;
-			console.log('formListNew', formListNew)
+			seletData.value = options;
+			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
 	
@@ -222,10 +224,15 @@
 	const addDocument = () => {
 		dialogFormVisible.value = true;
 		editId.value = '';
+		containers.value = [];
+		order_files.value = [];
 		setTimeout(function(){
 			proxy.$refs.commonForm.resetKey(formListNew.value, true);
 			proxy.$refs.boxInfo.addBox(true);
 			proxy.$refs.accountTable.tableData = [];
+			proxy.$refs.commonForm.changeSave({
+				'order_delegation_header.remark': []
+			});
 			addDelegation();
 			addAccount();
 		}, 200)
@@ -347,35 +354,50 @@
 			proxy.$modal.msgSuccess("暂无网址");
 		}
 	}
+	//落箱数据生成
+	function createDrop() {
+		var saveData = {
+			...proxy.$refs.commonForm.saveData,
+			boxInfo: containers.value
+		};
+		proxy.$refs.dropBox.openDrop(saveData, seletData.value);
+	}
 	//单独字段操作
 	const itemChange = (data, val, item) => {
 		var saveData = proxy.$refs.commonForm.saveData;
 		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
+		var updateData = {};
 		if(item.key=='shipping_company_id'){
 			shipCompany.value = item.options.find(v=>{return v.id == val})
 		}else if(item.key=='cutoff_status'){
 			formListNew.value[0].formData[0].formItem[17].disabled = val==3?true:false;
-			formListNew.value[0].formData[0].formItem[17].rules = val==1?rulesInit('请选择开船日期', 1):null;
 			formListNew.value[2].formData[0].formItem[7].disabled = val==3?true:false;
-			formListNew.value[2].formData[0].formItem[7].rules = val==1?rulesInit('请选择开船日期', 1):null;
+			if(val==1){
+				formListNew.value[0].formData[0].formItem[17].rules = rulesInit('请选择截单日期', 1);
+				formListNew.value[2].formData[0].formItem[7].rules = rulesInit('请选择截单日期', 1);
+			}else{
+				delete formListNew.value[0].formData[0].formItem[17].rules;
+				delete formListNew.value[2].formData[0].formItem[7].rules;
+			}
+			updateData.cutoff_at = '';
+			if(val==3&&saveData.template2){
+				updateData.cutoff_at = saveData.template2;
+			}
 		}else if(item.key=='order_type_id'){
-			proxy.$refs.commonForm.changeSave({
-				is_delivery: dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?0:1
-			});
+			updateData.is_delivery = dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?'0':1;
 		}else if(item.key=='order_delegation_header.company_header_id'){
-			proxy.$refs.commonForm.changeSave({
-				'order_delegation_header.contact_person': dataNew.contact_person,
-				'order_delegation_header.contact_phone': dataNew.contact_phone
-			});
+			updateData['order_delegation_header.contact_person'] = dataNew.contact_person;
+			updateData['order_delegation_header.contact_phone'] = dataNew.contact_phone;
 		}else if(item.key=='ship_name'||item.key=='ship_no'){
 			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name + '/' + saveData.ship_no;
 			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name + '/' + saveData.ship_no;
 		}else if(item.key=='template8'){
-			formListNew.value[2].formData[0].formItem[10].remark = dataNew.remark;
+			formListNew.value[2].formData[0].formItem[10].remark = dataNew?dataNew.remark:'';
+		}else if(item.key=='template2'){
+			updateData.cutoff_at = val;
 		}
-		if(item.popover){
-			
-		}
+		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
+		proxy.$refs.commonForm.changeSave(updateData);
 	}
 	
 	// 单据信息提交

@@ -21,9 +21,10 @@
 				<!-- 操作列 -->
 				<el-table-column v-if="item.type=='edit'&&!item.noShow" :fixed="item.fixed" :label="item.label"
 					:align="item.align||'center'" :width="item.width">
-					<template #default="{row,index}">
-						<common-form-item :item="item.form" :formValue="row[item.prop]"
-						@changeValue="itemChange"></common-form-item>
+					<template #default="{row,$index}">
+						<!-- {{row[item.prop]}} -->
+						<common-form-item :item="item.form" v-model:formValue="row[item.prop]"
+						@changeValue="(val)=>itemChange(val, $index)"></common-form-item>
 					</template>
 				</el-table-column>
 
@@ -117,7 +118,7 @@
 
 	onMounted(() => {
 		// console.log('tableColumn', props.tableColumn);
-		tableData.value = [];
+		Object.assign(tableData, []);
 		if (props.tableConfig.isQuery) {
 			init();
 		}
@@ -143,7 +144,7 @@
 	}
 
 	const loading = ref(false);
-	const tableData = ref([]);
+	const tableData = reactive([]);
 	const pageInit = ref({
 		page: 1,
 		pageSize: 30,
@@ -161,7 +162,7 @@
 			...props.tableConfig.data
 		};
 		requestMethod(url, params).then(res => {
-			tableData.value = res.data;
+			Object.assign(tableData, res.data);
 			pageInit.value.total = res.meta.total;
 			loading.value = false;
 		});
@@ -190,15 +191,18 @@
 		})
 	}
 	
-	const itemChange = (item, val) => {
-		console.log('itemChange', item, val);
+	const itemChange = (item, index) => {
+		var data = tableData[index];
+		data[item.key] = item.value;
+		Object.assign(tableData[index], data);
+		emit('tableItemChange', item, index)
 	}
 	
-	const updateTableData = (data) => {
-		tableData.value = data;
+	const updateTableData = (data, index) => {
+		Object.assign(tableData[index], data);
 	}
 
-	const emit = defineEmits(['selectionChange'])
+	const emit = defineEmits(['selectionChange', 'tableItemChange'])
 	defineExpose({
 		tableData,
 		updateTableData,
