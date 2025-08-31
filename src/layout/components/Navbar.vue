@@ -8,7 +8,7 @@
 		<div class="right-menu">
 			<div class="p-r mr-2 flex" @click="handleViewMessage">
 				<el-badge :value="12" class="item" style="display: flex;">
-				  <!-- <img src="../../assets/icons/message_icon.png" style="width: 20px;height: 20px;"/> -->
+				  <img src="../../assets/icons/message_icon.png" style="width: 20px;height: 20px;"/>
 				</el-badge>
 				<!-- <div class="p-a radius-c" style="height:40px;font-size: 12px; top: -10px;right: -7px;border: 1px solid #f56c6c;background-color: #f56c6c;color: #fff;">12</div> -->
 			</div>
@@ -58,7 +58,7 @@
 			</template>
 		</div>
 		<notices-look  :openView.sync='openView'  @update:openView="openView= $event"/>
-		<message-popup v-if="openViewMessage=== true"/>
+		<message-popup v-if="openViewMessage=== true"   @update:openView="openViewMessage= $event"/>
 	</div>
 </template>
 

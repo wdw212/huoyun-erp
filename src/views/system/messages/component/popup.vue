@@ -1,6 +1,6 @@
 <template>
-	<div class="message-popup shadow overflow-h" v-loading="loading">
-		<div class="content p-r" style="height: 100%;">
+	<div class="message-popup shadow overflow-h"  @click="cancelPop($event)">
+		<div class="content" v-loading="loading">
 			<el-tabs v-model="activeName" @tab-click="handleClick">
 			 <el-tab-pane label="操作平台通知" name="0">
 				 <div class="color6 px-2 pb-2" v-for="(item,index) in tableDataNolook" :key="index">
@@ -75,18 +75,36 @@
 	function toPageMore() {
 		proxy.$router.push('/system/messages');
 	}
+	// 点击 .test_pop 以外的地方隐藏弹窗
+	function cancelPop(event) {
+		console.log(1111)
+	  let tp = document.querySelector(".content");
+	  if (tp) {
+		if (!tp.contains(event.target)) {
+			console.log(2222)
+		  Emit("update:openView", false);
+		}
+	  }
+	}
 </script>
 
 <style lang="scss">
 	.message-popup{
 		position: fixed;
 		z-index: 999999;
-		width: 600px;
-		height: 700px;
-		background-color: #f5f5f5;
+		width: 100%;
+		height: 100%;
 		right: 20px;
 		top: 60px;
 		border-radius: 20px;
+		.content{
+			width: 600px;
+			height: 700px;
+			background-color: #f5f5f5;
+			position: absolute;	
+			right: 0px;
+			top: 0px;
+		}
 		.el-tabs{
 			height: 80%;
 			.el-tabs__content{
