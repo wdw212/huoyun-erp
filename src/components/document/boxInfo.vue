@@ -5,7 +5,7 @@
 			<template #header>
 				<el-row justify="space-between" class="pb">
 					<span class="font-16">箱号列表</span>
-					<el-text type="primary" class="hand" @click="addBox">添加箱号</el-text>
+					<el-text type="primary" class="hand" @click="addBox(false)">添加箱号</el-text>
 				</el-row>
 			</template>
 			<el-aside width="200px">
@@ -15,9 +15,12 @@
 					<el-text class="hand" :type="boxIndex==index?'primary':''" >
 						{{item.no}}
 					</el-text>
-					<view v-if="state.boxList.length> 1">
-						<el-button type="danger" plain size="small" @click="deleteBox">删除</el-button>
-					</view>
+					<el-popconfirm title="确认删除箱号信息" placement="top" 
+					v-if="state.boxList.length> 1" @confirm="deleteBox">
+						<template #reference>
+							<el-button type="danger" plain size="small">删除</el-button>
+						</template>
+					</el-popconfirm>
 				</div>
 			</el-aside>
 		</el-card>
@@ -74,15 +77,12 @@
 				<!-- 装箱单 -->
 				<template #packingList="{saveData,formList}">
 					<el-form-item style="width: 100%;" label="装箱单" label-width="auto">
-						<el-button type="primary" @click="openPackForm=true">生成</el-button>
+						<el-button type="primary" @click="openPackForm">生成</el-button>
 					</el-form-item>
+					<pack-form ref="packForm"></pack-form>
 				</template>
 			</common-form>
 		</div>
-		
-		<el-dialog v-model="openPackForm" width="1400px">
-			<PackForm v-if="openPackForm"></PackForm>
-		</el-dialog>
 		
 	</div>
 </template>
@@ -150,7 +150,7 @@
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
 	})
 	
-	const openPackForm = ref(false);
+	const packFormShow = ref(false);
 	
 	const state = reactive({
 		boxList: [],      //箱子列表数据
@@ -160,6 +160,9 @@
 	const boxIndex = ref(0);   //选中箱子列表下标
 	// 添加箱号
 	const addBox = (isNew) => {
+		if(isNew){
+			state.boxList = [];
+		}
 		var data = {
 			cargo_weight: '',
 			container_type_id: '',
@@ -217,9 +220,18 @@
 	function createLoading(){
 		var saveData = {
 			...state.saveData,
-			boxInfo: state.boxList[boxIndex.value]
+			boxInfo: state.boxList[boxIndex.value],
+			packInfo: proxy.$refs.packForm.form
 		};
 		proxy.$refs.containerLoading.openLoading(saveData, state.options);
+	}
+	//装箱单数据生成
+	function openPackForm(){
+		var saveData = {
+			...state.saveData,
+			boxInfo: state.boxList[boxIndex.value]
+		};
+		proxy.$refs.packForm.openPackForm(saveData, state.options);
 	}
 	
 	//单据字段信息变更

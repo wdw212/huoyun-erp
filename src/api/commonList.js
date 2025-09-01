@@ -164,6 +164,7 @@ export const optionsComm = {
 		{label: '开港后截单',value: 3}
 	],
 	'提单状态': [
+		{label: '无提单',value: '0'}, 
 		{label: '正本提单',value: 1}, 
 		{label: '等通知电放',value: 2}, 
 		{label: '已电放',value: 3}, 

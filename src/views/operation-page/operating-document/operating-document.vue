@@ -228,11 +228,13 @@
 		order_files.value = [];
 		setTimeout(function(){
 			proxy.$refs.commonForm.resetKey(formListNew.value, true);
-			proxy.$refs.boxInfo.addBox(true);
-			proxy.$refs.accountTable.tableData = [];
 			proxy.$refs.commonForm.changeSave({
 				'order_delegation_header.remark': []
 			});
+			proxy.$refs.commonForm.activeName = '操作单据';
+			proxy.$refs.accountTable.tableData = [];
+			proxy.$refs.boxInfo.addBox(true); //箱子数据
+			
 			addDelegation();
 			addAccount();
 		}, 200)
@@ -385,6 +387,7 @@
 			}
 		}else if(item.key=='order_type_id'){
 			updateData.is_delivery = dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?'0':1;
+			updateData.bl_status = dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?1:'0';
 		}else if(item.key=='order_delegation_header.company_header_id'){
 			updateData['order_delegation_header.contact_person'] = dataNew.contact_person;
 			updateData['order_delegation_header.contact_phone'] = dataNew.contact_phone;
@@ -394,7 +397,13 @@
 		}else if(item.key=='template8'){
 			formListNew.value[2].formData[0].formItem[10].remark = dataNew?dataNew.remark:'';
 		}else if(item.key=='template2'){
-			updateData.cutoff_at = val;
+			if(saveData.cutoff_status==3) updateData.cutoff_at = val;
+		}else if(item.key=='template3'){
+			formListNew.value[0].formData[0].formItem[20].disabled = val?true:false;
+			updateData.sailing_at = val?val:saveData.sailing_at;
+		}else if(item.key=='template7'){
+			formListNew.value[0].formData[0].formItem[21].disabled = val?true:false;
+			updateData.arrival_at = val?val:saveData.arrival_at;
 		}
 		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
 		proxy.$refs.commonForm.changeSave(updateData);

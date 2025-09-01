@@ -72,8 +72,9 @@
 														<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
 														:placeholder="vv.placeholder" 
 														:clearable="vv.clearable"
-														:value-format="vv.valueFormat||'YYYY-MM-DD h:m:s'" 
-														:format="vv.format||'YYYY-MM-DD HH:mm:ss'" 
+														:value-format="vv.valueFormat||'YYYY-MM-DD HH:mm'" 
+														:format="vv.format||'YYYY-MM-DD HH:mm'" 
+														time-format="HH:mm"
 														:type="vv.dateType||'datetime'" :disabled="vv.disabled"
 														:start-placeholder="vv.startPlaceholder||'开始时间'" 
 														:end-placeholder="vv.endPlaceholder||'结束时间'" 
@@ -305,7 +306,8 @@
 	defineExpose({
 		saveData,
 		resetKey,
-		changeSave
+		changeSave,
+		activeName
 	})
 </script>
 
