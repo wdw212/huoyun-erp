@@ -1,40 +1,44 @@
 import { httpPost, httpGet } from '@/api/apiCommon';
 
 //业务员列表
-export async function getYWY() {
+export async function getYWY(data={}) {
 	var params = {
 		is_paginate: 0,
-		code: 'BUSINESS'
+		code: 'BUSINESS',
+		...data
 	}
 	let res = await httpGet('/admin-users', params);
 	return res.data||[]
 }
 
 //操作员列表
-export async function getCZY() {
+export async function getCZY(data={}) {
 	var params = {
 		is_paginate: 0,
-		code: 'OPERATE'
+		code: 'OPERATE',
+		...data
 	}
 	let res = await httpGet('/admin-users', params);
 	return res.data||[]
 }
 
 //单证员列表
-export async function getDZY() {
+export async function getDZY(data={}) {
 	var params = {
 		is_paginate: 0,
-		code: 'DOCUMENT'
+		code: 'DOCUMENT',
+		...data
 	}
 	let res = await httpGet('/admin-users', params);
 	return res.data||[]
 }
 
 //商务列表
-export async function getSW() {
+export async function getSW(data={}) {
 	var params = {
 		is_paginate: 0,
-		code: 'COMMERCE'
+		code: 'COMMERCE',
+		...data
 	}
 	let res = await httpGet('/admin-users', params);
 	return res.data||[]

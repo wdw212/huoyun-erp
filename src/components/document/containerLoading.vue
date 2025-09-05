@@ -71,7 +71,7 @@
 		showDrop.value = true;
 		var boxInfo = val.boxInfo||{};
 		
-		var template8 = val.template8?options.MT.find(v=>{return v.id==val.template8}):{};  //进港码头
+		var entered_port_wharf = val.entered_port_wharf_id?options.MT.find(v=>{return v.id==val.entered_port_wharf_id}):{};  //进港码头
 		var boxType = boxInfo.container_type_id?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
 		var lxdc = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
 		var yt = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //预提
@@ -96,7 +96,7 @@
 					  `提醒：请仔细核对提单号、箱号等和图片是否一致，如不一致请与我司联系！`+ '\n\n' +
 					  `提箱地点：${txmt.name||''}`+ '\n' +
 					  `进港/还箱地点：${template8.name||''}`+ '\n' +
-					  `开港时间：${val.template2||''}`+ '\n' +`截港时间：${val.template6||''}`
+					  `开港时间：${val.port_open_at||''}`+ '\n' +`截港时间：${val.port_close_at||''}`
 					  
 		data2.value = `提单号：${val.bl_no||''} 柜型：${boxType.name||''}   13吨  `+ '\n' +
 					  `时间：8.18（周一 ）下午17点   `+ '\n' +

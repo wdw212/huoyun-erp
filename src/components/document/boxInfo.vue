@@ -58,6 +58,12 @@
 				</template>
 				<template #loadingAddressTable="{saveData,formList}">
 					<table-list :tableConfig="tableConfig2" :tableColumn="tableColumn2" :multiple="false" :border="true" ref="tableListZGDZ" @tableItemChange="tableItemChange">
+						<template #table_loading_address>
+							<div style="display: flex;justify-content: space-between;">
+								<div>装柜地址</div>
+								<el-button type="warning" size="small" plain @click="addAddress">添加地址</el-button>
+							</div>
+						</template>
 						<template #bottomCon="{tableData}">
 							<el-row :gutter="20">
 								<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="8">
@@ -138,7 +144,7 @@
 		XZLX.value = await getXZLX();
 		YT.value = await getLX({type: '0'});
 		LX.value = await getLX({type: 1});
-		ZGDZ.value = await getZGDZ();
+		// ZGDZ.value = await getZGDZ();
 		formList.value[0].formData[0].formItem[2].options = XZLX.value;
 		formList.value[0].formData[0].formItem[4].options = YT.value;
 		formList.value[0].formData[0].formItem[5].options = MT.value;
@@ -146,7 +152,7 @@
 		formList.value[0].formData[0].formItem[13].options = CHD.value;
 		formListBox.value = JSON.parse(JSON.stringify(formList.value));
 		
-		tableColumn2.value[0].form.options = ZGDZ.value;
+		// tableColumn2.value[0].form.options = ZGDZ.value;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
 	})
 	
@@ -160,9 +166,6 @@
 	const boxIndex = ref(0);   //选中箱子列表下标
 	// 添加箱号
 	const addBox = (isNew) => {
-		if(isNew){
-			state.boxList = [];
-		}
 		var data = {
 			cargo_weight: '',
 			container_type_id: '',
@@ -182,6 +185,11 @@
 			freight_status: '',
 			freight_remark: ''
 		}
+		if(isNew){
+			state.boxList = [];
+		}else{
+			updateKeyRemark(data);
+		}
 		state.boxList.push(data);
 		boxIndex.value = state.boxList.length-1;
 		proxy.$refs.boxInfoForm.changeSave(data);
@@ -192,6 +200,7 @@
 		boxIndex.value = index;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
 		proxy.$refs.boxInfoForm.changeSave(state.boxList[index]);
+		updateKeyRemark(state.boxList[index]);
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号
@@ -199,6 +208,7 @@
 		state.boxList.splice(boxIndex.value, 1);
 		boxIndex.value = 0;
 		proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
+		updateKeyRemark(state.boxList[0]);
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	//箱子数据回显
@@ -207,13 +217,28 @@
 		if(val.length>0){
 			boxIndex.value = 0;
 			proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
+			updateKeyRemark(state.boxList[0]);
 		}
 		// console.log('boxList', state.boxList)
 	}
+	//单据数据更新
 	const updateSaveData = (data, options) => {
 		Object.assign(state.saveData, data);
 		Object.assign(state.options, options);
 		// console.log('boxList', state.boxList)
+	}
+	//更新表单字段备注信息
+	function updateKeyRemark(data){
+		var remarkList = {
+			pre_pull_wharf_id: 4,
+			wharf_id: 5,
+			drop_off_wharf_id: 6
+		}
+		for(var key in remarkList){
+			var item = formListBox.value[0].formData[0].formItem[remarkList[key]];
+			var dataNew = item.options?item.options.find(v=>{return v.id == data[key]}):{};
+			formListBox.value[0].formData[0].formItem[remarkList[key]].remark = dataNew?dataNew.remark:'';
+		}
 	}
 	
 	//装柜数据生成
@@ -238,8 +263,29 @@
 	const itemChange = (data, val, item) => {
 		Object.assign(state.boxList[boxIndex.value], data);
 		var newBox = JSON.parse(JSON.stringify(state.boxList));
+		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
+		var remarkList = {
+			pre_pull_wharf_id: 4, //预提
+			wharf_id: 5, //提箱码头
+			drop_off_wharf_id: 6 //落箱
+		}
+		if(remarkList[item.key]&&remarkList[item.key]>-1){
+			formListBox.value[0].formData[0].formItem[remarkList[item.key]].remark = dataNew?dataNew.remark:'';
+		}
+		
+		// 柜型统计
+		var containerInfo = [];
+		if(item.key=='container_type_id'){
+			state.boxList.forEach((vv,ii)=>{
+				var container = item.options?item.options.find(v=>{return v.id == vv.container_type_id}):{};
+				if(container&&container.id){
+					containerInfo.push(container.name)
+				}
+			})
+			emit('containerInfo', containerInfo.join(';'));
+		}
 		emit('boxInfoChange', newBox);
-		// console.log('单据信息变更', data, state.boxList)
+		// console.log('单据信息变更', data, state.boxList, formListBox.value)
 	}
 	// 单据信息提交
 	const confirmSubmit = (data) => {
@@ -256,9 +302,9 @@
 						{ labelWidth:'auto',type: 'input',value: '',label: '封号',placeholder: '请输入封号',key: 'seal_number' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '柜型',placeholder: '请选择柜型',key: 'container_type_id',options: [], labelName: 'name', valueName: 'id' },
 						{ labelWidth:'auto',type: 'input',value: '',label: '序列号',placeholder: '请输入序列号',key: 'serial_number' },
-						{ labelWidth:'auto',type: 'select',value: '',label: '预提',placeholder: '请选择预提',key: 'pre_pull_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true },
-						{ labelWidth:'auto',type: 'select',value: '',label: '提箱码头',placeholder: '请选择提箱码头',key: 'wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true },
-						{ labelWidth:'auto',type: 'select',value: '',label: '落箱',placeholder: '请选择落箱',key: 'drop_off_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true },
+						{ labelWidth:'auto',type: 'select',value: '',label: '预提',placeholder: '请选择预提',key: 'pre_pull_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
+						{ labelWidth:'auto',type: 'select',value: '',label: '提箱码头',placeholder: '请选择提箱码头',key: 'wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
+						{ labelWidth:'auto',type: 'select',value: '',label: '落箱',placeholder: '请选择落箱',key: 'drop_off_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '是否进港',placeholder: '请选择是否进港',key: 'is_entered_port',options: optionsComm['是否进港'], clearable: true, filterable: true,defaultValue: '0' },
 						{ labelWidth:'auto',type: 'input',value: '',label: '司机信息',placeholder: '请输入司机信息',key: 'driver', popover: true },
 						{ label: '进港数据', soltName: 'arrivalPort' },
@@ -271,7 +317,11 @@
 						{ labelWidth:'auto',type: 'input',value: '',label: '运费备注',placeholder: '请输入运费备注',key: 'freight_remark' },
 						{ label: '装柜地址', soltName: 'loadingAddress' },
 						{ label: '装柜数据', soltName: 'loadingInfo' },
-						{ label: '装箱单', soltName: 'packingList' },
+						{ label: '装箱单', soltName: 'packingList',span: 4 },
+						{ labelWidth:'auto',type: 'upload',value: {},label: '',key: 'no_image',remark: '箱号图片',popover: true,span: 2, uploadProps: {uploadType: 1,limit: 1, fileType: ['png','jpg','gif','jpeg'],showFile: false} },
+						{ labelWidth:'auto',type: 'upload',value: {},label: '',key: 'seal_number_image',remark: '封号图片',popover: true,span: 2, uploadProps: {uploadType: 1,limit: 1, fileType: ['png','jpg','gif','jpeg'],showFile: false} },
+						{ labelWidth:'auto',type: 'upload',value: {},label: '',key: 'wharf_record_image',remark: '提箱记录图片',popover: true,span: 2, uploadProps: {uploadType: 1,limit: 1, fileType: ['png','jpg','gif','jpeg'],showFile: false} },
+						{ labelWidth:'auto',type: 'upload',value: {},label: '',key: 'entered_port_record_image',remark: '进港记录图片',popover: true,span: 2, uploadProps: {uploadType: 1,limit: 1, fileType: ['png','jpg','gif','jpeg'],showFile: false} },
 						{ soltName: 'loadingAddressTable', value: [], span: 24 },
 					]
 				}
@@ -345,8 +395,9 @@
 		{
 			label: '装柜地址', prop: 'loading_address',type: 'edit',width: '400px',
 			form: {
-				type: 'select',key: 'loading_address',options: [],labelName: 'address', valueName: 'address',
-				popover:true, clearable: true,filterable: true
+				type: 'selectSearch',key: 'loading_address',options: [], labelName: 'address', valueName: 'address',
+				popover:true, clearable: true, filterable: true, placeholder: '请输入关键字查询地址信息',
+				url: '/loading-addresses', method: 'get'
 			}
 		},
 		{label: '地址', type: 'edit', prop: 'address',
@@ -373,18 +424,16 @@
 		var dataNew = item.options?item.options.find(v=>{return v.address == item.value}):{};
 		if(item.key=='loading_address'){
 			var data = {
-				loading_address: dataNew.address,
-				address: dataNew?.region?.name,
-				contact_name: dataNew.contact_name,
-				phone: dataNew.phone,
-				remark: dataNew.remark
+				loading_address: dataNew?.address||'',
+				address: dataNew?.region?.name||'',
+				contact_name: dataNew?.contact_name||'',
+				phone: dataNew?.phone||'',
+				remark: dataNew?.remark||''
 			}
-			// proxy.$refs.tableListZGDZ.tableData[index].address = dataNew?.region?.name;
-			// proxy.$refs.tableListZGDZ.tableData[index].contact_name = dataNew?.contact_name;
-			// proxy.$refs.tableListZGDZ.tableData.splice(index, 1, data);
 			proxy.$refs.tableListZGDZ.updateTableData(data, index);
+			proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
 		}
-		console.log('表格数据', proxy.$refs.tableListZGDZ.tableData)
+		// console.log('表格数据', proxy.$refs.tableListZGDZ.tableData)
 	}
 	const addTableList2 = () => {
 		proxy.$refs.tableListZGDZ.tableData.push({
@@ -400,8 +449,18 @@
 		proxy.$refs.tableListZGDZ.tableData.splice(row.index, 1)
 		// console.log('paymentDelete', row, rowIndex)
 	}
+	//新增装柜地址
+	const router = useRouter();
+	function addAddress(){
+		router.push({
+			path: "/company/company-loading-address",
+			query: {
+				add: true
+			},
+		});
+	}
 
-	const emit = defineEmits(['boxInfoChange'])
+	const emit = defineEmits(['boxInfoChange','containerInfo'])
 	defineExpose({
 		defaultBox,
 		addBox,

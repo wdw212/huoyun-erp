@@ -163,6 +163,7 @@
 </template>
 
 <script setup name="CompanyLoadingAddress">
+	import { ref, onMounted } from "vue";
 	import {
 		listData,
 		getData,
@@ -186,6 +187,13 @@
 	const {
 		proxy
 	} = getCurrentInstance();
+	
+	const route = useRoute();
+	onMounted(()=>{
+		if(route.query.add){
+			handleAdd();
+		}
+	})
 
 	const dataList = ref([]);
 	const open = ref(false);

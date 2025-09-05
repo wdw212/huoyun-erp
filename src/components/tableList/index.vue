@@ -26,6 +26,9 @@
 						<common-form-item :item="item.form" v-model:formValue="row[item.prop]"
 						@changeValue="(val)=>itemChange(val, $index)"></common-form-item>
 					</template>
+					<template #header>
+						<slot :name="'table_'+item.prop"></slot>
+					</template>
 				</el-table-column>
 
 				<!-- 操作按钮列 -->

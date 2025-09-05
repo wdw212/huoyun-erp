@@ -38,13 +38,13 @@ export const commonParam = () => {
 const getSelect = async (callBack) => {
 	var params = commonParam();
 	var data = {
-		YWY: await getYWY(),//业务员
-		CZY: await getCZY(),  //操作员
+		YWY: await getYWY({status:1}),//业务员
+		CZY: await getCZY({status:1}),  //操作员
 		YWLX: await getYWLX(), //业务类型
 		WTTT: await getTT(params.WTTT_params), //委托公司抬头
 		CGS: await getCGS(), //船公司
-		DZY: await getDZY(), //单证员
-		SW: await getSW(), //商务
+		DZY: await getDZY({status:1}), //单证员
+		SW: await getSW({status:1}), //商务
 		XHDW: await getXHDW(), //销货单位
 		MT: await getMT(), //码头
 		XZLX: await getXZLX(),  //箱子类型

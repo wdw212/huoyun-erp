@@ -35,9 +35,11 @@
 										<div style="display: flex;width: 100%;flex: 1;">
 											<slot :name="vv.beforeSolt" :saveData="saveData" :item="vv"></slot>
 											
-											<el-popover placement="top-start" width="auto" 
-											:content="vv.remark||saveData[vv.key]" effect="dark"
+											<el-popover placement="top-start" width="auto" effect="dark"
 											:disabled="(saveData[vv.key]||vv.remark)&&vv.popover?false:true" >
+												<template #default>
+													<pre>{{vv.remark||saveData[vv.key]}}</pre>
+												</template>
 												<template #reference>
 													<template v-if="vv.type=='show'">
 														<el-input v-model="vv.value"
@@ -112,6 +114,17 @@
 															:value="vv.valueName?v[vv.valueName]:v.value" />
 														</el-select>
 													</template>
+													<template v-if="vv.type=='upload'">
+														<file-simple :modelValue="saveData[vv.key]" 
+														:uploadType="vv?.uploadProps?.uploadType"
+														:limit="vv?.uploadProps?.limit"
+														:fileSize="vv?.uploadProps?.fileSize"
+														:fileType="vv?.uploadProps?.fileType"
+														:isShowTip="vv?.uploadProps?.isShowTip"
+														:disabled="vv?.uploadProps?.disabled"
+														:showFile="vv?.uploadProps?.showFile"
+														@uploadFile="(val)=>uploadFileSimple(val, vv)"></file-simple>
+													</template>
 												</template>
 											</el-popover>
 											
@@ -136,6 +149,7 @@
 
 <script setup>
 	import commonFormItem from "@/components/commonForm/formItem";
+	import fileSimple from "@/components/document/fileSimple";
 	import {
 		ref,
 		defineProps,
@@ -144,6 +158,7 @@
 		defineEmits,
 		onMounted
 	} from "vue";
+	import { Plus } from '@element-plus/icons-vue'
 	
 	const { proxy } = getCurrentInstance();
 
@@ -169,7 +184,7 @@
 	}, {
 		deep: true
 	})
-
+	
 	const activeName = ref('');
 	const tabsList = ref([]);
 
@@ -271,7 +286,7 @@
 			if (item.inputType == 1) {  //英文自动大写，不要输入中文
 				newVal = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 			} else if (item.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
-				newVal = val.replace(/[^a-zA-Z0-9\+\-\*\s]/g, "").toUpperCase();
+				newVal = val.replace(/[^a-zA-Z0-9\+\-\*\s\,\.]/g, "").toUpperCase();
 			} else if (item.inputType == 3) {
 				newVal = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
 			}
@@ -296,6 +311,14 @@
 		Object.assign(saveData, data);
 		// console.log('changeSave-回显', saveData);
 	}
+	
+	// 上传文件
+	function uploadFileSimple(val, item){
+		var data = JSON.parse(JSON.stringify(saveData));
+		data[item.key] = val;
+		Object.assign(saveData, data);
+		emit('itemChange', data, val, item);
+	}
 
 	onMounted(() => {
 		// console.log('commonForm', props);
@@ -311,5 +334,6 @@
 	})
 </script>
 
-<style>
+<style scoped>
+	pre{margin: 0;}
 </style>

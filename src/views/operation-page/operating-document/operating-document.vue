@@ -102,7 +102,8 @@
 						<drop-box ref="dropBox"></drop-box>
 					</template>
 					<template #boxInfo>
-						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
+						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"
+						@containerInfo="containerInfo"></box-info>
 					</template>
 					
 					<!-- 提单信息 -->
@@ -339,6 +340,12 @@
 	const boxInfoChange = (data) => {
 		containers.value = data;
 	}
+	//箱子柜型数据统计
+	function containerInfo(info){
+		proxy.$refs.commonForm.changeSave({
+			container_type: info
+		});
+	}
 	
 	// 文件上传
 	const order_files = ref([]);
@@ -382,8 +389,8 @@
 				delete formListNew.value[2].formData[0].formItem[7].rules;
 			}
 			updateData.cutoff_at = '';
-			if(val==3&&saveData.template2){
-				updateData.cutoff_at = saveData.template2;
+			if(val==3&&saveData.port_open_at){
+				updateData.cutoff_at = saveData.port_open_at;
 			}
 		}else if(item.key=='order_type_id'){
 			updateData.is_delivery = dataNew.name=='海运整柜'||dataNew.name=='拼箱空运'?'0':1;
@@ -394,14 +401,14 @@
 		}else if(item.key=='ship_name'||item.key=='ship_no'){
 			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name + '/' + saveData.ship_no;
 			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name + '/' + saveData.ship_no;
-		}else if(item.key=='template8'){
+		}else if(item.key=='entered_port_wharf_id'){//进港码头
 			formListNew.value[2].formData[0].formItem[10].remark = dataNew?dataNew.remark:'';
-		}else if(item.key=='template2'){
+		}else if(item.key=='port_open_at'){//开港时间
 			if(saveData.cutoff_status==3) updateData.cutoff_at = val;
-		}else if(item.key=='template3'){
+		}else if(item.key=='actual_sailing_at'){//实际开船时间
 			formListNew.value[0].formData[0].formItem[20].disabled = val?true:false;
 			updateData.sailing_at = val?val:saveData.sailing_at;
-		}else if(item.key=='template7'){
+		}else if(item.key=='actual_arrival_at'){//实际到港时间
 			formListNew.value[0].formData[0].formItem[21].disabled = val?true:false;
 			updateData.arrival_at = val?val:saveData.arrival_at;
 		}

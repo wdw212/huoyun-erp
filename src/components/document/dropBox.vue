@@ -69,17 +69,18 @@
 		saveData.value = val;
 		showDrop.value = true;
 		
-		var template8 = val.template8?options.MT.find(v=>{return v.id==val.template8}):{};  //进港码头
-		data1.value = `进港码头：${template8.name||''}`
+		var entered_port_wharf = val.entered_port_wharf_id?options.MT.find(v=>{return v.id==val.entered_port_wharf_id}):{};  //进港码头
+		data1.value = `进港码头：${entered_port_wharf.name||''}`
 					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
-					  + '\n' + `开港时间：${val.template2}` + '\n' + `截港时间：${val.template6}`
+					  + '\n' + `开港时间：${val.port_open_at}` + '\n' + `截港时间：${val.port_close_at}`
 					  + '\n' + `提单号：${val.bl_no}`
-		data2.value = `进港码头：${template8.name||''}`
+		data2.value = `进港码头：${entered_port_wharf.name||''}`
 					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
-					  + '\n' + `开港时间：${val.template2}` + '\n' + `截港时间：${val.template6}`
-		data3.value = `进港码头：${template8.name||''}`
+					  + '\n' + `开港时间：${val.port_open_at}` + '\n' + `截港时间：${val.port_close_at}`
+					  + '\n' + `提单号：${val.bl_no}`
+		data3.value = `进港码头：${entered_port_wharf.name||''}`
 					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
-					  + '\n' + `开港时间：${val.template2}` + '\n' + `截港时间：${val.template6}`
+					  + '\n' + `开港时间：${val.port_open_at}` + '\n' + `截港时间：${val.port_close_at}`
 		
 		var dropBox = {};
 		val.boxInfo.forEach((item,index)=>{
@@ -92,8 +93,8 @@
 					dropBox[lxdc.name] = '\n' + `箱号：${item.no||''}`;
 				}
 			}
-			data1.value = data1.value + '\n' + `箱型：${boxType.name||''}    箱号：${item.no||''}    封号：${item.seal_number||''}`
-			data2.value = data2.value + '\n' + `箱号：${item.no||''}     ${item.is_entered_port==2?'已进港':'未进港'}`
+			data1.value = data1.value + '\n' + `箱型：${boxType.name||''}    箱号：${item.no||''}    封号：${item.seal_number||''}    序列号：${item.serial_number||''}`
+			data2.value = data2.value + '\n' + `柜型：${boxType.name||''}    箱号：${item.no||''}    封号：${item.seal_number||''}    ${['未进港','未进港——预录入已做','已进港'][item.is_entered_port]}`
 		})
 		for(var key in dropBox){
 			data3.value = data3.value + '\n' + `落箱堆场：${key}` + dropBox[key] + '\n'

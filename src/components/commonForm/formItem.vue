@@ -1,7 +1,10 @@
 <template>
 	<div style="width: 100%;">
-		<el-popover placement="top-start" width="auto" :content="showContent" effect="dark"
+		<el-popover placement="top-start" width="auto" effect="dark"
 		:disabled="saveData&&newItem.popover?false:true" >
+			<template #default>
+				<pre>{{showContent}}</pre>
+			</template>
 			<template #reference>
 				<template v-if="newItem.type=='input'">
 					<el-input v-model="saveData" 
@@ -179,7 +182,11 @@
 					return val==vv.value
 				}
 			})
-			showContent.value = newItem.value.labelName?data[newItem.value.labelName]:data.label;
+			if(data){
+				showContent.value = newItem.value.labelName?(data[newItem.value.labelName]||''):data.label;
+			}else{
+				showContent.value = saveData.value||'';
+			}
 		}else{
 			showContent.value = saveData.value;
 		}
@@ -201,4 +208,5 @@
 </script>
 
 <style>
+	pre{margin: 0;}
 </style>
