@@ -255,6 +255,8 @@
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
 				
 				proxy.$refs.fileInfo.dafultFile(res.order_files);
+				
+				proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 			}, 500)
 		});
 	}
@@ -422,12 +424,17 @@
 		var order_payments = proxy.$refs.accountTable.tableData
 		var params = {
 			...data,
-			containers: containers.value,
-			orderPaymentsList: order_payments,
+			containers: JSON.stringify(containers.value),
+			// orderPaymentsList: order_payments,
 			order_payments: JSON.stringify(order_payments),
-			order_files: order_files.value,
+			order_files: JSON.stringify(order_files.value),
 		}
-		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		var strKey = ['booking_info','order_delegation_header'];
+		strKey.forEach((item)=>{
+			if(params[item]){
+				params[item] = JSON.stringify(params[item]);
+			}
+		})
 		delete params['undefined'];
 		console.log('确认提交', params);
 		// return;

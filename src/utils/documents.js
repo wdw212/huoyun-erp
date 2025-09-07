@@ -338,7 +338,7 @@ export const formList = ref([
 					{ type: 'input',value: '',label: '目的港',placeholder: '请输入目的港',key: 'destination_port',rules: rulesInit('请输入目的港'), inputType:2 },
 					{ type: 'input',value: '',label: '船名',placeholder: '请输入船名',key: 'ship_name',inputType: 2 },
 					{ type: 'input',value: '',label: '航次',placeholder: '请输入航次',key: 'ship_no',inputType: 2 },
-					{ type: 'input',value: '',label: '柜型',placeholder: '请输入柜型',key: 'container_type',rules: rulesInit('请选择箱子柜型'), disabled: true },
+					{ type: 'input',value: '',label: '柜型',placeholder: '请输入柜型',key: 'container_type', disabled: true },
 					{ type: 'select',value: '',label: '支付方式',placeholder: '请选择支付方式',key: 'payment_method',options: optionsComm['付款方式'], defaultValue: 1 },
 					{ type: 'select',value: '',label: '截单状态',placeholder: '请选择截单状态',key: 'cutoff_status',options: optionsComm['截单状态'], defaultValue: 1 },
 					{ type: 'dateTime',value: '',label: '截单时间',placeholder: '请选择截单时间',key: 'cutoff_at', format: 'YYYY-MM-DD HH:mm',rules: rulesInit('请选择截单时间', 1) },
