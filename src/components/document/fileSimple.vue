@@ -7,9 +7,12 @@
 			:show-file-list="props.showFile" :on-success="handleUploadSuccess"
 			:on-error="handleUploadError">
 			<div class="avatar-uploader" v-if="uploadType==1">
-				<img v-if="fileList&&fileList.url"
-				:src="fileList.url" 
-				class="avatar" />
+				<div class="avatar" v-if="fileList&&fileList.url">
+					<img :src="fileList.url"  />
+					<div class="close" @click="removeFile(0)">
+						<el-icon color="#fff"><Close /></el-icon>
+					</div>
+				</div>
 				<el-icon color="#8c939d" v-else><Plus /></el-icon>
 			</div>
 			<el-button type="primary" size="small" v-else>点击上传</el-button>
@@ -103,7 +106,11 @@
 	const removeFile = (index) => {
 		console.log(order_files.value);
 		order_files.value.splice(index, 1) // 从本地文件列表中移除
-		fileList.value.splice(index, 1) // 从本地文件列表中移除
+		if(props.uploadType==1){
+			fileList.value = {}; // 从本地文件列表中移除
+		}else{
+			fileList.value.splice(index, 1) // 从本地文件列表中移除
+		}
 		emit('uploadFile', fileList.value);
 	}
 	
@@ -129,7 +136,7 @@
 		border-radius: 6px;
 		cursor: pointer;
 		position: relative;
-		overflow: hidden;
+		/* overflow: hidden; */
 		transition: var(--el-transition-duration-fast);
 		display: flex;
 		align-items: center;
@@ -139,6 +146,24 @@
 	.avatar{
 		width: 50px;
 		height: 50px;
+		position: relative;
+	}
+	
+	.avatar img{
+		width: 50px;
+		height: 50px;
+		border-radius: 6px;
+	}
+	
+	.close{
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		position: absolute;
+		top: -10px;
+		right: -10px;
+		background-color: rgba(0,0,0,0.3);
+		display: flex;align-items: center;justify-content: center;
 	}
 	
 	.avatar-uploader:hover {
