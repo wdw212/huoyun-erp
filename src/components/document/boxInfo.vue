@@ -83,7 +83,7 @@
 				<!-- 装箱单 -->
 				<template #packingList="{saveData,formList}">
 					<el-form-item style="width: 100%;" label="装箱单" label-width="auto">
-						<el-button type="primary" @click="openPackForm">生成</el-button>
+						<el-button type="primary" @click="openPackForm(true)">生成</el-button>
 					</el-form-item>
 					<pack-form ref="packForm"></pack-form>
 				</template>
@@ -116,7 +116,7 @@
 	import TableList from "@/components/tableList/index";
 	import PackForm from '@/components/document/PackForm.vue'
 	import containerLoading from '@/components/document/containerLoading.vue'
-	import { detailInfo } from '@/utils/common'
+	import { detailInfo, getSelect } from '@/utils/common'
 	
 	const { proxy } = getCurrentInstance();
 	const props = defineProps({
@@ -154,6 +154,9 @@
 		
 		// tableColumn2.value[0].form.options = ZGDZ.value;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
+		getSelect(function(val){
+			state.options = val;
+		})
 	})
 	
 	const packFormShow = ref(false);
@@ -218,6 +221,7 @@
 			boxIndex.value = 0;
 			proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
 			updateKeyRemark(state.boxList[0]);
+			openPackForm(false);
 		}
 		// console.log('boxList', state.boxList)
 	}
@@ -225,6 +229,7 @@
 	const updateSaveData = (data, options) => {
 		Object.assign(state.saveData, data);
 		Object.assign(state.options, options);
+		openPackForm(false);
 		// console.log('boxList', state.boxList)
 	}
 	//更新表单字段备注信息
@@ -245,18 +250,26 @@
 	function createLoading(){
 		var saveData = {
 			...state.saveData,
-			boxInfo: state.boxList[boxIndex.value],
+			boxInfo: {
+				...state.boxList[boxIndex.value],
+				container_items: proxy.$refs.tableListJMT.tableData,
+				container_loading_address: proxy.$refs.tableListZGDZ.tableData
+			},
 			packInfo: proxy.$refs.packForm.form
 		};
 		proxy.$refs.containerLoading.openLoading(saveData, state.options);
 	}
 	//装箱单数据生成
-	function openPackForm(){
-		var saveData = {
+	function openPackForm(open){
+		var newData = {
 			...state.saveData,
-			boxInfo: state.boxList[boxIndex.value]
+			boxInfo: {
+				...state.boxList[boxIndex.value],
+				container_items: proxy.$refs.tableListJMT.tableData,
+				container_loading_address: proxy.$refs.tableListZGDZ.tableData
+			}
 		};
-		proxy.$refs.packForm.openPackForm(saveData, state.options);
+		proxy.$refs.packForm.openPackForm(newData, state.options, open);
 	}
 	
 	//单据字段信息变更
@@ -285,6 +298,8 @@
 			emit('containerInfo', containerInfo.join(';'));
 		}
 		emit('boxInfoChange', newBox);
+		
+		openPackForm(false);
 		// console.log('单据信息变更', data, state.boxList, formListBox.value)
 	}
 	// 单据信息提交
@@ -314,7 +329,7 @@
 						{ labelWidth:'auto',type: 'select',value: '',label: '车队',placeholder: '请选择车队',key: 'fleet_id',options: [], labelName: 'name', valueName: 'id', clearable: true, filterable: true },
 						{ labelWidth:'auto',type: 'input',value: '',label: '货重',placeholder: '请输入货重',key: 'cargo_weight' },
 						{ labelWidth:'auto',type: 'dateTime',value: '',label: '装柜时间',placeholder: '请选择装柜时间',key: 'loading_at', format: 'YYYY-MM-DD HH:mm' },
-						{ labelWidth:'auto',type: 'input',value: '',label: '运费备注',placeholder: '请输入运费备注',key: 'freight_remark' },
+						{ labelWidth:'auto',type: 'input',value: '',label: '运费备注',placeholder: '请输入运费备注',key: 'freight_remark', popover: true },
 						{ label: '装柜地址', soltName: 'loadingAddress' },
 						{ label: '装柜数据', soltName: 'loadingInfo' },
 						{ label: '装箱单', soltName: 'packingList',span: 4 },
@@ -339,7 +354,7 @@
 		{
 			label: '提单号', prop: 'bl_no',type: 'edit',width: '350px',
 			form: {
-				type: 'input',key: 'bl_no',popover:true
+				type: 'input',key: 'bl_no',popover:false
 			}
 		},
 		{label: '件数', type: 'edit', prop: 'quantity',

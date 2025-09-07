@@ -19,7 +19,7 @@
 									<td rowspan="2" style="width:20%">
 										请在提箱预约前确认序列号是否完成支付
 										<p class="p10 mt40">
-											<el-input v-model="form.workNumber" placeholder="序列号" />
+											<el-input @input="changeValue" v-model="form.workNumber" placeholder="序列号" />
 										</p>
 									</td>
 								</tr>
@@ -38,13 +38,13 @@
 										<div class="section">
 											<div class="tit">Ship's Name/Voy No.船名/航次</div>
 											<div class="area">
-												<el-input v-model="form.ship_info" :rows="2" type="textarea" placeholder="船名/航次" />
+												<el-input @input="changeValue" v-model="form.ship_info" :rows="2" type="textarea" placeholder="船名/航次" />
 											</div>
-											<p class="tit mt10">进箱开始时间：<el-date-picker v-model="form.startTime" type="datetime"
+											<p class="tit mt10">进箱开始时间：<el-date-picker @change="changeValue" v-model="form.startTime" type="datetime"
 													:prefix-icon="null" style="width:160px" placeholder="开港时间"
 													format="YYYY-MM-DD HH:mm" date-format="MMM DD, YYYY" time-format="HH:mm" />
 											</p>
-											<p class="tit mt10 mb10">进箱截止时间：<el-date-picker v-model="form.endTime"
+											<p class="tit mt10 mb10">进箱截止时间：<el-date-picker @change="changeValue" v-model="form.endTime"
 													type="datetime" :prefix-icon="null" style="width:160px" placeholder="进港时间"
 													format="YYYY-MM-DD HH:mm" date-format="MMM DD, YYYY" time-format="HH:mm" />
 											</p>
@@ -55,53 +55,53 @@
 											<div>
 												<div class="tit">port of Loading<br>装货港</div>
 												<div class="p10">
-													<el-input v-model="form.port" placeholder="起运港" />
+													<el-input @input="changeValue" v-model="form.port" placeholder="起运港" />
 												</div>
 											</div>
 											<div class="mt30">
 												<div class="tit">进箱码头</div>
 												<div class="p10">
-													<el-input v-model="form.wharf" placeholder="进港码头" />
+													<el-input @input="changeValue" v-model="form.wharf" placeholder="进港码头" />
 												</div>
 											</div>
 										</div>
 									</td>
 									<td rowspan="4" width="200px">Port of Tranship <br>中转港
 										<p class="p10">
-											<el-input v-model="form.value1" placeholder="中转港代码" />
+											<el-input @input="changeValue" v-model="form.value1" placeholder="中转港代码" />
 										</p>
 									</td>
 									<td rowspan="4" width="200px">Place of Delivery<br>交货地
 										<p class="p10">
-											<el-input v-model="form.value2" placeholder="目的港" />
+											<el-input @input="changeValue" v-model="form.value2" placeholder="目的港" />
 										</p>
 									</td>
 									<td rowspan="4">订舱货代代码<br>&nbsp;&nbsp;&nbsp;
 										<p class="p10">
-											<el-input v-model="form.value3" placeholder="" />
+											<el-input @input="changeValue" v-model="form.value3" placeholder="" />
 										</p>
 									</td>
 									<td align="center">
-										<div class="mtb5 tit">箱主:<el-input v-model="form.value4" style="width: 60px"
-												placeholder="船公司" />&nbsp;箱型:<el-input v-model="form.value5" style="width: 70px"
+										<div class="mtb5 tit">箱主:<el-input @input="changeValue" v-model="form.value4" style="width: 60px"
+												placeholder="船公司" />&nbsp;箱型:<el-input @input="changeValue" v-model="form.value5" style="width: 70px"
 												placeholder="箱型" /></div>
 									</td>
 								</tr>
 								<tr>
 									<td>
-										<div class="mtb5 tit">EIR号:<el-input v-model="form.value6" style="width: 155px"
+										<div class="mtb5 tit">EIR号:<el-input @input="changeValue" v-model="form.value6" style="width: 155px"
 												placeholder="" /></div>
 									</td>
 								</tr>
 								<tr>
 									<td>
-										<div class="mtb5 tit">提箱堆场:<el-input v-model="form.value7" style="width: 135px"
+										<div class="mtb5 tit">提箱堆场:<el-input @input="changeValue" v-model="form.value7" style="width: 135px"
 												placeholder="提箱码头" /></div>
 									</td>
 								</tr>
 								<tr>
 									<td>
-										<div class="mtb5 tit">有效期:<el-date-picker v-model="form.endTime" :prefix-icon="null"
+										<div class="mtb5 tit">有效期:<el-date-picker @change="changeValue" v-model="form.endTime" :prefix-icon="null"
 												type="datetime" style="width:155px" placeholder="条码有效期"
 												format="YYYY-MM-DD HH:mm:ss" date-format="MMM DD, YYYY" time-format="HH:mm" />
 										</div>
@@ -110,7 +110,7 @@
 								<tr>
 									<td colspan="4">Container No.箱号
 										<p class="p10 mb10">
-											<el-input v-model="form.value8" placeholder="箱号" />
+											<el-input @input="changeValue" v-model="form.value8" placeholder="箱号" />
 										</p>
 									</td>
 									<td colspan="5" rowspan="4" valgin="top">
@@ -134,23 +134,23 @@
 																		:show-header="false">
 																		<el-table-column prop="name" width="210">
 																			<template #default="{ row }">
-																				<el-input v-model="row.no" placeholder="提单号" />
+																				<el-input @input="changeValue" v-model="row.no" placeholder="提单号" />
 																			</template>
 																		</el-table-column>
 																		<el-table-column width="100">
 																			<template #default="{ row }">
-																				<el-input v-model="row.unit" placeholder="件数" />
+																				<el-input @input="changeValue" v-model="row.unit" placeholder="件数" />
 																			</template>
 																		</el-table-column>
 																		<el-table-column width="140">
 																			<template #default="{ row }">
-																				<el-input v-model="row.quantity"
+																				<el-input @input="changeValue" v-model="row.quantity"
 																					placeholder="毛重" />
 																			</template>
 																		</el-table-column>
 																		<el-table-column width="115">
 																			<template #default="{ row }">
-																				<el-input v-model="row.formattedValue"
+																				<el-input @input="changeValue" v-model="row.formattedValue"
 																					placeholder="体积" />
 																			</template>
 																		</el-table-column>
@@ -178,9 +178,9 @@
 																	class="address-item">
 																	<li>
 																		<div class="flex gap-4 items-center">
-																			<el-input v-model="address.address"
+																			<el-input @input="changeValue" v-model="address.address"
 																				placeholder="装柜地址" />
-																			<el-input v-model="address.name"
+																			<el-input @input="changeValue" v-model="address.name"
 																				placeholder="联系人/电话" style="width:300px" />
 																			<el-button @click="deleteAddress(index)"
 																				class="delete-btn" type="primary">删除</el-button>
@@ -201,13 +201,13 @@
 								<tr>
 									<td colspan="4">Seal No.封号
 										<p class="p10 mb10">
-											<el-input v-model="form.value9" placeholder="封号" />
+											<el-input @input="changeValue" v-model="form.value9" placeholder="封号" />
 										</p>
 									</td>
 								</tr>
 								<tr>
 									<td colspan="4">Cont. size&type 箱型尺寸
-										<p class="p10 mb10"><el-input v-model="form.value10" style="width:150px"
+										<p class="p10 mb10"><el-input @input="changeValue" v-model="form.value10" style="width:150px"
 												placeholder="箱型" /></p>
 									</td>
 								</tr>
@@ -227,7 +227,7 @@
 										<div class="section">
 											<div>
 												<div class="tit">Packing Date 装箱日期</div>
-												<p class="ml10"><el-date-picker v-model="form.endTime2" type="datetime"
+												<p class="ml10"><el-date-picker @change="changeValue" v-model="form.endTime2" type="datetime"
 														placeholder="装柜时间" format="YYYY-MM-DD HH:mm:ss"
 														date-format="MMM DD, YYYY" time-format="HH:mm" /></p>
 											</div>
@@ -235,13 +235,13 @@
 										</div>
 									</td>
 									<td>Total Packages<br>总件数
-										<p class="p10"><el-input v-model="form.value11" placeholder="总件数" /></p>
+										<p class="p10"><el-input @input="changeValue" v-model="form.value11" placeholder="总件数" /></p>
 									</td>
 									<td>Total Cargo Wt<br>总货重
-										<p class="p10"><el-input v-model="form.value12" placeholder="总货重" /></p>
+										<p class="p10"><el-input @input="changeValue" v-model="form.value12" placeholder="总货重" /></p>
 									</td>
 									<td>Total Meas<br>总尺码
-										<p class="p10"><el-input v-model="form.value13" placeholder="总体积" /></p>
+										<p class="p10"><el-input @input="changeValue" v-model="form.value13" placeholder="总体积" /></p>
 									</td>
 									<td colspan="2" rowspan="2">
 										Remarks备注
@@ -253,10 +253,10 @@
 								</tr>
 								<tr>
 									<td colspan="4">Received By Drayman<br>驾驶员签收及车号
-										<p class="p10 ml10"><el-input v-model="form.value14" placeholder="司机信息" /></p>
+										<p class="p10 ml10"><el-input @input="changeValue" v-model="form.value14" placeholder="司机信息" /></p>
 									</td>
 									<td colspan="2">Cont. Tare Wt集装箱皮重<br>
-										<p class="p10 ml10"><el-input v-model="form.value15" placeholder="集装箱皮重" /></p>
+										<p class="p10 ml10"><el-input @input="changeValue" v-model="form.value15" placeholder="集装箱皮重" /></p>
 									</td>
 									<td>Cgo/cont Total WT货/箱总重量</td>
 								</tr>
@@ -551,7 +551,7 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, defineExpose } from 'vue';
+	import { ref, defineExpose, defineEmits } from 'vue';
 	import html2canvas from 'html2canvas';
 	import { optionsComm } from '@/api/commonList';
 	const form = ref({
@@ -585,34 +585,10 @@
 		value14: '',
 		value15: ''
 	})
-	
-	const packFormShow = ref(false);
-	const saveData = ref({});
-	const openPackForm = (data, options) => {
-		saveData.value = data;
-		
-		var template8 = data.template8?options.MT.find(v=>{return v.id==data.template8}):{};  //进港码头
-		var boxType = data.container_type_id?options.XZLX.find(v=>{return v.id==data.container_type_id}):{};  //箱型
-		var lxdc = data.drop_off_wharf_id?options.LX.find(v=>{return v.id==data.drop_off_wharf_id}):{};  //落箱堆场
-		var yt = data.drop_off_wharf_id?options.LX.find(v=>{return v.id==data.drop_off_wharf_id}):{};  //预提
-		var txmt = data.drop_off_wharf_id?options.LX.find(v=>{return v.id==data.drop_off_wharf_id}):{};  //提箱码头
-		var freight_status = data.freight_status?optionsComm['运费情况'].find(v=>{return v.value==data.freight_status}):{};  //运费情况
-		
-		form.value.ship_info = (data.ship_name||'')+'/'+(data.shop_no||'');  //船名/航次
-		form.value.startTime = data.template2;  //开港时间
-		form.value.endTime = data.template6;  //进港时间
-		form.value.port = data.origin_port;  //起运港
-		form.value.wharf = template8.name||'';  //进港码头
-		form.value.value2 = data.template6;  //目的港
-		packFormShow.value = true;
-	}
-	defineExpose({
-		openPackForm,
-		form
-	})
 
 	const dialogTableVisible = ref(false)
-	const tableData = ref([{ name: '', no: '', unit: '', quantity: null, formattedValue: null }])
+	// const tableData = ref([{ name: '', no: '', unit: '', quantity: null, formattedValue: null }])
+	const tableData = ref([])
 	const addRow = () => {
 		if (tableData.value.length < 8) {
 			tableData.value.push({ name: '', no: '', unit: '', quantity: null, formattedValue: null })
@@ -655,12 +631,8 @@
 		loading.value = false
 	}
 	// 地址数据
-	const addresses = ref([
-		{
-			name: '',
-			address: '',
-		}
-	]);
+	// const addresses = ref([{name: '',address: '',}]);
+	const addresses = ref([]);
 
 	// 新地址表单数据
 	const newAddress = ref({
@@ -696,7 +668,7 @@
 		inputValue.value = event.target.value.toUpperCase();
 	};
 
-	const reset = () => {
+	const reset = (isNew) => {
 		form.value = {
 			workNumber: '',
 			phone: '',
@@ -740,8 +712,102 @@
 			address: ''
 		};
 		inputValue.value = '';
+		
+		if(!isNew){
+			newData.value = true;
+			openPackForm(saveData.value, dataOptions.value, true);
+		}
 	}
-	reset()
+	reset(true)
+	
+	function countQuantity(){
+		form.value.value11 = 0;
+		form.value.value12 = 0;
+		form.value.value13 = 0;
+		tableData.value.forEach((item)=>{
+			form.value.value11 += parseFloat(item.unit);
+			form.value.value12 += parseFloat(item.quantity);
+			form.value.value13 += parseFloat(item.formattedValue);
+		})
+	}
+	
+	const changeValue = () => {
+		emit('changePackForm', form.value);
+	}
+	
+	const packFormShow = ref(false);
+	const saveData = ref({});
+	const dataOptions = ref([]);
+	const newData = ref(true);
+	const openPackForm = (data, options, open) => {
+		saveData.value = data;
+		dataOptions.value = options;
+		// console.log('装箱单',data, options);
+		if(open&&!newData.value) {
+			newData.value = false;
+			packFormShow.value = open;
+			return;
+		};
+		var boxInfo = data.boxInfo;
+		
+		var entered_port_wharf = data.entered_port_wharf_id?options.MT.find(v=>{return v.id==data.entered_port_wharf_id}):{};  //进港码头
+		var boxType = boxInfo.container_type_id?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
+		var lxdc = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
+		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
+		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
+		var shipping_company = data.shipping_company_id?options.CGS.find(v=>{return v.id==data.shipping_company_id}):{};  //船公司
+		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
+		
+		form.value.ship_info = (data.ship_name||'')+'/'+(data.ship_no||'');  //船名/航次
+		form.value.startTime = data.port_open_at;  //开港时间
+		form.value.endTime = data.port_close_at;  //进港时间
+		form.value.port = data.origin_port;  //起运港
+		form.value.wharf = entered_port_wharf.name||'';  //进港码头
+		form.value.value2 = data.destination_port;  //目的港
+		form.value.value4 = shipping_company.name||'';  //船公司
+		form.value.value7 = txmt.name||'';  //提箱码头
+		form.value.value8 = boxInfo.no;  //箱号
+		form.value.value9 = boxInfo.seal_number;  //封号
+		form.value.value10 = boxType.name||'';  //箱型
+		form.value.value5 = boxType.name||'';  //箱型
+		form.value.workNumber = boxInfo.serial_number;  //序列号
+		form.value.endTime2 = boxInfo.loading_at+':00';  //装柜时间
+		form.value.value14 = boxInfo.driver;  //司机信息
+		console.log('form.value', form.value)
+		
+		tableData.value = [];
+		if(boxInfo.container_items){
+			boxInfo.container_items.forEach((item)=>{
+				tableData.value.push({
+					no: item.bl_no,
+					unit: item.quantity,
+					quantity: item.gross_weight,
+					formattedValue: item.volume,
+				})
+			})
+			countQuantity();
+		}else{
+			tableData.value = [[{ name: '', no: '', unit: '', quantity: null, formattedValue: null }]]
+		}
+		addresses.value = [];
+		if(boxInfo.container_loading_address){
+			boxInfo.container_loading_address.forEach((item)=>{
+				addresses.value.push({
+					address: item.address+'/'+item.loading_address,
+					name: item.contact_name+'/'+item.phone,
+					remark: item.remark
+				})
+			})
+		}else{
+			addresses.value = [{name: '',address: '',}]
+		}
+		packFormShow.value = open;
+	}
+	const emit = defineEmits(['changePackForm'])
+	defineExpose({
+		openPackForm,
+		form
+	})
 
 	// 生成图片的方法
 	const captureDiv = ref(null); // 引用目标 div

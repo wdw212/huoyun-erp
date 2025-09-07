@@ -5,18 +5,29 @@
 			v-model:file-list="order_files" :on-change="handleFilesChange" :auto-upload="true"
 			multiple :limit="props.limit"
 			:show-file-list="props.showFile" :on-success="handleUploadSuccess"
-			:on-error="handleUploadError">
+			:on-error="handleUploadError"
+			v-if="(uploadType==1&&!file.url)||uploadType==2">
 			<div class="avatar-uploader" v-if="uploadType==1">
-				<div class="avatar" v-if="fileList&&fileList.url">
-					<img :src="fileList.url"  />
-					<div class="close" @click="removeFile(0)">
-						<el-icon color="#fff"><Close /></el-icon>
-					</div>
-				</div>
-				<el-icon color="#8c939d" v-else><Plus /></el-icon>
+				<el-icon color="#8c939d"><Plus /></el-icon>
 			</div>
-			<el-button type="primary" size="small" v-else>点击上传</el-button>
+			<el-button type="primary" size="small" v-if="uploadType==2">点击上传</el-button>
 		</el-upload>
+		<div class="avatar" v-if="file.url">
+			<!-- <img :src="file.url"  /> -->
+			<el-image
+			  style="width: 40px; height: 40px;"
+			  :src="file.url"
+			  :zoom-rate="1.2"
+			  :max-scale="7"
+			  :min-scale="0.2"
+			  :preview-src-list="[file.url]"
+			  :initial-index="4"
+			  fit="cover"
+			/>
+			<div class="close" @click="removeFile(0)">
+				<el-icon color="#fff"><Close /></el-icon>
+			</div>
+		</div>
 		
 	</div>
 </template>
@@ -65,15 +76,15 @@
 	
 	const baseUrl = import.meta.env.VITE_APP_BASE_API;
 	const order_files = ref([]);
-	const fileList = ref(null);
+	const fileList = ref([]);
+	const file = ref({
+		path: '',
+		url: ''
+	});
 	const uploadRef = ref();
 	
 	onMounted(()=>{
-		if(props.uploadType==1){
-			fileList.value = {};
-		}else{
-			fileList.value = [];
-		}
+		
 	})
 	
 	function handleFilesChange(uploadFile, uploadFiles) {
@@ -87,17 +98,15 @@
 	const handleUploadSuccess = (response) => {
 		console.log('上传成功:', response);
 		if(props.uploadType==1){
-			fileList.value = {
-				path: response.path,
-				url: response.url
-			}
+			file.value.path = response.path;
+			file.value.url = response.url;
 		}else{
 			fileList.value.push({
 				file: response.path,
 				url: response.url
 			})
 		}
-		emit('uploadFile', fileList.value);
+		emit('uploadFile', props.uploadType==1?file.value:fileList.value);
 	};
 	
 	const handleUploadError = (error) => {
@@ -107,11 +116,12 @@
 		console.log(order_files.value);
 		order_files.value.splice(index, 1) // 从本地文件列表中移除
 		if(props.uploadType==1){
-			fileList.value = {}; // 从本地文件列表中移除
+			file.value.path = '';
+			file.value.url = ''; // 从本地文件列表中移除
 		}else{
 			fileList.value.splice(index, 1) // 从本地文件列表中移除
 		}
-		emit('uploadFile', fileList.value);
+		emit('uploadFile', props.uploadType==1?file.value:fileList.value);
 	}
 	
 	function toUploadFile(url) {
@@ -130,8 +140,8 @@
 
 <style scoped>
 	.avatar-uploader{
-		width: 50px;
-		height: 50px;
+		width: 40px;
+		height: 40px;
 		border: 1px dashed var(--el-border-color);
 		border-radius: 6px;
 		cursor: pointer;
@@ -144,14 +154,14 @@
 	}
 	
 	.avatar{
-		width: 50px;
-		height: 50px;
+		width: 40px;
+		height: 40px;
 		position: relative;
 	}
 	
 	.avatar img{
-		width: 50px;
-		height: 50px;
+		width: 40px;
+		height: 40px;
 		border-radius: 6px;
 	}
 	

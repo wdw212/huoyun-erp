@@ -35,7 +35,7 @@ export const commonParam = () => {
 	}
 	return params;
 }
-const getSelect = async (callBack) => {
+export const getSelect = async (callBack) => {
 	var params = commonParam();
 	var data = {
 		YWY: await getYWY({status:1}),//业务员
