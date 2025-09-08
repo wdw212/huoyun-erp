@@ -237,7 +237,6 @@
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
 			
 			addDelegation();
-			addAccount();
 		}, 200)
 	}
 	// 编辑操作处理方法
@@ -248,7 +247,7 @@
 			setTimeout(function(){
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
-					data[key] = res[key];
+					data[key] = res[key]===0?'0':res[key];
 				}
 				proxy.$refs.boxInfo.defaultBox(res.containers);
 				proxy.$refs.commonForm.changeSave(data);
@@ -320,16 +319,19 @@
 	}
 	
 	const addAccount = () => {
-		proxy.$refs.accountTable.tableData.push({
-			company_header_id: '',
-			no_invoice_remark: '',
+		var tableData = proxy.$refs.accountTable.tableData;
+		var data = {
+			company_header_id: null,
+			no_invoice_remark: null,
 			cny_amount: '0.00',
-			cny_invoice_number:'',
+			cny_invoice_number:null,
 			usd_amount: '0.00',
-			usd_invoice_number: '',
-			contact_phone: '',
-			contact_person: '',
-		});
+			usd_invoice_number: null,
+			// contact_phone: null,
+			// contact_person: null,
+		}
+		tableData.push(data);
+		proxy.$refs.accountTable.updateTableData(tableData);
 	}
 	const accountsDelete = (row) => {
 		const rowIndex = proxy.$refs.accountTable.tableData.findIndex(item => item === row);
@@ -424,15 +426,16 @@
 		var order_payments = proxy.$refs.accountTable.tableData
 		var params = {
 			...data,
-			containers: JSON.stringify(containers.value),
-			// orderPaymentsList: order_payments,
-			order_payments: JSON.stringify(order_payments),
-			order_files: JSON.stringify(order_files.value),
+			containers: containers.value,
+			order_payments: order_payments,
+			order_files: order_files.value,
 		}
-		var strKey = ['booking_info','order_delegation_header'];
+		var strKey = ['booking_info','order_delegation_header','order_payments','containers','order_files'];
 		strKey.forEach((item)=>{
-			if(params[item]){
+			if(params[item]&&params[item].length>0){
 				params[item] = JSON.stringify(params[item]);
+			}else{
+				delete params[item];
 			}
 		})
 		delete params['undefined'];

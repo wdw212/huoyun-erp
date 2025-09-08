@@ -261,7 +261,7 @@
 						}
 						data[keys[0]][keys[1]] = saveData[key];
 					}else if(saveData[key]||saveData[key]===0){
-						data[key] = saveData[key];
+						data[key] = saveData[key]===0?'0':saveData[key];
 					}
 				}
 				delete data['undefined'];
@@ -305,7 +305,7 @@
 		var data = JSON.parse(JSON.stringify(saveData));
 		for(var key in val){
 			if(key&&key!=undefined){
-				data[key] = val[key];
+				data[key] = val[key]===0?'0':val[key];
 			}
 		}
 		Object.assign(saveData, data);

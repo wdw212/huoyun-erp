@@ -201,8 +201,8 @@
 		emit('tableItemChange', item, index)
 	}
 	
-	const updateTableData = (data, index) => {
-		Object.assign(tableData[index], data);
+	const updateTableData = (data) => {
+		Object.assign(tableData, data);
 	}
 
 	const emit = defineEmits(['selectionChange', 'tableItemChange'])

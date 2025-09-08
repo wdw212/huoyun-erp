@@ -169,33 +169,33 @@
 	const boxIndex = ref(0);   //选中箱子列表下标
 	// 添加箱号
 	const addBox = (isNew) => {
-		var data = {
-			cargo_weight: '',
-			container_type_id: '',
-			driver: '',
-			drop_off_wharf_id: '',
-			fleet_id: '',
-			is_entered_port: '0',
-			loading_at: '',
-			no: '箱号',
-			pre_pull_wharf_id: '',
-			seal_number: '',
-			serial_number: '',
-			wharf_id: '',
-			container_items: [],
-			container_loading_address: [],
-			
-			freight_status: '',
-			freight_remark: ''
-		}
 		if(isNew){
 			state.boxList = [];
-		}else{
-			updateKeyRemark(data);
+		}
+		var data = {
+			cargo_weight: null,
+			container_type_id: null,
+			driver: null,
+			drop_off_wharf_id: null,
+			fleet_id: null,
+			is_entered_port: '0',
+			loading_at: null,
+			no: '箱号',
+			pre_pull_wharf_id: null,
+			seal_number: null,
+			serial_number: null,
+			wharf_id: null,
+			container_items: [],
+			container_loading_address: [],
+			freight_status: null,
+			freight_remark: null
 		}
 		state.boxList.push(data);
 		boxIndex.value = state.boxList.length-1;
 		proxy.$refs.boxInfoForm.changeSave(data);
+		if(!isNew){
+			updateKeyRemark(data);
+		}
 		// console.log('boxList新增', state.boxList)
 	}
 	// 切换选中箱号
@@ -239,10 +239,13 @@
 			wharf_id: 5,
 			drop_off_wharf_id: 6
 		}
-		for(var key in remarkList){
-			var item = formListBox.value[0].formData[0].formItem[remarkList[key]];
-			var dataNew = item.options?item.options.find(v=>{return v.id == data[key]}):{};
-			formListBox.value[0].formData[0].formItem[remarkList[key]].remark = dataNew?dataNew.remark:'';
+		// console.log('更新表单字段备注信息', formListBox.value[0])
+		if(formListBox.value[0]){
+			for(var key in remarkList){
+				var item = formListBox.value[0].formData[0].formItem[remarkList[key]];
+				var dataNew = item.options?item.options.find(v=>{return v.id == data[key]}):{};
+				formListBox.value[0].formData[0].formItem[remarkList[key]].remark = dataNew?dataNew.remark:'';
+			}
 		}
 	}
 	
@@ -387,11 +390,11 @@
 	const addTableList1 = () => {
 		console.log('tableListJMT', proxy.$refs.tableListJMT.tableData);
 		proxy.$refs.tableListJMT.tableData.push({
-			bl_no: state.saveData.bl_no||'',  //提单号
-			quantity: '', //件数
-			gross_weight: '', //毛重
-			volume: '', //体积
-			remark: '', //备注
+			bl_no: state.saveData.bl_no||null,  //提单号
+			quantity: null, //件数
+			gross_weight: null, //毛重
+			volume: null, //体积
+			remark: null, //备注
 		});
 	}
 	const delete1 = (row) => {
@@ -452,11 +455,11 @@
 	}
 	const addTableList2 = () => {
 		proxy.$refs.tableListZGDZ.tableData.push({
-			loading_address: '',
-			address: '',
-			contact_name: '',
-			phone: '',
-			remark: ''
+			loading_address: null,
+			address: null,
+			contact_name: null,
+			phone: null,
+			remark: null
 		});
 	}
 	const delete2 = (row) => {
