@@ -21,6 +21,7 @@
 			  :max-scale="7"
 			  :min-scale="0.2"
 			  :preview-src-list="[file.url]"
+			  :hide-on-click-modal="true"
 			  :initial-index="4"
 			  fit="cover"
 			/>

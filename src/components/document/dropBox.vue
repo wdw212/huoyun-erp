@@ -2,33 +2,42 @@
 	<div style="width: 100%;">
 
 		<el-dialog v-model="showDrop" title="落箱数据" width="78%">
-			<div class="w-100 flex1 mt-1">
-				<el-card style="width: 32%">
+			<div class="w-100 flex1">
+				<el-card style="width: 49%;margin-bottom: 10px">
+				    <template #header>
+						<div class="d-flex">
+							<el-icon :size="20" color="#0db4e6"> <Tickets /> </el-icon>
+							<div class="font-w pl-1 font-16">订舱信息</div>
+						</div>
+					</template>
+					<el-input v-model="data" type="textarea" :rows="12" resize="none" />
+				</el-card>
+				<el-card style="width: 49%;margin-bottom: 10px">
 				    <template #header>
 						<div class="d-flex">
 							<el-icon :size="20" color="#0db4e6"> <Setting /> </el-icon>
 							<div class="font-w pl-1 font-16">集装箱基础信息</div>
 						</div>
 					</template>
-					<el-input v-model="data1" type="textarea" :rows="25" resize="none" />
+					<el-input v-model="data1" type="textarea" :rows="12" resize="none" />
 				</el-card>
-				<el-card style="width: 32%">
+				<el-card style="width: 49%">
 				    <template #header>
 						<div class="d-flex">
 							<el-icon :size="20" color="#c596e6"> <Ship /> </el-icon>
 							<div class="font-w pl-1 font-16">集装箱进港情况</div>
 						</div>
 					</template>
-					<el-input v-model="data2" type="textarea" :rows="25" resize="none" />
+					<el-input v-model="data2" type="textarea" :rows="12" resize="none" />
 				</el-card>
-				<el-card style="width: 32%">
+				<el-card style="width: 49%">
 				    <template #header>
 						<div class="d-flex">
 							<el-icon :size="20" color="#3ad695"> <Box /> </el-icon>
 							<div class="font-w pl-1 font-16">落箱未进港数据</div>
 						</div>
 					</template>
-					<el-input v-model="data3" type="textarea" :rows="25" resize="none" />
+					<el-input v-model="data3" type="textarea" :rows="12" resize="none" />
 				</el-card>
 			</div>
 		</el-dialog>
@@ -46,6 +55,7 @@
 		onMounted
 	} from "vue";
 	import {
+		Tickets,
 		Setting,
 		Box,
 		Ship
@@ -61,15 +71,30 @@
 
 	const showDrop = ref(false);
 	const saveData = ref('');
+	const data = ref('');
 	const data1 = ref('');
 	const data2 = ref('');
 	const data3 = ref('');
 	const openDrop = (val, options) => {
-		console.log('openDrop', val)
+		// console.log('openDrop', val)
 		saveData.value = val;
 		showDrop.value = true;
 		
 		var entered_port_wharf = val.entered_port_wharf_id?options.MT.find(v=>{return v.id==val.entered_port_wharf_id}):{};  //进港码头
+		var shipping_company = val.shipping_company_id?options.CGS.find(v=>{return v.id==val.shipping_company_id}):{};  //船公司
+		var cutoff_status = boxInfo.cutoff_status?optionsComm['截单状态'].find(v=>{return v.value==boxInfo.cutoff_status}):{};  //截单状态
+		var booking_info = val.booking_info?val.booking_info.join(','):'';  //订舱备注
+		
+		data.value = `提单号：${val.bl_no||''}`
+					  + '\n' + `船公司：${shipping_company.name||''}`
+					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
+					  + '\n' + `起运港：${val.origin_port||''}`
+					  + '\n' + `目的港：${val.origin_port||''}`
+					  + '\n' + `柜型：${val.destination_port||''}`
+					  + '\n' + `预计开船日期：${val.destination_port||''}`
+					  + '\n' + `截单时间：${cutoff_status.label||''}  ${val.cutoff_at||''}`
+					  + '\n' + `订舱备注：${val.booking_info}`
+		
 		data1.value = `进港码头：${entered_port_wharf.name||''}`
 					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
 					  + '\n' + `开港时间：${val.port_open_at}` + '\n' + `截港时间：${val.port_close_at}`

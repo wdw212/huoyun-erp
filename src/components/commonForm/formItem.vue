@@ -48,7 +48,11 @@
 					:clearable="newItem.clearable"
 					:disabled="newItem.disabled"
 					:filterable="newItem.filterable"
+					:value-key="newItem.keyName?newItem.keyName:'id'"
 					@change="changeValue">
+						<template #label="{ label, value }">
+					        <span style="font-weight: bold">{{ value }}</span>
+					    </template>
 						<el-option v-for="vv in newItem.options" 
 						:key="newItem.keyName?vv[newItem.keyName]:'id'"
 						:label="newItem.labelName?vv[newItem.labelName]:vv.label"

@@ -12,7 +12,7 @@
 			<!-- {{boxList.length}}--{{props.isOperate}} -->
 				<div v-for="(item, index) in state.boxList" :key="index" @click="changeBox(index)"
 				style="display: flex;justify-content: space-between;align-items: center;">
-					<el-text class="hand" :type="boxIndex==index?'primary':''" >
+					<el-text class="hand" :type="state.boxIndex==index?'primary':''" >
 						{{item.no}}
 					</el-text>
 					<el-popconfirm title="确认删除箱号信息" placement="top" 
@@ -30,8 +30,9 @@
 				<!-- 进港数据 -->
 				<template #arrivalPort="{saveData,formList}">
 					<el-form-item style="width: 100%;" label="进港数据" label-width="auto">
-						<el-button type="primary" @click="">生成</el-button>
+						<el-button type="primary" @click="createArrivalPort">生成</el-button>
 					</el-form-item>
+					<arrival-port ref="arrivalPort"></arrival-port>
 				</template>
 				<!-- 件毛体 -->
 				<template #containerItemsBtn="{saveData,formList}">
@@ -40,7 +41,7 @@
 					</el-form-item>
 				</template>
 				<template #containerItemsTable="{saveData,formList}">
-					<table-list :tableConfig="tableConfig1" :tableColumn="tableColumn1" :multiple="false" :border="true" ref="tableListJMT" class="mb-2">
+					<table-list :tableConfig="tableConfig1" :tableColumn="tableColumn1" :multiple="false" :border="true" ref="tableListJMT" class="mb-2" @tableItemChange="tableItemChangeJMT">
 						<template #bottomCon="{tableData}">
 							<el-row :gutter="20">
 								<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="8">
@@ -57,7 +58,7 @@
 					</el-form-item>
 				</template>
 				<template #loadingAddressTable="{saveData,formList}">
-					<table-list :tableConfig="tableConfig2" :tableColumn="tableColumn2" :multiple="false" :border="true" ref="tableListZGDZ" @tableItemChange="tableItemChange">
+					<table-list :tableConfig="tableConfig2" :tableColumn="tableColumn2" :multiple="false" :border="true" ref="tableListZGDZ" @tableItemChange="tableItemChangeZGDZ">
 						<template #table_loading_address>
 							<div style="display: flex;justify-content: space-between;">
 								<div>装柜地址</div>
@@ -115,6 +116,7 @@
 	import CommonForm from "@/components/commonForm/index";
 	import TableList from "@/components/tableList/index";
 	import PackForm from '@/components/document/PackForm.vue'
+	import arrivalPort from '@/components/document/arrivalPort.vue'
 	import containerLoading from '@/components/document/containerLoading.vue'
 	import { detailInfo, getSelect } from '@/utils/common'
 	
@@ -144,7 +146,7 @@
 		XZLX.value = await getXZLX();
 		YT.value = await getLX({type: '0'});
 		LX.value = await getLX({type: 1});
-		// ZGDZ.value = await getZGDZ();
+		ZGDZ.value = await getZGDZ();
 		formList.value[0].formData[0].formItem[2].options = XZLX.value;
 		formList.value[0].formData[0].formItem[4].options = YT.value;
 		formList.value[0].formData[0].formItem[5].options = MT.value;
@@ -152,7 +154,13 @@
 		formList.value[0].formData[0].formItem[13].options = CHD.value;
 		formListBox.value = JSON.parse(JSON.stringify(formList.value));
 		
-		// tableColumn2.value[0].form.options = ZGDZ.value;
+		ZGDZ.value = ZGDZ.value.map((item,index)=>{
+			return {
+				...item,
+				label: item.keyword?item.keyword+'—'+item.address:item.address
+			}
+		})
+		tableColumn2.value[0].form.options = ZGDZ.value;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
 		getSelect(function(val){
 			state.options = val;
@@ -165,8 +173,8 @@
 		boxList: [],      //箱子列表数据
 		saveData: {},    //单据数据
 		options: {},     //下拉选项值
+		boxIndex: 0,    //选中箱子列表下标
 	});
-	const boxIndex = ref(0);   //选中箱子列表下标
 	// 添加箱号
 	const addBox = (isNew) => {
 		if(isNew){
@@ -185,45 +193,75 @@
 			seal_number: null,
 			serial_number: null,
 			wharf_id: null,
-			container_items: [],
-			container_loading_address: [],
+			container_items: [{
+				bl_no: state.saveData.bl_no||null,  //提单号
+				quantity: null, //件数
+				gross_weight: null, //毛重
+				volume: null, //体积
+				remark: null, //备注
+			}],
+			container_loading_address: [{
+				loading_address: null,
+				address: null,
+				contact_name: null,
+				phone: null,
+				remark: null
+			}],
 			freight_status: null,
 			freight_remark: null
 		}
 		state.boxList.push(data);
-		boxIndex.value = state.boxList.length-1;
+		state.boxIndex = state.boxList.length-1;
 		proxy.$refs.boxInfoForm.changeSave(data);
+		var timeInter = setInterval(function(){
+			if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
+				proxy.$refs.tableListJMT.state.tableData = data.container_items;
+				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_address;
+				clearInterval(timeInter);
+			}
+		}, 500)
 		if(!isNew){
 			updateKeyRemark(data);
 		}
-		// console.log('boxList新增', state.boxList)
+		console.log('boxList新增', state.boxIndex, state.boxList)
 	}
 	// 切换选中箱号
 	const changeBox = (index) => {
-		boxIndex.value = index;
+		state.boxIndex = index;
+		var val = state.boxList[index];
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
 		proxy.$refs.boxInfoForm.changeSave(state.boxList[index]);
 		updateKeyRemark(state.boxList[index]);
+		proxy.$refs.tableListJMT.state.tableData = val.container_items;
+		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_address;
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号
 	const deleteBox = () => {
-		state.boxList.splice(boxIndex.value, 1);
-		boxIndex.value = 0;
+		state.boxList.splice(state.boxIndex, 1);
+		state.boxIndex = 0;
 		proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
 		updateKeyRemark(state.boxList[0]);
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	//箱子数据回显
 	const defaultBox = (val) => {
-		Object.assign(state.boxList, val);
+		// Object.assign(state.boxList, val);
+		state.boxList = val;
 		if(val.length>0){
-			boxIndex.value = 0;
-			proxy.$refs.boxInfoForm.changeSave(state.boxList[0]);
-			updateKeyRemark(state.boxList[0]);
-			openPackForm(false);
+			state.boxIndex = 0;
+			proxy.$refs.boxInfoForm.changeSave(val[0]);
+			updateKeyRemark(val[0]);
+			var timeInter = setInterval(function(){
+				if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
+					proxy.$refs.tableListJMT.state.tableData = val[0].container_items;
+					proxy.$refs.tableListZGDZ.state.tableData = val[0].container_loading_address;
+					openPackForm(false);
+					clearInterval(timeInter);
+				}
+			}, 500)
 		}
-		// console.log('boxList', state.boxList)
+		console.log('boxList-箱子数据回显', state.boxList)
 	}
 	//单据数据更新
 	const updateSaveData = (data, options) => {
@@ -254,30 +292,44 @@
 		var saveData = {
 			...state.saveData,
 			boxInfo: {
-				...state.boxList[boxIndex.value],
-				container_items: proxy.$refs.tableListJMT.tableData,
-				container_loading_address: proxy.$refs.tableListZGDZ.tableData
+				...state.boxList[state.boxIndex],
+				container_items: proxy.$refs.tableListJMT.state.tableData,
+				container_loading_address: proxy.$refs.tableListZGDZ.state.tableData
 			},
 			packInfo: proxy.$refs.packForm.form
 		};
 		proxy.$refs.containerLoading.openLoading(saveData, state.options);
 	}
-	//装箱单数据生成
-	function openPackForm(open){
-		var newData = {
+	//进港数据生成
+	function createArrivalPort(){
+		var saveData = {
 			...state.saveData,
 			boxInfo: {
-				...state.boxList[boxIndex.value],
-				container_items: proxy.$refs.tableListJMT.tableData,
-				container_loading_address: proxy.$refs.tableListZGDZ.tableData
+				...state.boxList[state.boxIndex],
+				container_items: proxy.$refs.tableListJMT.state.tableData,
 			}
 		};
-		proxy.$refs.packForm.openPackForm(newData, state.options, open);
+		proxy.$refs.arrivalPort.openLoading(saveData, state.options);
+	}
+	//装箱单数据生成
+	function openPackForm(open){
+		if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
+			var newData = {
+				...state.saveData,
+				boxInfo: {
+					...state.boxList[state.boxIndex],
+					container_items: proxy.$refs.tableListJMT.state.tableData,
+					container_loading_address: proxy.$refs.tableListZGDZ.state.tableData
+				}
+			};
+			proxy.$refs.packForm.openPackForm(newData, state.options, open);
+		}
 	}
 	
 	//单据字段信息变更
 	const itemChange = (data, val, item) => {
-		Object.assign(state.boxList[boxIndex.value], data);
+		// Object.assign(state.boxList[state.boxIndex], data);
+		state.boxList[state.boxIndex] = data;
 		var newBox = JSON.parse(JSON.stringify(state.boxList));
 		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
 		var remarkList = {
@@ -388,18 +440,28 @@
 		}
 	]);
 	const addTableList1 = () => {
-		console.log('tableListJMT', proxy.$refs.tableListJMT.tableData);
-		proxy.$refs.tableListJMT.tableData.push({
+		proxy.$refs.tableListJMT.state.tableData.push({
 			bl_no: state.saveData.bl_no||null,  //提单号
 			quantity: null, //件数
 			gross_weight: null, //毛重
 			volume: null, //体积
 			remark: null, //备注
 		});
+		state.boxList[state.boxIndex].container_items = proxy.$refs.tableListJMT.state.tableData;
+		emit('boxInfoChange', state.boxList);
+	}
+	const tableItemChangeJMT = (item, index) => {
+		var dataNew = item.options?item.options.find(v=>{return v.address == item.value}):{};
+		var tableDataNew = proxy.$refs.tableListJMT.state.tableData;
+		state.boxList[state.boxIndex].container_items = tableDataNew;
+		emit('boxInfoChange', state.boxList);
+		// console.log('箱子数据', state.boxList)
 	}
 	const delete1 = (row) => {
-		const rowIndex = proxy.$refs.tableListJMT.tableData.findIndex(item => item === row);
-		proxy.$refs.tableListJMT.tableData.splice(row.index, 1)
+		const rowIndex = proxy.$refs.tableListJMT.state.tableData.findIndex(item => item === row);
+		proxy.$refs.tableListJMT.state.tableData.splice(row.index, 1)
+		state.boxList[state.boxIndex].container_items = proxy.$refs.tableListJMT.state.tableData;
+		emit('boxInfoChange', state.boxList);
 		// console.log('paymentDelete', row, rowIndex)
 	}
 	
@@ -413,9 +475,9 @@
 		{
 			label: '装柜地址', prop: 'loading_address',type: 'edit',width: '400px',
 			form: {
-				type: 'selectSearch',key: 'loading_address',options: [], labelName: 'address', valueName: 'address',
-				popover:true, clearable: true, filterable: true, placeholder: '请输入关键字查询地址信息',
-				url: '/loading-addresses', method: 'get'
+				type: 'select',key: 'loading_address',options: [], labelName: 'label', valueName: 'address',
+				popover:true, clearable: true, filterable: true, placeholder: '输入关键字查询地址信息',
+				// url: '/loading-addresses', method: 'get'
 			}
 		},
 		{label: '地址', type: 'edit', prop: 'address',
@@ -438,8 +500,9 @@
 			width: '80px'
 		}
 	]);
-	const tableItemChange = (item, index) => {
+	const tableItemChangeZGDZ = (item, index) => {
 		var dataNew = item.options?item.options.find(v=>{return v.address == item.value}):{};
+		var tableDataNew = proxy.$refs.tableListZGDZ.state.tableData;
 		if(item.key=='loading_address'){
 			var data = {
 				loading_address: dataNew?.address||'',
@@ -448,23 +511,29 @@
 				phone: dataNew?.phone||'',
 				remark: dataNew?.remark||''
 			}
-			proxy.$refs.tableListZGDZ.updateTableData(data, index);
+			proxy.$refs.tableListZGDZ.state.tableData[index] = data;
 			proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
 		}
-		// console.log('表格数据', proxy.$refs.tableListZGDZ.tableData)
+		state.boxList[state.boxIndex].container_loading_address  =proxy.$refs.tableListZGDZ.state.tableData;
+		emit('boxInfoChange', state.boxList);
+		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData)
 	}
 	const addTableList2 = () => {
-		proxy.$refs.tableListZGDZ.tableData.push({
+		proxy.$refs.tableListZGDZ.state.tableData.push({
 			loading_address: null,
 			address: null,
 			contact_name: null,
 			phone: null,
 			remark: null
 		});
+		state.boxList[state.boxIndex].container_loading_address = proxy.$refs.tableListZGDZ.state.tableData;
+		emit('boxInfoChange', state.boxList);
 	}
 	const delete2 = (row) => {
-		const rowIndex = proxy.$refs.tableListZGDZ.tableData.findIndex(item => item === row);
-		proxy.$refs.tableListZGDZ.tableData.splice(row.index, 1)
+		const rowIndex = proxy.$refs.tableListZGDZ.state.tableData.findIndex(item => item === row);
+		proxy.$refs.tableListZGDZ.state.tableData.splice(row.index, 1)
+		state.boxList[state.boxIndex].container_loading_address = proxy.$refs.tableListZGDZ.state.tableData;
+		emit('boxInfoChange', state.boxList);
 		// console.log('paymentDelete', row, rowIndex)
 	}
 	//新增装柜地址

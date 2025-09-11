@@ -101,14 +101,14 @@
 								</tr>
 								<tr>
 									<td>
-										<div class="mtb5 tit">有效期:<el-date-picker @change="changeValue" v-model="form.endTime" :prefix-icon="null"
-												type="datetime" style="width:155px" placeholder="条码有效期"
-												format="YYYY-MM-DD HH:mm:ss" date-format="MMM DD, YYYY" time-format="HH:mm" />
+										<div class="mtb5 tit redColor">有效期:<el-date-picker @change="changeValue" v-model="form.timeeriod" :prefix-icon="null"
+												type="datetime" style="width:155px;color: red;" placeholder="条码有效期"
+												format="YYYY-MM-DD HH:mm:ss" date-format="MMM DD, YYYY" time-format="HH:mm"/>
 										</div>
 									</td>
 								</tr>
 								<tr>
-									<td colspan="4">Container No.箱号
+									<td colspan="4" style="height: 60px;">Container No.箱号
 										<p class="p10 mb10">
 											<el-input @input="changeValue" v-model="form.value8" placeholder="箱号" />
 										</p>
@@ -117,7 +117,7 @@
 										<!--物流单列表 start-->
 										<table class="list">
 											<tbody>
-												<tr>
+												<tr style="height: 61px;">
 													<td class="center" width="148">Bill of Lading No.<br />提单号</td>
 													<td class="center" width="149">Packages&Packing<br />件数与包装</td>
 													<td class="center" width="148">Gross Weight<br />毛重</td>
@@ -725,9 +725,9 @@
 		form.value.value12 = 0;
 		form.value.value13 = 0;
 		tableData.value.forEach((item)=>{
-			form.value.value11 += parseFloat(item.unit);
-			form.value.value12 += parseFloat(item.quantity);
-			form.value.value13 += parseFloat(item.formattedValue);
+			form.value.value11 += (parseFloat(item.unit)||0);
+			form.value.value12 += (parseFloat(item.quantity)||0);
+			form.value.value13 += (parseFloat(item.formattedValue)||0);
 		})
 	}
 	
@@ -771,7 +771,7 @@
 		form.value.value10 = boxType.name||'';  //箱型
 		form.value.value5 = boxType.name||'';  //箱型
 		form.value.workNumber = boxInfo.serial_number;  //序列号
-		form.value.endTime2 = boxInfo.loading_at+':00';  //装柜时间
+		form.value.endTime2 = boxInfo.loading_at?boxInfo.loading_at+':00':'';  //装柜时间
 		form.value.value14 = boxInfo.driver;  //司机信息
 		console.log('form.value', form.value)
 		
@@ -780,9 +780,9 @@
 			boxInfo.container_items.forEach((item)=>{
 				tableData.value.push({
 					no: item.bl_no,
-					unit: item.quantity,
-					quantity: item.gross_weight,
-					formattedValue: item.volume,
+					unit: item.quantity||0,
+					quantity: item.gross_weight||0,
+					formattedValue: item.volume||0,
 				})
 			})
 			countQuantity();
@@ -793,7 +793,7 @@
 		if(boxInfo.container_loading_address){
 			boxInfo.container_loading_address.forEach((item)=>{
 				addresses.value.push({
-					address: item.address+'/'+item.loading_address,
+					address: item.loading_address,
 					name: item.contact_name+'/'+item.phone,
 					remark: item.remark
 				})
@@ -844,6 +844,10 @@
 
 	:deep(.el-table tr:hover) {
 		background-color: transparent;
+	}
+	
+	:deep(.redColor .el-input__inner){
+		color: red;
 	}
 
 	.pack-of-lading-draft {
@@ -912,7 +916,7 @@
 	}
 
 	.address-list {
-		padding-top: 10px;
+		padding-top: 100px;
 	}
 
 	.address-list ul li {

@@ -253,7 +253,7 @@
 			if (valid) {
 				var data = {}
 				for(var key in saveData){
-					console.log(key,  saveData[key])
+					// console.log(key,  saveData[key])
 					if(key.indexOf('.')>-1){
 						var keys = key.split('.');
 						if(!data[keys[0]]){

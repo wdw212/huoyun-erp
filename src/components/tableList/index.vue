@@ -13,7 +13,7 @@
 			</div>
 		</div>
 
-		<el-table v-loading="loading" :data="tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :max-height="height"
+		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :max-height="height"
 			:border="border" :size="size" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
@@ -52,7 +52,7 @@
 		<pagination v-show="pageShow&&pageInit.total>0" v-model:page="pageInit.page" :total="pageInit.total"
 			v-model:limit="pageInit.pageSize" @pagination="getList" />
 
-		<slot name="bottomCon" :tableData="tableData"></slot>
+		<slot name="bottomCon" :tableData="state.tableData"></slot>
 
 	</div>
 </template>
@@ -121,7 +121,7 @@
 
 	onMounted(() => {
 		// console.log('tableColumn', props.tableColumn);
-		Object.assign(tableData, []);
+		Object.assign(state.tableData, []);
 		if (props.tableConfig.isQuery) {
 			init();
 		}
@@ -147,7 +147,9 @@
 	}
 
 	const loading = ref(false);
-	const tableData = reactive([]);
+	const state = reactive({
+		tableData: []
+	});
 	const pageInit = ref({
 		page: 1,
 		pageSize: 30,
@@ -165,7 +167,7 @@
 			...props.tableConfig.data
 		};
 		requestMethod(url, params).then(res => {
-			Object.assign(tableData, res.data);
+			Object.assign(state.tableData, res.data);
 			pageInit.value.total = res.meta.total;
 			loading.value = false;
 		});
@@ -195,19 +197,21 @@
 	}
 	
 	const itemChange = (item, index) => {
-		var data = tableData[index];
+		var data = state.tableData[index];
 		data[item.key] = item.value;
-		Object.assign(tableData[index], data);
+		Object.assign(state.tableData[index], data);
 		emit('tableItemChange', item, index)
 	}
 	
+	//更新表格数据  /* 弃用 */
 	const updateTableData = (data) => {
-		Object.assign(tableData, data);
+		Object.assign(state.tableData, data);
+		// console.log('state.tableData-哈哈哈', data, state.tableData)
 	}
 
 	const emit = defineEmits(['selectionChange', 'tableItemChange'])
 	defineExpose({
-		tableData,
+		state,
 		updateTableData,
 		getList
 	})

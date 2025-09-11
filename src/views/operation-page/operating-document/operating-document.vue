@@ -146,6 +146,9 @@
 	const loading = ref(true);
 	const seletData = ref({});
 	
+	const containers = ref([]);  //箱子信息
+	const order_files = ref([]);  //文件信息
+	
 	
 	onMounted(async ()=>{
 		// queryParamsDocu.value[11].options = YWY.value;
@@ -245,6 +248,7 @@
 			dialogFormVisible.value = true;
 			editId.value = row.id;
 			setTimeout(function(){
+				proxy.$refs.commonForm.activeName = '操作单据';
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
 					data[key] = res[key]===0?'0':res[key];
@@ -253,8 +257,10 @@
 				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
 				
+				order_files.value = res.order_files;
 				proxy.$refs.fileInfo.dafultFile(res.order_files);
 				
+				containers.value = res.containers;
 				proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 			}, 500)
 		});
@@ -339,10 +345,10 @@
 		// console.log('accountsDelete', row, rowIndex)
 	}
 	
-	const containers = ref([]);
 	// 箱子信息变更
 	const boxInfoChange = (data) => {
 		containers.value = data;
+		console.log('箱子信息变更', containers.value)
 	}
 	//箱子柜型数据统计
 	function containerInfo(info){
@@ -352,7 +358,6 @@
 	}
 	
 	// 文件上传
-	const order_files = ref([]);
 	const uploadFile = (file) => {
 		order_files.value = file;
 		// console.log('uploadFile', file);
@@ -418,6 +423,7 @@
 		}
 		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
 		proxy.$refs.commonForm.changeSave(updateData);
+		console.log('编辑字段:cutoff_at', data, proxy.$refs.commonForm.saveData)
 	}
 	
 	// 单据信息提交
