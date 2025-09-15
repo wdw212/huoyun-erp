@@ -101,7 +101,7 @@
 								</tr>
 								<tr>
 									<td>
-										<div class="mtb5 tit redColor">有效期:<el-date-picker @change="changeValue" v-model="form.timeeriod" :prefix-icon="null"
+										<div class="mtb5 tit redColor">有效期:<el-date-picker @change="changeValue" v-model="form.periodTime" :prefix-icon="null"
 												type="datetime" style="width:155px;color: red;" placeholder="条码有效期"
 												format="YYYY-MM-DD HH:mm:ss" date-format="MMM DD, YYYY" time-format="HH:mm"/>
 										</div>
@@ -372,7 +372,7 @@
 									<tr>
 										<td>
 											<div class="mtb5 tit">有效期:
-												{{form.endTime}}
+												{{form.periodTime}}
 											</div>
 										</td>
 									</tr>
@@ -790,8 +790,8 @@
 			tableData.value = [[{ name: '', no: '', unit: '', quantity: null, formattedValue: null }]]
 		}
 		addresses.value = [];
-		if(boxInfo.container_loading_address){
-			boxInfo.container_loading_address.forEach((item)=>{
+		if(boxInfo.container_loading_addresses){
+			boxInfo.container_loading_addresses.forEach((item)=>{
 				addresses.value.push({
 					address: item.loading_address,
 					name: item.contact_name+'/'+item.phone,

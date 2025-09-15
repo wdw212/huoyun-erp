@@ -92,7 +92,7 @@
 		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
 		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
-		// console.log('运费情况', boxInfo.freight_status,freight_status)
+		// console.log('运费情况', txmt)
 		
 		var time1 = timeShow(boxInfo.loading_at+':00', 1);
 		var time2 = timeShow(boxInfo.loading_at+':00', 2);
@@ -104,25 +104,27 @@
 					  `箱号： ${packInfo.value8||''}`+ '\n' +
 					  `封号： ${packInfo.value9||''}`+ '\n' +
 					  `箱型箱尺： ${packInfo.value10||''}`+ '\n' +
-					  `司机信息：${packInfo.value14||''}`+ '\n' +
-					  `装箱地点：${packInfo.port||''}`+ '\n' +
-					  `拆/装箱地址：`+ '\n'
+					  `司机信息：${packInfo.value14||''}`+ '\n'
 		
 		if(boxInfo.pre_pull_wharf_id){
 			type.value = 1;
-			data2.value =  `合同号：${val.contract_no||''} `+ '\n' +
-						  `提单号：${val.bl_no||''} 柜型：${packInfo.value10||''}   13吨  `+ '\n' +
+			data2.value = `合同号：${val.contract_no||''} `+ '\n' +
+						  `提单号：${val.bl_no||''}     柜型：${packInfo.value10||''}    ${boxInfo.cargo_weight||''}吨  `+ '\n' +
 						  `时间：${time1}   `+ '\n'
 		}else{
 			type.value = 2;
-			data3.value = `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight}吨	`+ '\n' +
+			data3.value = `合同号：${val.contract_no||''} `+ '\n' +
+						  `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight||''}吨	`+ '\n' +
 						  `装箱时间：${time2}    `+ '\n'
 		}
-		if(boxInfo.container_loading_address&&boxInfo.container_loading_address.length>0){
-			boxInfo.container_loading_address.forEach((vv,ii)=>{
-				data2.value = data2.value + `${ii+1}.地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
-				data3.value = data3.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
-				data.value = data.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+		if(boxInfo.container_loading_addresses&&boxInfo.container_loading_addresses.length>0){
+			boxInfo.container_loading_addresses.forEach((vv,ii)=>{
+				if(ii==0){
+					data.value = data.value + `装箱地点：${vv.address||''}`+ '\n'
+				}
+				data2.value = data2.value + `${ii+1}.地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data3.value = data3.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data.value = data.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
 			})
 		}
 		
@@ -135,7 +137,7 @@
 					  `箱子已预提 预提费月结`+ '\n' +
 					  `箱号：${packInfo.value8||''} `+ '\n' +
 					  `封号：${packInfo.value9||''} `+ '\n' +
-					  `预提堆场地址：${yt.name||''}--${yt.address||''}--${yt.phone||''}`+ '\n'
+					  `预提堆场地址：${txmt.name||''}--${yt.phone||''}`+ '\n'
 
 	}
 

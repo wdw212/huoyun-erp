@@ -55,6 +55,7 @@
 													</template>
 													<template v-if="vv.type=='textarea'">
 														<el-input v-model="saveData[vv.key]" type="textarea"
+														:resize="vv.resize||'vertical'"
 														:style="vv.style" :rows="4"
 														:placeholder="vv.placeholder||'请输入'"
 														@input="changeValue($event, vv)" :disabled="vv.disabled"/>
@@ -254,7 +255,6 @@
 			if (valid) {
 				var data = {}
 				for(var key in saveData){
-					// console.log(key,  saveData[key])
 					if(key.indexOf('.')>-1){
 						var keys = key.split('.');
 						if(!data[keys[0]]){
@@ -264,6 +264,7 @@
 					}else if(saveData[key]||saveData[key]===0){
 						data[key] = saveData[key]===0?'0':saveData[key];
 					}
+					// console.log(key,  saveData[key], data[key])
 				}
 				delete data['undefined'];
 				emit('confirm', data);

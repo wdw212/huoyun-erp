@@ -41,7 +41,7 @@
 		saveData.value = val;
 		showDrop.value = true;
 		
-		data.value = `船名/航次：${val.ship_name}/${val.ship_no}`
+		data.value = `船名/航次：${val.ship_name||''}/${val.ship_no||''}`
 					 + '\n' + `箱号：${val.boxInfo&&val.boxInfo.no||''}`
 					 + '\n' + `封号：${val.boxInfo&&val.boxInfo.seal_number||''}` + '\n'
 					 

@@ -217,12 +217,11 @@
 		<div class="footer">
 			<el-button @click="openBill(true, saveData)">提单重置</el-button>
 			<el-button type="primary" @click="open = true">提单预览</el-button>
-			<el-button>导出文件</el-button>
+			<el-button @click="downLoad(1)">订舱托书</el-button>
+			<el-button @click="downLoad(2)">提单确认件</el-button>
 			<el-button type="primary" @click="save">保存</el-button>
 		</div>
 	</div>
-
-
 
 	<el-dialog title="" v-model="open" width="1400px" append-to-body>
 		<div ref="captureDiv" class="bill-of-lading-draft">
@@ -236,23 +235,16 @@
 						<td rowspan="2" colspan="2" class="bl-none" width="900">
 							<div class="sub-tit">(2)Shipper/ Exporter</div>
 							<div class="mt10">
-								<!-- <el-select v-model="value1" placeholder="请选择" size="large" style="width: 440px">
-									<el-option v-for="item in options" :key="item.value" :label="item.label"
-										:value="item.value" />
-								</el-select> -->
+								<div style="color: #222;">{{value1&&SENDER_LIST.find(v=> v.id==value1)&&SENDER_LIST.find(v=> v.id==value1).name}}</div>
 							</div>
 
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;">{{ textarea1 }}</div>
-								<!-- <el-input v-model="" style="width: 440px" :rows="5" type="textarea"
-									placeholder="由选项框连带的内容" /> -->
+								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ senderInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none" height="60">
 							<div class="sub-tit">(5)Document No.</div>
 							<div class="mt10 mb10 ml10 font-black">
-								<!-- <el-input v-model="textarea2" style="width: 250px" type="text"
-									placeholder="数据来源于对应的提单号" /> -->
 								<div style="width: 250px; white-space: pre-wrap;">{{ textarea2 }}</div>
 							</div>
 						</td>
@@ -261,7 +253,6 @@
 						<td class="br-none">
 							<div class="sub-tit">(6) Export References</div>
 							<div class="mt10 mb10 ml10 font-black">
-								<!-- <el-button type="primary">舱单网址</el-button> -->
 								<div>舱单网址</div>
 							</div>
 						</td>
@@ -270,22 +261,15 @@
 						<td colspan="2" class="bl-none">
 							<div class="sub-tit">(3)Consignee(complete name and address)</div>
 							<div class="mt10">
-								<!-- <el-select v-model="value2" placeholder="请选择" size="large" style="width: 440px">
-									<el-option v-for="item in options" :key="item.value" :label="item.label"
-										:value="item.value" />
-								</el-select> -->
+								<div style="color: #222;">{{value2&&RECEIVE_LIST.find(v=> v.id==value2)&&RECEIVE_LIST.find(v=> v.id==value2).name}}</div>
 							</div>
 							<div class="mt10 mb10 font-black">
-								<!-- <el-input v-model="textarea3" style="width: 440px" :rows="5" type="textarea"
-									placeholder="由选项框连带的内容" /> -->
-								<div style="width: 440px; white-space: pre-wrap;">{{ textarea3 }}</div>
+								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ receiveInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none">
 							<div class="sub-tit">(7)Forwarding Agent-References</div>
 							<div class="mt10 ml10 font-black">
-								<!-- <el-input v-model="textarea4" style="width: 440px" :rows="7" type="textarea"
-									placeholder="数据来源于对应系统" /> -->
 								<div style="width: 440px; white-space: pre-wrap;">{{ textarea4 }}</div>
 							</div>
 						</td>
@@ -294,15 +278,10 @@
 						<td rowspan="2" colspan="2" class="bl-none">
 							<div class="sub-tit">(4) Notify Party (complete name and address)</div>
 							<div class="mt10">
-								<!-- <el-select v-model="value3" placeholder="请选择" size="large" style="width: 440px">
-									<el-option v-for="item in options" :key="item.value" :label="item.label"
-										:value="item.value" />
-								</el-select> -->
+								<div style="color: #222;">{{value3&&NOTIFER_LIST.find(v=> v.id==value3)&&NOTIFER_LIST.find(v=> v.id==value3).name}}</div>
 							</div>
 							<div class="mt10 mb10 font-black">
-								<!-- <el-input v-model="textarea5" style="width: 440px" :rows="5" type="textarea"
-									placeholder="由选项框连带的内容" /> -->
-								<div style="width: 440px; white-space: pre-wrap;">{{ textarea5 }}</div>
+								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ notiferInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none">
@@ -463,6 +442,10 @@
 	import {ref,defineExpose,defineEmits} from 'vue';
 	import html2canvas from "html2canvas";
 	import {listData} from "@/api/company/send-and-receive";
+	import {
+		exportWordImage,
+		getWordImage
+	} from "@/utils/exportFile";
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -663,6 +646,30 @@
 				.finally(() => {})
 		})
 	}
+	
+	
+	// 导出文件
+	const startSchemeTemplate = ref({
+		VALUE1: value1.value&&SENDER_LIST.value.find(v=> v.id==value1.value)&&SENDER_LIST.value.find(v=> v.id==value1.value).name,
+		SENDERINFOCONTENT: senderInfoContent.value,
+	});
+	const downLoad = (type) => {
+		if(type==1){
+			exportWordImage(
+				"../template1.docx",
+				startSchemeTemplate.value,
+				'订舱托书',
+				''
+			);
+		}else{
+			exportWordImage(
+				"../template.docx",
+				startSchemeTemplate.value,
+				'提单确认件',
+				''
+			);
+		}
+	};
 	
 	const emit = defineEmits([])
 	defineExpose({

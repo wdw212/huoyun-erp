@@ -3,7 +3,7 @@
 		<el-popover placement="top" width="auto" effect="dark"
 		:disabled="saveData&&newItem.popover?false:true"  >
 			<template #default>
-				<pre>{{showContent}}</pre>
+				<pre>{{showContent||saveData}}</pre>
 			</template>
 			<template #reference>
 				<template v-if="newItem.type=='input'">
@@ -15,6 +15,7 @@
 				</template>
 				<template v-if="newItem.type=='textarea'">
 					<el-input v-model="saveData" type="textarea"
+					:resize="vv.resize||'vertical'"
 					:style="newItem.style" :rows="4"
 					:placeholder="newItem.placeholder||'请输入'"
 					@input="changeValue" :disabled="newItem.disabled"/>

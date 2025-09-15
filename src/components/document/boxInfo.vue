@@ -200,7 +200,7 @@
 				volume: 0, //体积
 				remark: null, //备注
 			}],
-			container_loading_address: [{
+			container_loading_addresses: [{
 				loading_address: null,
 				address: null,
 				contact_name: '',
@@ -216,13 +216,11 @@
 		var timeInter = setInterval(function(){
 			if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
 				proxy.$refs.tableListJMT.state.tableData = data.container_items||[];
-				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_address||[];
+				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_addresses||[];
 				clearInterval(timeInter);
 			}
 		}, 500)
-		if(!isNew){
-			updateKeyRemark(data);
-		}
+		updateKeyRemark(data);
 		console.log('boxList新增', state.boxIndex, state.boxList)
 	}
 	// 切换选中箱号
@@ -231,9 +229,9 @@
 		var val = state.boxList[index];
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
 		proxy.$refs.boxInfoForm.changeSave(state.boxList[index]);
-		updateKeyRemark(state.boxList[index]);
 		proxy.$refs.tableListJMT.state.tableData = val.container_items;
-		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_address;
+		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_addresses;
+		updateKeyRemark(state.boxList[index]);
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号
@@ -255,7 +253,7 @@
 			var timeInter = setInterval(function(){
 				if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
 					proxy.$refs.tableListJMT.state.tableData = val[0].container_items;
-					proxy.$refs.tableListZGDZ.state.tableData = val[0].container_loading_address;
+					proxy.$refs.tableListZGDZ.state.tableData = val[0].container_loading_addresses;
 					openPackForm(false);
 					clearInterval(timeInter);
 				}
@@ -294,7 +292,7 @@
 			boxInfo: {
 				...state.boxList[state.boxIndex],
 				container_items: proxy.$refs.tableListJMT.state.tableData,
-				container_loading_address: proxy.$refs.tableListZGDZ.state.tableData
+				container_loading_addresses: proxy.$refs.tableListZGDZ.state.tableData
 			},
 			packInfo: proxy.$refs.packForm.form
 		};
@@ -320,7 +318,7 @@
 				boxInfo: {
 					...state.boxList[state.boxIndex],
 					container_items: proxy.$refs.tableListJMT.state.tableData,
-					container_loading_address: proxy.$refs.tableListZGDZ.state.tableData
+					container_loading_addresses: proxy.$refs.tableListZGDZ.state.tableData
 				}
 			};
 			proxy.$refs.packForm.openPackForm(newData, state.options, open);
@@ -515,7 +513,7 @@
 			proxy.$refs.tableListZGDZ.state.tableData[index] = data;
 			proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
 		}
-		state.boxList[state.boxIndex].container_loading_address  =proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses  =proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
 		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData)
 	}
@@ -530,13 +528,13 @@
 			phone: '',
 			remark: null
 		});
-		state.boxList[state.boxIndex].container_loading_address = proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
 	}
 	const delete2 = (row) => {
 		const rowIndex = proxy.$refs.tableListZGDZ.state.tableData.findIndex(item => item === row);
 		proxy.$refs.tableListZGDZ.state.tableData.splice(row.index, 1)
-		state.boxList[state.boxIndex].container_loading_address = proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
 		// console.log('paymentDelete', row, rowIndex)
 	}

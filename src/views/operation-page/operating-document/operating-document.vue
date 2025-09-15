@@ -31,7 +31,7 @@
 							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
 								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
 								@click="saveData.booking_info.splice(index, 1)"><Close /></el-icon>
-								<el-input v-model="saveData.booking_info[index]" :rows="4" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
+								<el-input v-model="saveData.booking_info[index]" :rows="4" type="textarea" placeholder="请输入" style="width: 100%"/>
 							</el-col>
 						</el-row>
 					</template>
@@ -53,13 +53,13 @@
 							<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
 								<el-col class="mt-1" :span="6">
 									<p class="pb">一代联系方式</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" resize="none" />
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" />
 								</el-col>
 								<el-col class="p-r mt-1" :span="6">
 									<el-icon class="p-a r_0 t_0 z-1000 hand" style="margin: 5px 15px;"
 									@click="saveData['order_delegation_header.remark'].splice(index, 1)"><Close /></el-icon>
 									<p class="pb">一代费用</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" resize="none"/>
+									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入"/>
 								</el-col>
 							</template>
 						</el-row>
@@ -69,16 +69,17 @@
 					<template #AccountsBtn="{saveData,formList}">
 						<div>
 							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作员确认！</span>
-							<el-button type="danger" plain>费用未完结</el-button>
+							<el-button :type="fee_state?'success':'danger'" plain 
+							@click="fee_state=!fee_state">费用{{fee_state?'已':'未'}}完结</el-button>
 							<el-button type="primary" plain @click="addAccount()">添加明细</el-button>
 						</div>
 					</template>
 					<template #AccountsPayable="{saveData,formList}">
-						<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumn" :multiple="false" :border="true" ref="accountTable">
+						<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumn" :multiple="false" :border="true" ref="accountTable" @tableItemChange="tableItemChangeAccounts">
 							<template #bottomCon="{tableData}">
 								<el-row :gutter="20">
 									<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
-										<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1"/>
+										<el-input v-model="tableData[index].remark" :rows="5" type="textarea" placeholder="请输入" class="mt-1"/>
 									</el-col>
 								</el-row>
 							</template>
@@ -149,13 +150,12 @@
 	const containers = ref([]);  //箱子信息
 	const order_files = ref([]);  //文件信息
 	
-	
-	onMounted(async ()=>{
-		// queryParamsDocu.value[11].options = YWY.value;
-		// queryParamsDocu.value[12].options = CZY.value;
+	function accountInit(){
 		AccountsColumn.value[4].noShow = true;
 		AccountsColumn.value[7].noShow = true;
-		AccountsColumn.value[AccountsColumn.value.length] = {
+		AccountsColumn.value[3].form.disabled = true;
+		AccountsColumn.value[6].form.disabled = true;
+		AccountsColumn.value[8] = {
 			label: '操作',
 			prop: 'actions',
 			actions: [{
@@ -165,14 +165,21 @@
 			}],
 			width: '70px'
 		}
+	}
+	accountInit();
+	
+	onMounted(async ()=>{
+		// queryParamsDocu.value[11].options = YWY.value;
+		// queryParamsDocu.value[12].options = CZY.value;
 		
-		// formListNew.value = JSON.parse(JSON.stringify(formList.value));
 		keyStatus(formList.value, '操作单据', function(form, options){
 			formListNew.value = form;
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
 			formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
 			seletData.value = options;
+			
+			AccountsColumn.value[0].form.options = seletData.value.WTTT;
 			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
@@ -225,6 +232,7 @@
 		requestMethod: httpGet,
 		isQuery: true
 	})
+	const fee_state = ref(false);   //费用完结状态
 	const addDocument = () => {
 		dialogFormVisible.value = true;
 		editId.value = '';
@@ -236,8 +244,9 @@
 				'order_delegation_header.remark': []
 			});
 			proxy.$refs.commonForm.activeName = '操作单据';
-			proxy.$refs.accountTable.tableData = [];
+			proxy.$refs.accountTable.state.tableData = [];
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
+			fee_state.value = false;
 			
 			addDelegation();
 		}, 200)
@@ -251,11 +260,25 @@
 				proxy.$refs.commonForm.activeName = '操作单据';
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
-					data[key] = res[key]===0?'0':res[key];
+					if (key.indexOf('.')>-1){
+						var keys = key.split('.');
+						var keyData = res[keys[0]]?.[keys[1]]||'';
+						data[key] = keyData===0?'0':(keys[1]=='remark'?keyData||[]:keyData||'');
+					} else {
+						data[key] = res[key]===0?'0':res[key];
+					}
 				}
+				formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
+				formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
+				if(data.shipping_company_id){
+					shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id)||{};  //船公司
+				}
+				fee_state.value = data.fee_state||false;
+				
 				proxy.$refs.boxInfo.defaultBox(res.containers);
 				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
+				countAccounts();
 				
 				order_files.value = res.order_files;
 				proxy.$refs.fileInfo.dafultFile(res.order_files);
@@ -325,13 +348,13 @@
 	}
 	
 	const addAccount = () => {
-		var tableData = proxy.$refs.accountTable.tableData;
+		var tableData = proxy.$refs.accountTable.state.tableData;
 		var data = {
 			company_header_id: null,
 			no_invoice_remark: null,
-			cny_amount: '0.00',
+			cny_amount: '',
 			cny_invoice_number:null,
-			usd_amount: '0.00',
+			usd_amount: '',
 			usd_invoice_number: null,
 			// contact_phone: null,
 			// contact_person: null,
@@ -340,9 +363,29 @@
 		proxy.$refs.accountTable.updateTableData(tableData);
 	}
 	const accountsDelete = (row) => {
-		const rowIndex = proxy.$refs.accountTable.tableData.findIndex(item => item === row);
-		proxy.$refs.accountTable.tableData.splice(row.index, 1)
+		const rowIndex = proxy.$refs.accountTable.state.tableData.findIndex(item => item === row);
+		proxy.$refs.accountTable.state.tableData.splice(row.index, 1);
+		countAccounts();
 		// console.log('accountsDelete', row, rowIndex)
+	}
+	function tableItemChangeAccounts(item, index){
+		// console.log('tableItemChangeAccounts', item, index)
+		countAccounts();
+	}
+	function countAccounts (){
+		var tableData = proxy.$refs.accountTable.state.tableData;
+		let cny_amount = tableData.reduce((accumulator, currentValue) => {
+		    return accumulator + parseFloat(currentValue.cny_amount)||0;
+		}, 0);
+		let usd_amount = tableData.reduce((accumulator, currentValue) => {
+		    return accumulator + parseFloat(currentValue.usd_amount)||0;
+		}, 0);
+		// console.log('计算', usd_amount, cny_amount)
+		// formListNew.value[5].formData[2].formItem[0]
+		proxy.$refs.commonForm.changeSave({
+			cny_amount_total: parseFloat(cny_amount).toFixed(2),
+			usd_amount_total: parseFloat(usd_amount).toFixed(2),
+		});
 	}
 	
 	// 箱子信息变更
@@ -369,7 +412,7 @@
 		if (shipCompany.value.tracking_url) {
 			window.open(shipCompany.value.tracking_url)
 		} else {
-			proxy.$modal.msgSuccess("暂无网址");
+			proxy.$modal.msgWarning("暂无网址");
 		}
 	}
 	//落箱数据生成
@@ -442,8 +485,8 @@
 	
 	// 单据信息提交
 	const confirmSubmit = (data) => {
-		// console.log('编辑行:', row)
-		var order_payments = proxy.$refs.accountTable.tableData
+		// console.log('单据信息提交:', data)
+		var order_payments = proxy.$refs.accountTable.state.tableData
 		var params = {
 			...data,
 			containers: containers.value,
@@ -452,7 +495,7 @@
 		}
 		var strKey = ['booking_info','order_delegation_header','order_payments','containers','order_files'];
 		strKey.forEach((item)=>{
-			if(params[item]&&params[item].length>0){
+			if(params[item]&&JSON.stringify(params[item])!='[]'&&JSON.stringify(params[item])!='{}'){
 				params[item] = JSON.stringify(params[item]);
 			}else{
 				delete params[item];

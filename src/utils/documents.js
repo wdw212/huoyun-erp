@@ -288,9 +288,9 @@ const commonInfo = [
 
 // 操作单据合计
 export const amountFormDoc = ref([
-	{ type: 'textarea',value: '',label: '整单备注',key: 'title1', span: 24 },
-	{ type: 'input',value: '',label: '总计人民币￥',key: 'title2', span: 6 },
-	{ type: 'input',value: '',label: '总计美金$',key: 'title3', span: 6 },
+	{ type: 'textarea',value: '',label: '整单备注',key: 'remark', span: 24 },
+	{ type: 'input',value: '',label: '总计人民币￥',key: 'cny_amount_total', span: 6, disabled: true },
+	{ type: 'input',value: '',label: '总计美金$',key: 'usd_amount_total', span: 6, disabled: true },
 ])
 
 //财务单据合计信息
@@ -436,9 +436,9 @@ export const AccountsColumn = ref([
 	{
 		label: '费用明细', prop: 'company_header_id',type: 'edit',width: '320px',
 		form: {
-			type: 'selectSearch',placeholder: '请选择合作单位',key: 'company_header_id',
-			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers',popover:true
+			type: 'select',placeholder: '请选择合作单位',key: 'company_header_id',
+			filterable: true, options: [],  labelName: 'company_name', valueName: 'id',
+			// method: 'get', url: '/company-headers',popover:true
 		}
 	},
 	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
@@ -476,16 +476,7 @@ export const AccountsColumn = ref([
 			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
 		}
 	},
-	// {label: '联系人', type: 'edit', prop: 'contact_person',
-	// 	form: {
-	// 		type: 'input',key: 'contact_person',
-	// 	}
-	// },
-	// {label: '联系方式', type: 'edit', prop: 'contact_phone',
-	// 	form: {
-	// 		type: 'input',key: 'contact_phone',
-	// 	}
-	// },
+	{}
 ])
 
 //应收款列表
