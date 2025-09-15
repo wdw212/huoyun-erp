@@ -12,7 +12,7 @@
 					</template>
 					<el-input v-model="data" type="textarea" :rows="25" resize="none" />
 				</el-card>
-				<el-card style="width: 49.5%" v-if="data2">
+				<el-card style="width: 49.5%" v-if="type==1">
 				    <template #header>
 						<div class="d-flex">
 							<el-icon :size="20" color="#3fd655"> <CircleCheck /> </el-icon>
@@ -21,7 +21,7 @@
 					</template>
 					<el-input v-model="data2" type="textarea" :rows="25" resize="none" />
 				</el-card>
-				<el-card style="width: 49.5%" v-if="data3">
+				<el-card style="width: 49.5%" v-if="type==2">
 				    <template #header>
 						<div class="d-flex">
 							<el-icon :size="20" color="#f13838"> <CircleClose /> </el-icon>
@@ -91,13 +91,11 @@
 		var lxdc = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
 		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
 		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
-		// console.log('落箱堆场,提箱码头',lxdc, txmt)
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
+		// console.log('运费情况', boxInfo.freight_status,freight_status)
 		
 		var time1 = timeShow(boxInfo.loading_at+':00', 1);
 		var time2 = timeShow(boxInfo.loading_at+':00', 2);
-		
-		type.value = parseInt(val.is_entered_port);
 		
 		data.value =  `合同号：${val.contract_no||''} `+ '\n' +
 					  `装箱时间：${time1} `+ '\n' +
@@ -108,35 +106,36 @@
 					  `箱型箱尺： ${packInfo.value10||''}`+ '\n' +
 					  `司机信息：${packInfo.value14||''}`+ '\n' +
 					  `装箱地点：${packInfo.port||''}`+ '\n' +
-					  `拆/装箱地址：${packInfo.no||''}`+ '\n'
-					  
-		if(boxInfo.container_items&&boxInfo.container_items.length>0){
-			boxInfo.container_items.forEach((vv,ii)=>{
-				data.value = data.value + (ii+1) + `${vv.address+vv.loading_address}，${vv.contact_name+vv.phone}`+ '\n' + `备注：${vv.remark}`+ '\n\n'
+					  `拆/装箱地址：`+ '\n'
+		
+		if(boxInfo.pre_pull_wharf_id){
+			type.value = 1;
+			data2.value =  `合同号：${val.contract_no||''} `+ '\n' +
+						  `提单号：${val.bl_no||''} 柜型：${packInfo.value10||''}   13吨  `+ '\n' +
+						  `时间：${time1}   `+ '\n'
+		}else{
+			type.value = 2;
+			data3.value = `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight}吨	`+ '\n' +
+						  `装箱时间：${time2}    `+ '\n'
+		}
+		if(boxInfo.container_loading_address&&boxInfo.container_loading_address.length>0){
+			boxInfo.container_loading_address.forEach((vv,ii)=>{
+				data2.value = data2.value + `${ii+1}.地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data3.value = data3.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data.value = data.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}。${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
 			})
 		}
-		data.value = data.value + `备注：${val.remark||''}`+ '\n\n' +
+		
+		data.value = data.value +
 					  `提醒：请仔细核对提单号、箱号等和图片是否一致，如不一致请与我司联系！`+ '\n\n' +
 					  `提箱地点：${packInfo.value7||''}`+ '\n' +
 					  `进港/还箱地点：${packInfo.wharf||''}`+ '\n' +
-					  `开港时间：${packInfo.port_open_at||''}`+ '\n' +`截港时间：${packInfo.port_close_at||''}`
-		if(packInfo.pre_pull_wharf_id){
-			data2.value =  `合同号：${val.contract_no||''} `+ '\n' +
-						  `提单号：${val.bl_no||''} 柜型：${packInfo.value10||''}   13吨  `+ '\n' +
-						  `时间：${time1}   `+ '\n' +
-						  `地址：亿豪地址：仙居县官路镇工业园区  叶伟伟15272316249 郑里永(厂长)     15157658880 郑李杰15957630126 `+ '\n' +
-						  `备注：箱单信息发群里   箱单不要带到工厂 不要给工厂人看 `+ '\n\n' +
-						  `箱子已预提 预提费${freight_status.label||''} `+ '\n' +
-						  `箱号：${packInfo.value8||''} `+ '\n' +
-						  `封号：${packInfo.value9||''} `+ '\n' +
-						  `预提堆场地址：${yt.address||''}--${yt.name||''}--${yt.phone||''}`+ '\n'
-		}else{
-			data3.value = `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight}吨	`+ '\n' +
-						  `装箱时间：${time2}    `+ '\n' +
-						  `装箱地址：${txmt.name||''}，`+ '\n' +
-						  `${txmt.address||''}。${txmt.phone||''}`+ '\n' +
-						  `备注：${txmt.remark||''}`
-		}
+					  `开港时间：${val.port_open_at||''}`+ '\n' +`截港时间：${val.port_close_at||''}`
+		data2.value = data2.value +
+					  `箱子已预提 预提费月结`+ '\n' +
+					  `箱号：${packInfo.value8||''} `+ '\n' +
+					  `封号：${packInfo.value9||''} `+ '\n' +
+					  `预提堆场地址：${yt.name||''}--${yt.address||''}--${yt.phone||''}`+ '\n'
 
 	}
 

@@ -1,7 +1,7 @@
 <template>
 	<div style="width: 100%;">
 
-		<el-dialog v-model="showDrop" title="进港数据" width="78%">
+		<el-dialog v-model="showDrop" title="进港数据" width="30%">
 			<div class="w-100 flex1">
 				<el-card style="width: 100%;margin-bottom: 10px">
 					<el-input v-model="data" type="textarea" :rows="25" resize="none" />

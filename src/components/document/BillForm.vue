@@ -10,8 +10,8 @@
 					<td rowspan="2" colspan="2" class="bl-none" width="900">
 						<div class="sub-tit">(2)Shipper/ Exporter</div>
 						<div class="mt10">
-							<el-select v-model="value1" placeholder="选择发货人" size="large" style="width: 440px"
-								filterable @change='senderChange'>
+							<el-select v-model="value1" placeholder="选择发货人" size="large" style="width: 440px" filterable
+								@change='senderChange'>
 								<el-option v-for="item in SENDER_LIST" :key="item.id" :label="item.name"
 									:value="item.id" />
 							</el-select>
@@ -42,8 +42,8 @@
 					<td colspan="2" class="bl-none">
 						<div class="sub-tit">(3)Consignee(complete name and address)</div>
 						<div class="mt10">
-							<el-select v-model="value2" placeholder="选择收货人" size="large" style="width: 440px"
-								filterable @change='receiveChange'>
+							<el-select v-model="value2" placeholder="选择收货人" size="large" style="width: 440px" filterable
+								@change='receiveChange'>
 								<el-option v-for="item in RECEIVE_LIST" :key="item.id" :label="item.name"
 									:value="item.id" />
 							</el-select>
@@ -65,8 +65,8 @@
 					<td rowspan="2" colspan="2" class="bl-none">
 						<div class="sub-tit">(4) Notify Party (complete name and address)</div>
 						<div class="mt10">
-							<el-select v-model="value3" placeholder="选择通知人" size="large" style="width: 440px"
-								filterable @change='notiferChange'>
+							<el-select v-model="value3" placeholder="选择通知人" size="large" style="width: 440px" filterable
+								@change='notiferChange'>
 								<el-option v-for="item in NOTIFER_LIST" :key="item.id" :label="item.name"
 									:value="item.id" />
 							</el-select>
@@ -215,10 +215,10 @@
 			</tbody>
 		</table>
 		<div class="footer">
-			<el-button @click="reset()">提单重置</el-button>
+			<el-button @click="openBill(true, saveData)">提单重置</el-button>
 			<el-button type="primary" @click="open = true">提单预览</el-button>
 			<el-button>导出文件</el-button>
-			<el-button type="primary">保存</el-button>
+			<el-button type="primary" @click="save">保存</el-button>
 		</div>
 	</div>
 
@@ -460,14 +460,14 @@
 </template>
 
 <script setup>
-	import {
-		ref
-	} from 'vue';
+	import {ref,defineExpose,defineEmits} from 'vue';
 	import html2canvas from "html2canvas";
-	import {
-			listData
-		} from "@/api/company/send-and-receive";
-	const {proxy} = getCurrentInstance();
+	import {listData} from "@/api/company/send-and-receive";
+	const {
+		proxy
+	} = getCurrentInstance();
+	
+
 	const textarea = ref('')
 	const options = [{
 			value: 'Option1',
@@ -488,7 +488,7 @@
 	// 收货人
 	const RECEIVE_LIST = ref([])
 	const receiveInfoContent = ref('')
-	const receiveUrl= ref('')
+	const receiveUrl = ref('')
 	// 通知人
 	const NOTIFER_LIST = ref([])
 	const notiferInfoContent = ref('')
@@ -510,6 +510,33 @@
 	const textarea13 = ref('')
 
 	const open = ref(false)
+	//单据数据
+	const saveData = ref({});
+	const saveState = ref(false)
+	const openBill = (resetType, val, selectData) => {
+		saveData.value = val;
+		if(resetType){
+			saveState.value = false;
+			reset()
+		}
+		if(!saveState.value){
+			textarea2.value = val.bl_no;
+			textarea6.value = val.ship_name+'/'+val.ship_no;
+			textarea7.value = val.origin_port;
+			textarea8.value = val.destination_port;
+			textarea9.value = '';
+			if(val.boxInfo&&val.boxInfo.length>0){
+				val.boxInfo.forEach((vv,ii)=>{
+					textarea9.value = textarea9.value + vv.no+'/'+vv.seal_number+'\n';
+				})
+			}
+		}
+		console.log('billForm提单数据', saveData.value);
+	}
+	function save(){
+		saveState.value = true;
+		proxy.$modal.msgSuccess("保存成功");
+	}
 
 	const radio3 = ref("FREIGHT_PREPAID")
 
@@ -566,76 +593,81 @@
 		textarea11.value = ''
 		textarea12.value = ''
 		textarea13.value = ''
-		SENDER_LIST.value= []
-		RECEIVE_LIST.value= []
-		NOTIFER_LIST.value= []
 	}
 	reset()
-	function getSelectDataList(){  //sender  发货人  receiver  //收货人  notifier  //通知人
-		Promise.all([getList('sender'), getList('receiver'), getList('notifier')]).then(([senders,receivers,notifiers]) => {
-			console.log(senders)
-			SENDER_LIST.value= senders?senders: []
-			RECEIVE_LIST.value= receivers?receivers: []
-			NOTIFER_LIST.value= notifiers?notifiers: []
-		})
+
+	function getSelectDataList() { //sender  发货人  receiver  //收货人  notifier  //通知人
+		Promise.all([getList('sender'), getList('receiver'), getList('notifier')]).then(([senders, receivers,
+			notifiers]) => {
+				console.log(senders)
+				SENDER_LIST.value = senders ? senders : []
+				RECEIVE_LIST.value = receivers ? receivers : []
+				NOTIFER_LIST.value = notifiers ? notifiers : []
+			})
 	}
 	// 发货人下拉框变化
-	function senderChange(e){
-		if(e){
-			senderInfoContent.value= SENDER_LIST.value.find(item => item.id=== e).type_content
-		}else{
-			senderInfoContent.value= ''
+	function senderChange(e) {
+		if (e) {
+			senderInfoContent.value = SENDER_LIST.value.find(item => item.id === e).type_content
+		} else {
+			senderInfoContent.value = ''
 		}
 	}
 	// 收货人下拉框变化
-	function receiveChange(e){
-		console.log(e,'e')
-		if(e){
-			receiveInfoContent.value= RECEIVE_LIST.value.find(item => item.id=== e)?.type_content
-			receiveUrl.value= RECEIVE_LIST.value.find(item => item.id=== e).type_content
-		}else{
-			receiveInfoContent.value= ''
-			receiveUrl.value= ''
+	function receiveChange(e) {
+		if (e) {
+			receiveInfoContent.value = RECEIVE_LIST.value.find(item => item.id === e)?.type_content
+			receiveUrl.value = RECEIVE_LIST.value.find(item => item.id === e).url
+		} else {
+			receiveInfoContent.value = ''
+			receiveUrl.value = ''
 		}
-	}
-	function openReceive(){
-		if(value2.value){
-			let is_confirm= RECEIVE_LIST.value.find(item =>item.id === value2.value).is_confirm
-			if(is_confirm=== 1){
-				if(receiveUrl.value){
-					window.open(receiveUrl.value, "_blank");
-				}else{
-					proxy.$modal.msgSuccess("此收货人无舱单信息");
-				}
-			}else{
-				proxy.$modal.msgSuccess("此收货人舱单信息未确认暂不能获取");
-			}
-		}else{
-			proxy.$modal.msgSuccess("请选择收货人");
-		}
+		console.log(e, 'e', receiveUrl.value)
 	}
 	// 通知人下拉框变化
-	function notiferChange(e){
-		if(e){
-			notiferInfoContent.value= NOTIFER_LIST.value.find(item => item.id=== e).type_content
-		}else{
-			notiferInfoContent.value= ''
+	function notiferChange(e) {
+		if (e) {
+			notiferInfoContent.value = NOTIFER_LIST.value.find(item => item.id === e).type_content
+		} else {
+			notiferInfoContent.value = ''
+		}
+	}
+
+	function openReceive() {
+		if (value2.value) {
+			let is_confirm = RECEIVE_LIST.value.find(item => item.id === value2.value).is_confirm
+			if (is_confirm === 1) {
+				if (receiveUrl.value) {
+					window.open(receiveUrl.value, "_blank");
+				} else {
+					proxy.$modal.msgWarning("此收货人无舱单信息");
+				}
+			} else {
+				proxy.$modal.msgWarning("此收货人舱单信息未确认暂不能获取");
+			}
+		} else {
+			proxy.$modal.msgWarning("请选择收货人");
 		}
 	}
 	getSelectDataList()
 	// -----------------------接口------------------
 	/** 查询列表 */
 	function getList(type) {
-		let queryParams={
+		let queryParams = {
 			type
 		}
 		return new Promise((resolve, reject) => {
-		  listData(queryParams).then(response => {
-		  	resolve(response.data)
-		  }).catch((e) =>reject(e))
-		  .finally(()=>{})
+			listData(queryParams).then(response => {
+					resolve(response.data)
+				}).catch((e) => reject(e))
+				.finally(() => {})
 		})
 	}
+	
+	const emit = defineEmits([])
+	defineExpose({
+		openBill
+	})
 </script>
 
 <style scoped>

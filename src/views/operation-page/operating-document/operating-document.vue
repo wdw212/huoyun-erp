@@ -20,7 +20,7 @@
 		<el-dialog v-model="dialogFormVisible" title="单据详情" width="80%" :close-on-click-modal="false">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
-				@cancel="cancelForm" @itemChange="itemChange">
+				@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
@@ -108,7 +108,7 @@
 					
 					<!-- 提单信息 -->
 					<template #billInfo>
-						<bill-form ref="billInfo"></bill-form>
+						<BillForm ref="billForm"></BillForm>
 					</template>
 					
 					<!-- 文件上传 -->
@@ -348,7 +348,7 @@
 	// 箱子信息变更
 	const boxInfoChange = (data) => {
 		containers.value = data;
-		console.log('箱子信息变更', containers.value)
+		// console.log('箱子信息变更', containers.value)
 	}
 	//箱子柜型数据统计
 	function containerInfo(info){
@@ -379,6 +379,20 @@
 			boxInfo: containers.value
 		};
 		proxy.$refs.dropBox.openDrop(saveData, seletData.value);
+	}
+	//tab变更
+	const tabsChange = (tab) => {
+		if(tab=='提单信息'){
+			setTimeout(function(){
+				var saveData = {
+					...proxy.$refs.commonForm.saveData,
+					boxInfo: containers.value,
+					shipCompany: shipCompany.setTime
+				};
+				console.log('tab变化', tab=='提单信息', proxy.$refs.billForm);
+				proxy.$refs.billForm.openBill(false, saveData, seletData.value);
+			}, 500)
+		}
 	}
 	//单独字段操作
 	const itemChange = (data, val, item) => {

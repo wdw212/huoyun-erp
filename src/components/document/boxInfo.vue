@@ -76,10 +76,10 @@
 				</template>
 				<!-- 装柜数据 -->
 				<template #loadingInfo="{saveData,formList}">
+					<ContainerLoading ref="containerLoading"></ContainerLoading>
 					<el-form-item style="width: 100%;" label="装柜数据" label-width="auto">
 						<el-button type="primary" @click="createLoading">生成</el-button>
 					</el-form-item>
-					<container-loading ref="containerLoading"></container-loading>
 				</template>
 				<!-- 装箱单 -->
 				<template #packingList="{saveData,formList}">
@@ -117,7 +117,7 @@
 	import TableList from "@/components/tableList/index";
 	import PackForm from '@/components/document/PackForm.vue'
 	import arrivalPort from '@/components/document/arrivalPort.vue'
-	import containerLoading from '@/components/document/containerLoading.vue'
+	import ContainerLoading from '@/components/document/containerLoading.vue'
 	import { detailInfo, getSelect } from '@/utils/common'
 	
 	const { proxy } = getCurrentInstance();
@@ -195,16 +195,16 @@
 			wharf_id: null,
 			container_items: [{
 				bl_no: state.saveData.bl_no||null,  //提单号
-				quantity: null, //件数
-				gross_weight: null, //毛重
-				volume: null, //体积
+				quantity: 0, //件数
+				gross_weight: 0, //毛重
+				volume: 0, //体积
 				remark: null, //备注
 			}],
 			container_loading_address: [{
 				loading_address: null,
 				address: null,
-				contact_name: null,
-				phone: null,
+				contact_name: '',
+				phone: '',
 				remark: null
 			}],
 			freight_status: null,
@@ -215,8 +215,8 @@
 		proxy.$refs.boxInfoForm.changeSave(data);
 		var timeInter = setInterval(function(){
 			if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
-				proxy.$refs.tableListJMT.state.tableData = data.container_items;
-				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_address;
+				proxy.$refs.tableListJMT.state.tableData = data.container_items||[];
+				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_address||[];
 				clearInterval(timeInter);
 			}
 		}, 500)
@@ -298,6 +298,7 @@
 			},
 			packInfo: proxy.$refs.packForm.form
 		};
+		console.log('proxy.$refs.containerLoading', proxy.$refs)
 		proxy.$refs.containerLoading.openLoading(saveData, state.options);
 	}
 	//进港数据生成
@@ -328,8 +329,8 @@
 	
 	//单据字段信息变更
 	const itemChange = (data, val, item) => {
-		// Object.assign(state.boxList[state.boxIndex], data);
-		state.boxList[state.boxIndex] = data;
+		Object.assign(state.boxList[state.boxIndex], data);
+		// state.boxList[state.boxIndex] = data;
 		var newBox = JSON.parse(JSON.stringify(state.boxList));
 		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
 		var remarkList = {
@@ -442,9 +443,9 @@
 	const addTableList1 = () => {
 		proxy.$refs.tableListJMT.state.tableData.push({
 			bl_no: state.saveData.bl_no||null,  //提单号
-			quantity: null, //件数
-			gross_weight: null, //毛重
-			volume: null, //体积
+			quantity: 0, //件数
+			gross_weight: 0, //毛重
+			volume: 0, //体积
 			remark: null, //备注
 		});
 		state.boxList[state.boxIndex].container_items = proxy.$refs.tableListJMT.state.tableData;
@@ -519,11 +520,14 @@
 		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData)
 	}
 	const addTableList2 = () => {
+		if(!proxy.$refs.tableListZGDZ.state.tableData){
+			proxy.$refs.tableListZGDZ.state.tableData = [];
+		}
 		proxy.$refs.tableListZGDZ.state.tableData.push({
 			loading_address: null,
 			address: null,
-			contact_name: null,
-			phone: null,
+			contact_name: '',
+			phone: '',
 			remark: null
 		});
 		state.boxList[state.boxIndex].container_loading_address = proxy.$refs.tableListZGDZ.state.tableData;

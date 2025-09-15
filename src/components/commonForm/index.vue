@@ -2,7 +2,7 @@
 	<div>
 
 		<el-form :model="saveData" :inline="true" label-width="auto" ref="formRef">
-			<el-tabs v-model="activeName" @tab-click="tabsClick" v-if="tabsList.length>0&&tabShow">
+			<el-tabs v-model="activeName" @tab-change="tabChange" v-if="tabsList.length>0&&tabShow">
 				<el-tab-pane v-for="(item,index) in tabsList" :key="index" :label="item.label"
 					:name="item.label"> </el-tab-pane>
 			</el-tabs>
@@ -228,11 +228,12 @@
 			})
 		})
 		Object.assign(saveData, data);
-		console.log('saveData', saveData);
+		// console.log('saveData', saveData);
 	}
 
-	const tabsClick = (tab, val) => {
-		activeName.value = val;
+	const tabChange = (val) => {
+		// activeName.value = val;
+		emit('tabsChange', val);
 	}
 	
 	const remoteMethod = async (val, vv) => {
@@ -325,7 +326,7 @@
 		resetKey(props.formList)
 	})
 
-	const emit = defineEmits(['confirm', 'cancel', 'itemChange'])
+	const emit = defineEmits(['confirm', 'cancel', 'itemChange', 'tabsChange'])
 	defineExpose({
 		saveData,
 		resetKey,

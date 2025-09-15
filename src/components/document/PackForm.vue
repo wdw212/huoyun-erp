@@ -773,7 +773,7 @@
 		form.value.workNumber = boxInfo.serial_number;  //序列号
 		form.value.endTime2 = boxInfo.loading_at?boxInfo.loading_at+':00':'';  //装柜时间
 		form.value.value14 = boxInfo.driver;  //司机信息
-		console.log('form.value', form.value)
+		// console.log('form.value', form.value)
 		
 		tableData.value = [];
 		if(boxInfo.container_items){
