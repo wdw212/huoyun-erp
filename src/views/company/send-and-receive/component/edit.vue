@@ -53,7 +53,7 @@
 			
 				<el-col :span="24">
 					<el-form-item label="舱单网址" prop="url">
-						<el-input v-model="form.url" placeholder="请输入舱单网址" @input="handleInputTaxNumber('url', form.url, 2)" :disabled="disabled?true:false"/>
+						<el-input v-model="form.url" placeholder="请输入舱单网址" @input="handleInputTaxNumber('url', form.url, 3)" :disabled="disabled?true:false"/>
 					</el-form-item>
 				</el-col>
 				
@@ -66,13 +66,14 @@
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
-					<el-form-item label="生成">
+					<el-form-item label="生成" style="display: flex;">
 						<el-button type="primary" @click="openDialog">生成</el-button>
+						<el-input style="flex: 1;margin-left: 10px;" v-model="form.keyword" placeholder="方便搜索" :disabled="disabled?true:false"/>
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
 					<el-form-item :label="type_content_label" prop="type_content" >
-						<el-input v-model="form.type_content" :placeholder="'请输入'+form.type_content" :rows="7" type="textarea" @input="handleInputTaxNumber('type_content', form.type_content, 2)" :disabled="disabled?true:false"/>
+						<el-input v-model="form.type_content" :placeholder="'请输入'+form.type_content" :rows="7" type="textarea" @input="handleInputTaxNumber('type_content', form.type_content, 4)" :disabled="disabled?true:false"/>
 					</el-form-item>
 				</el-col>
 				<el-col :span="12">
@@ -151,7 +152,11 @@
 		} else if (isChar == 1) {
 			form.value[lable] = value.replace(/[^a-zA-Z0-9\+\-\*]/g, "").toUpperCase(); // 转换为大写
 		} else if (isChar == 2) {
-			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;'',，\-@: //.=*]/g, "").toUpperCase();
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;'',，\-@: //.=?*]/g, "").toUpperCase();
+		}else if (isChar == 3) {
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;'',，\-@: //.=?*]/g, "");  //大小写不转化
+		}else if (isChar == 4) {
+			form.value[lable] = value.replace(/[^a-zA-Z0-9+\ ·`~!@#$%^&*()_+{}|:";{}|\/.<>;'',，\-@: //.=?\n*]/g, "").toUpperCase();  //转化为大写  加上换行符
 		}
 	}
 	const props  = defineProps({
@@ -188,6 +193,7 @@
 			contact_name:'',  //具体联系人
 			contact_phone:'',  //联系人电话
 			type_content:'', //一个框（对应操作单据页面的具体发货人/收货人/通知人信息，根据收发通类型确认是哪个）
+			keyword: '' ,// 方便搜索
 		},
 		rules: {
 			name: [{required: true,message: "名称不能为空",trigger: "blur"}],
@@ -408,6 +414,19 @@
 		    }
 		  }
 		});
+	}
+	// 备注可换行
+	function handleKeyCode(event){
+		console.log(1111)
+		console.log(event,'event')
+		if (event.keyCode == 13) {
+		  if (!event.ctrlKey) {
+			  event.preventDefault();
+			} else {
+			  form.value.remark += "\n";
+			}
+		}
+
 	}
 	// --------------------接口-------------------------
 	function addDataForm(){
