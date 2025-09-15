@@ -2,7 +2,7 @@
 	<div class="app-container">
 		<el-form ref="queryRef" :model="queryParams" :inline="true" label-width="68px">
 			<el-form-item label="关键字" style="width: 300px" prop="keyword">
-				<el-input v-model="queryParams.keyword" placeholder="搜索代码,名称,备注,收发通具体信息" clearable />
+				<el-input v-model="queryParams.keyword" placeholder="搜索代码,名称,备注,方便搜索,收发通具体信息" clearable />
 			</el-form-item>
 			<el-form-item label="收发通类型" style="width: 300px" prop="type">
 				<el-select v-model="queryParams.type" filterable placeholder="请选择收发通类型">
