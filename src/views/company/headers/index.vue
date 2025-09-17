@@ -139,12 +139,17 @@
 						</el-form-item>
 					</el-col>
 
-					<el-col :span="12">
+					<!-- <el-col :span="12">
 						<el-form-item label="区分" prop="distinction">
 							<el-input v-model="form.distinction" placeholder="请输入区分" />
 						</el-form-item>
+					</el-col> -->
+					<el-col :span="12">
+						<el-form-item label="区分" style="display: flex;">
+							<el-input style="flex: 1;margin-right: 10px;" v-model="form.distinction" placeholder="请输入区分"/>
+							<el-button type="primary" @click="openDialog">生成</el-button>
+						</el-form-item>
 					</el-col>
-
 					<el-col :span="12">
 						<el-form-item label="寄件地址" prop="delivery_address">
 							<el-input v-model="form.delivery_address" placeholder="请输入寄件地址" :rows="3" type="textarea" />
@@ -174,6 +179,9 @@
 					<el-button @click="cancel">取 消</el-button>
 				</div>
 			</template>
+			<el-dialog class="generate_dialog" title="生成信息" v-model="openInformation" :destroy-on-close='true' width="30%" :append-to-body='true'>
+							<el-input v-model="form.generate_information" placeholder="请输入生成信息" :rows="10" type="textarea" id="myTextarea"/>
+						</el-dialog>
 		</el-dialog>
 		<!-- 分享 -->
 		<el-dialog title="分享" v-model="openShare" width="800px">
@@ -274,6 +282,7 @@
 	const viewIndicateRoleList = ref(['SUPER_ADMIN']);  //页面标明组件可更改权限
 	const roleTypeList= ref(['FINANCE','SCHEDULE','SUPER_ADMIN'])  //当前页面有所有人权限的角色
 	const roleTypeUserIdList= ref([])  //当前共享人不能编辑的数组
+	const openInformation= ref(false)
 	
 	// 列显隐信息
 	const columns = ref([{
@@ -438,6 +447,13 @@
 		openShare.value = false;
 		reset();
 	}
+	
+	// 点击生成信息
+	function openDialog(){
+		openInformation.value= true
+		console.log(openInformation.value,454)
+		form.value.generate_information= `公司名称:${form.value.company_name?form.value.company_name:''}\r\n税号:${form.value.tax_number?form.value.tax_number:''}\r\n公司地址:${form.value.billing_address?form.value.billing_address:''}\r\n座机:${form.value.company_phone?form.value.company_phone:''}\r\n开户行:${form.value.bank_name?form.value.bank_name:''}\r\n开户账号:${form.value.bank_account? form.value.bank_account: ''}\r\n备注:${form.value.remark?form.value.remark:''}`
+	}
 
 	// 表单重置
 	function reset() {
@@ -457,7 +473,8 @@
 			qq: null,
 			distinction: null,
 			delivery_address: null,
-			remark: null
+			remark: null,
+			generate_information: '',  //生成信息
 		};
 		formShare.value = {
 			id: null,
@@ -620,3 +637,12 @@
 		return true;
 	}
 </script>
+
+<style>
+	.generate_dialog{
+		top: 20%
+	}
+	.generate_dialog .el-textarea__inner{
+		padding-bottom: 40px
+	}
+</style>
