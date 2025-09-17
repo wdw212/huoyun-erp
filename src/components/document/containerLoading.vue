@@ -3,15 +3,6 @@
 
 		<el-dialog v-model="showDrop" title="装柜数据" width="78%">
 			<div class="w-100 flex1 mt-1">
-				<el-card style="width: 49.5%">
-				    <template #header>
-						<div class="d-flex">
-							<el-icon :size="20" color="#0db4e6"> <Refrigerator /> </el-icon>
-							<div class="font-w pl-1 font-16">装柜数据</div>
-						</div>
-					</template>
-					<el-input v-model="data" type="textarea" :rows="25" resize="none" />
-				</el-card>
 				<el-card style="width: 49.5%" v-if="type==1">
 				    <template #header>
 						<div class="d-flex">
@@ -20,6 +11,15 @@
 						</div>
 					</template>
 					<el-input v-model="data2" type="textarea" :rows="25" resize="none" />
+				</el-card>
+				<el-card style="width: 49.5%">
+				    <template #header>
+						<div class="d-flex">
+							<el-icon :size="20" color="#0db4e6"> <Refrigerator /> </el-icon>
+							<div class="font-w pl-1 font-16">装柜数据</div>
+						</div>
+					</template>
+					<el-input v-model="data" type="textarea" :rows="25" resize="none" />
 				</el-card>
 				<el-card style="width: 49.5%" v-if="type==2">
 				    <template #header>
@@ -62,6 +62,8 @@
 	})
 	
 	function timeShow(time, type){
+		if(!time) return '';
+		time = time + ':00';
 		var timeNum = timeToTimestamp(time).getTime();
 		var md = timeto(timeNum, 'md', '.');
 		var week = getWeek(timeNum, '周');
@@ -92,10 +94,10 @@
 		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
 		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
-		// console.log('运费情况', txmt)
+		// console.log('运费情况', yt)
 		
-		var time1 = timeShow(boxInfo.loading_at+':00', 1);
-		var time2 = timeShow(boxInfo.loading_at+':00', 2);
+		var time1 = timeShow(boxInfo.loading_at, 1);
+		var time2 = timeShow(boxInfo.loading_at, 2);
 		
 		data.value =  `合同号：${val.contract_no||''} `+ '\n' +
 					  `装箱时间：${time1} `+ '\n' +
@@ -109,12 +111,12 @@
 		if(boxInfo.pre_pull_wharf_id){
 			type.value = 1;
 			data2.value = `合同号：${val.contract_no||''} `+ '\n' +
-						  `提单号：${val.bl_no||''}     柜型：${packInfo.value10||''}    ${boxInfo.cargo_weight||''}吨  `+ '\n' +
+						  `提单号：${val.bl_no||''}     柜型：${packInfo.value10||''}     货重：${boxInfo.cargo_weight||''}  `+ '\n' +
 						  `时间：${time1}   `+ '\n'
 		}else{
 			type.value = 2;
 			data3.value = `合同号：${val.contract_no||''} `+ '\n' +
-						  `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight||''}吨	`+ '\n' +
+						  `提单号：${val.bl_no||''}       箱型：${packInfo.value10||''}      货重：${boxInfo.cargo_weight||''}	`+ '\n' +
 						  `装箱时间：${time2}    `+ '\n'
 		}
 		if(boxInfo.container_loading_addresses&&boxInfo.container_loading_addresses.length>0){
@@ -137,7 +139,7 @@
 					  `箱子已预提 预提费月结`+ '\n' +
 					  `箱号：${packInfo.value8||''} `+ '\n' +
 					  `封号：${packInfo.value9||''} `+ '\n' +
-					  `预提堆场地址：${txmt.name||''}--${yt.phone||''}`+ '\n'
+					  `预提堆场地址：${yt.address||''}`+ '\n'
 
 	}
 

@@ -52,7 +52,8 @@
 					:value-key="newItem.keyName?newItem.keyName:'id'"
 					@change="changeValue">
 						<template #label="{ label, value }">
-					        <span>{{ value }}</span>
+					        <span v-if="newItem.showLabel&&newItem.showLabel=='label'">{{ label }}</span>
+					        <span v-else>{{ value }}</span>
 					    </template>
 						<el-option v-for="vv in newItem.options" 
 						:key="newItem.keyName?vv[newItem.keyName]:'id'"

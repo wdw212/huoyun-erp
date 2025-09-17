@@ -12,7 +12,10 @@
 						<div class="mt10">
 							<el-select v-model="value1" placeholder="选择发货人" size="large" style="width: 440px" filterable
 								@change='senderChange'>
-								<el-option v-for="item in SENDER_LIST" :key="item.id" :label="item.name"
+								<template #label="{ label, value }">
+								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+								</template>
+								<el-option v-for="item in SENDER_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
 							</el-select>
 						</div>
@@ -36,6 +39,11 @@
 						<div class="mt10 mb10 ml10">
 							<el-button type="primary" @click='openReceive'>舱单网址</el-button>
 						</div>
+						<div class="mt10 mb10 ml10">
+							<el-button type="primary" @click='addCompanyHead'>增加收发通信息</el-button>
+							<!-- <el-button type="primary" :icon="Refresh" circle style="margin-left: 10px;"
+							@click="getSelectDataList(true)"/> -->
+						</div>
 					</td>
 				</tr>
 				<tr>
@@ -44,7 +52,10 @@
 						<div class="mt10">
 							<el-select v-model="value2" placeholder="选择收货人" size="large" style="width: 440px" filterable
 								@change='receiveChange'>
-								<el-option v-for="item in RECEIVE_LIST" :key="item.id" :label="item.name"
+								<template #label="{ label, value }">
+								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+								</template>
+								<el-option v-for="item in RECEIVE_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
 							</el-select>
 						</div>
@@ -67,7 +78,10 @@
 						<div class="mt10">
 							<el-select v-model="value3" placeholder="选择通知人" size="large" style="width: 440px" filterable
 								@change='notiferChange'>
-								<el-option v-for="item in NOTIFER_LIST" :key="item.id" :label="item.name"
+								<template #label="{ label, value }">
+								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+								</template>
+								<el-option v-for="item in NOTIFER_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
 							</el-select>
 						</div>
@@ -234,12 +248,12 @@
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none" width="900">
 							<div class="sub-tit">(2)Shipper/ Exporter</div>
-							<div class="mt10">
+							<!-- <div class="mt10">
 								<div style="color: #222;">{{value1&&SENDER_LIST.find(v=> v.id==value1)&&SENDER_LIST.find(v=> v.id==value1).name}}</div>
-							</div>
+							</div> -->
 
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ senderInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ senderInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none" height="60">
@@ -253,18 +267,18 @@
 						<td class="br-none">
 							<div class="sub-tit">(6) Export References</div>
 							<div class="mt10 mb10 ml10 font-black">
-								<div>舱单网址</div>
+								<!-- <div>舱单网址</div> -->
 							</div>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="2" class="bl-none">
 							<div class="sub-tit">(3)Consignee(complete name and address)</div>
-							<div class="mt10">
+							<!-- <div class="mt10">
 								<div style="color: #222;">{{value2&&RECEIVE_LIST.find(v=> v.id==value2)&&RECEIVE_LIST.find(v=> v.id==value2).name}}</div>
-							</div>
+							</div> -->
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ receiveInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ receiveInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none">
@@ -277,11 +291,11 @@
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none">
 							<div class="sub-tit">(4) Notify Party (complete name and address)</div>
-							<div class="mt10">
+							<!-- <div class="mt10">
 								<div style="color: #222;">{{value3&&NOTIFER_LIST.find(v=> v.id==value3)&&NOTIFER_LIST.find(v=> v.id==value3).name}}</div>
-							</div>
+							</div> -->
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;font-weight: initial;">{{ notiferInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ notiferInfoContent }}</div>
 							</div>
 						</td>
 						<td class="br-none">
@@ -446,6 +460,7 @@
 		exportWordImage,
 		getWordImage
 	} from "@/utils/exportFile";
+	import { Refresh } from '@element-plus/icons-vue'
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -582,10 +597,10 @@
 	function getSelectDataList() { //sender  发货人  receiver  //收货人  notifier  //通知人
 		Promise.all([getList('sender'), getList('receiver'), getList('notifier')]).then(([senders, receivers,
 			notifiers]) => {
-				console.log(senders)
-				SENDER_LIST.value = senders ? senders : []
-				RECEIVE_LIST.value = receivers ? receivers : []
-				NOTIFER_LIST.value = notifiers ? notifiers : []
+				console.log('senders', senders)
+				SENDER_LIST.value = senders ? senders.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
+				RECEIVE_LIST.value = receivers ? receivers.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
+				NOTIFER_LIST.value = notifiers ? notifiers.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
 			})
 	}
 	// 发货人下拉框变化
@@ -614,6 +629,17 @@
 		} else {
 			notiferInfoContent.value = ''
 		}
+	}
+	
+	//增加收发通信息
+	const router = useRouter();
+	function addCompanyHead(){
+		router.push({
+			path: "/company/company-headers",
+			query: {
+				add: true
+			},
+		});
 	}
 
 	function openReceive() {

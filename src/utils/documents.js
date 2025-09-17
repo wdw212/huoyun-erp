@@ -438,12 +438,13 @@ export const AccountsColumn = ref([
 		form: {
 			type: 'select',placeholder: '请选择合作单位',key: 'company_header_id',
 			filterable: true, options: [],  labelName: 'company_name', valueName: 'id',
+			showLabel: 'label'
 			// method: 'get', url: '/company-headers',popover:true
 		}
 	},
 	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
 		form: {
-			type: 'input',key: 'no_invoice_remark',
+			type: 'input',key: 'no_invoice_remark',popover:true
 		}
 	},
 	{label: '人民币费用', type: 'edit', prop: 'cny_amount',

@@ -69,13 +69,19 @@
 					<template #AccountsBtn="{saveData,formList}">
 						<div>
 							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作员确认！</span>
-							<el-button :type="fee_state?'success':'danger'" plain 
+							<el-button :type="fee_state?'success':'danger'" 
 							@click="fee_state=!fee_state">费用{{fee_state?'已':'未'}}完结</el-button>
 							<el-button type="primary" plain @click="addAccount()">添加明细</el-button>
 						</div>
 					</template>
 					<template #AccountsPayable="{saveData,formList}">
 						<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumn" :multiple="false" :border="true" ref="accountTable" @tableItemChange="tableItemChangeAccounts">
+							<template #table_company_header_id>
+								<div style="display: flex;justify-content: space-between;">
+									<div>费用明细</div>
+									<el-button type="warning" size="small" plain @click="addAccountsPage">新增</el-button>
+								</div>
+							</template>
 							<template #bottomCon="{tableData}">
 								<el-row :gutter="20">
 									<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
@@ -257,34 +263,7 @@
 			dialogFormVisible.value = true;
 			editId.value = row.id;
 			setTimeout(function(){
-				proxy.$refs.commonForm.activeName = '操作单据';
-				var data = {};
-				for(var key in proxy.$refs.commonForm.saveData){
-					if (key.indexOf('.')>-1){
-						var keys = key.split('.');
-						var keyData = res[keys[0]]?.[keys[1]]||'';
-						data[key] = keyData===0?'0':(keys[1]=='remark'?keyData||[]:keyData||'');
-					} else {
-						data[key] = res[key]===0?'0':res[key];
-					}
-				}
-				formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
-				formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
-				if(data.shipping_company_id){
-					shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id)||{};  //船公司
-				}
-				fee_state.value = data.fee_state||false;
-				
-				proxy.$refs.boxInfo.defaultBox(res.containers);
-				proxy.$refs.commonForm.changeSave(data);
-				proxy.$refs.accountTable.updateTableData(res.order_payments);
-				countAccounts();
-				
-				order_files.value = res.order_files;
-				proxy.$refs.fileInfo.dafultFile(res.order_files);
-				
-				containers.value = res.containers;
-				proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+				saveDataShow(res, 1);
 			}, 500)
 		});
 	}
@@ -294,17 +273,53 @@
 			dialogFormVisible.value = true;
 			editId.value = '';
 			setTimeout(function(){
-				var data = {};
-				for(var key in proxy.$refs.commonForm.saveData){
-					data[key] = res[key];
-				}
-				proxy.$refs.boxInfo.defaultBox(res.containers);
-				proxy.$refs.commonForm.changeSave(data);
-				proxy.$refs.accountTable.updateTableData(res.order_payments);
-				
-				proxy.$refs.fileInfo.dafultFile(res.order_files);
+				saveDataShow(res, 2);
 			}, 500)
 		});
+	}
+	function saveDataShow(res, type){
+		proxy.$refs.commonForm.activeName = '操作单据';
+		var data = {};
+		var nullKey = ['job_no','contract_no','finish_at','commerce_user_id','container_type'];
+		for(var key in proxy.$refs.commonForm.saveData){
+			if (key.indexOf('.')>-1){
+				var keys = key.split('.');
+				var keyData = res[keys[0]]?.[keys[1]]||'';
+				data[key] = keyData===0?'0':(keys[1]=='remark'?keyData||[]:keyData||'');
+			} else {
+				data[key] = res[key]===0?'0':res[key];
+			}
+			if(type==2&&nullKey.indexOf(key)>-1){
+				data[key] = '';
+			}
+		}
+		formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
+		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
+		if(data.shipping_company_id){
+			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id)||{};  //船公司
+		}
+		fee_state.value = data.fee_state||false;
+		
+		proxy.$refs.commonForm.changeSave(data);
+		if((type==2&&!fee_state.value)||type==1){
+			var order_payments = res.order_payments;
+			if(type==2&&!fee_state.value){
+				order_payments.forEach((vv)=>{
+					vv.cny_invoice_number = '';
+					vv.usd_invoice_number = '';
+				})
+			}
+			proxy.$refs.accountTable.updateTableData(order_payments);
+			countAccounts();
+		}
+		
+		if(type==1){
+			containers.value = res.containers;  //箱子信息
+			proxy.$refs.boxInfo.defaultBox(res.containers);
+			order_files.value = res.order_files;  //文件
+			proxy.$refs.fileInfo.dafultFile(res.order_files);
+		}
+		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 	}
 	//单据删除
 	const deleteIds = ref([]);
@@ -347,6 +362,15 @@
 		});
 	}
 	
+	//新增费用明细
+	function addAccountsPage(){
+		router.push({
+			path: "/company/company-headers",
+			query: {
+				add: true
+			},
+		});
+	}
 	const addAccount = () => {
 		var tableData = proxy.$refs.accountTable.state.tableData;
 		var data = {
@@ -369,7 +393,13 @@
 		// console.log('accountsDelete', row, rowIndex)
 	}
 	function tableItemChangeAccounts(item, index){
-		// console.log('tableItemChangeAccounts', item, index)
+		console.log('tableItemChangeAccounts', item, index)
+		var tableData = proxy.$refs.accountTable.state.tableData;
+		var dataNew = item.options?item.options.find(v=>{return v.id == tableData[index][item.key]}):{};
+		if(item.key=='company_header_id'){
+			tableData[index].remark = dataNew.remark||''
+		}
+		proxy.$refs.accountTable.updateTableData(tableData);
 		countAccounts();
 	}
 	function countAccounts (){
