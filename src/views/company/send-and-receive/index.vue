@@ -126,6 +126,13 @@
 	import useUserStore from "@/store/modules/user";
 	import ViewIndicate from '@/components/ViewIndicate/index'
 	
+	const route = useRoute();
+	onMounted(()=>{
+		if(route.query.add){
+			handleAdd();
+		}
+	})
+	
 	const userStore = useUserStore();  //vuex缓存的用户信息
 	const {proxy} = getCurrentInstance();
 	const queryParams = reactive({

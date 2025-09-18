@@ -45,7 +45,7 @@
 					 + '\n' + `箱号：${val.boxInfo&&val.boxInfo.no||''}`
 					 + '\n' + `封号：${val.boxInfo&&val.boxInfo.seal_number||''}` + '\n'
 					 
-		if(val.boxInfo.container_items.length>0){
+		if(val.boxInfo&&val.boxInfo.container_items.length>0){
 			var remark = '\n' + `备注：` + '\n';
 			val.boxInfo.container_items.forEach((vv,ii)=>{
 				data.value = data.value + '\n' + `提单号：${vv.bl_no||''}`

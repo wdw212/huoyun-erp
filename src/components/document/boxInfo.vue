@@ -179,6 +179,8 @@
 	const addBox = (isNew) => {
 		if(isNew){
 			state.boxList = [];
+			state.saveData = {};
+			proxy.$refs.packForm.reset(true);
 		}
 		var data = {
 			cargo_weight: null,
@@ -296,7 +298,7 @@
 			},
 			packInfo: proxy.$refs.packForm.form
 		};
-		console.log('proxy.$refs.containerLoading', proxy.$refs)
+		// console.log('proxy.$refs.containerLoading', proxy.$refs)
 		proxy.$refs.containerLoading.openLoading(saveData, state.options);
 	}
 	//进港数据生成

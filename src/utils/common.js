@@ -24,12 +24,14 @@ const role = userStore().roles;
 //权限限制
 export const commonParam = () => {
 	var params = {
-		WTTT_params: {
-			company_type: 0
-		}
+		WTTT_params: { company_type: 0 }, //委托抬头
+		YFTT_params: { company_type: 1 }, //应付抬头
+		SFT_params: {},  //收发通列表
 	};
 	if(role.indexOf('OPERATE')>-1){  //操作员
 		params.WTTT_params.operation_user_id = userStore().id;
+		params.YFTT_params.operation_user_id = userStore().id;
+		params.SFT_params.operation_user_id = userStore().id;
 	}else if(role.indexOf('SUPER_ADMIN')>-1){  //超级管理员
 		
 	}
@@ -42,6 +44,7 @@ export const getSelect = async (callBack) => {
 		CZY: await getCZY({status:1}),  //操作员
 		YWLX: await getYWLX(), //业务类型
 		WTTT: await getTT(params.WTTT_params), //委托公司抬头
+		YFTT: await getTT(params.YFTT_params), //应付公司抬头
 		CGS: await getCGS(), //船公司
 		DZY: await getDZY({status:1}), //单证员
 		SW: await getSW({status:1}), //商务

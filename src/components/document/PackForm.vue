@@ -806,7 +806,8 @@
 	const emit = defineEmits(['changePackForm'])
 	defineExpose({
 		openPackForm,
-		form
+		form,
+		reset
 	})
 
 	// 生成图片的方法

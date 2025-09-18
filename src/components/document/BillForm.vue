@@ -13,7 +13,7 @@
 							<el-select v-model="value1" placeholder="选择发货人" size="large" style="width: 440px" filterable
 								@change='senderChange'>
 								<template #label="{ label, value }">
-								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+									<span>{{value&&SENDER_LIST.find(v=> v.id==value)&&SENDER_LIST.find(v=> v.id==value).name}}</span>
 								</template>
 								<el-option v-for="item in SENDER_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
@@ -53,7 +53,7 @@
 							<el-select v-model="value2" placeholder="选择收货人" size="large" style="width: 440px" filterable
 								@change='receiveChange'>
 								<template #label="{ label, value }">
-								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+									<span>{{value&&RECEIVE_LIST.find(v=> v.id==value)&&RECEIVE_LIST.find(v=> v.id==value).name}}</span>
 								</template>
 								<el-option v-for="item in RECEIVE_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
@@ -79,7 +79,7 @@
 							<el-select v-model="value3" placeholder="选择通知人" size="large" style="width: 440px" filterable
 								@change='notiferChange'>
 								<template #label="{ label, value }">
-								    <span>{{ label.indexOf('——')>-1?label.split['——'][1]:label }}</span>
+								    <span>{{value&&NOTIFER_LIST.find(v=> v.id==value)&&NOTIFER_LIST.find(v=> v.id==value).name}}</span>
 								</template>
 								<el-option v-for="item in NOTIFER_LIST" :key="item.id" :label="item.label"
 									:value="item.id" />
@@ -461,6 +461,7 @@
 		getWordImage
 	} from "@/utils/exportFile";
 	import { Refresh } from '@element-plus/icons-vue'
+	import { commonParam } from '@/utils/common'
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -635,7 +636,7 @@
 	const router = useRouter();
 	function addCompanyHead(){
 		router.push({
-			path: "/company/company-headers",
+			path: "/company/send-and-receive",
 			query: {
 				add: true
 			},
@@ -662,9 +663,8 @@
 	// -----------------------接口------------------
 	/** 查询列表 */
 	function getList(type) {
-		let queryParams = {
-			type
-		}
+		let queryParams = commonParam().SFT_params;
+		queryParams.type = type;
 		return new Promise((resolve, reject) => {
 			listData(queryParams).then(response => {
 					resolve(response.data)

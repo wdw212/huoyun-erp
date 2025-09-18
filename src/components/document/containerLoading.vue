@@ -12,15 +12,6 @@
 					</template>
 					<el-input v-model="data2" type="textarea" :rows="25" resize="none" />
 				</el-card>
-				<el-card style="width: 49.5%">
-				    <template #header>
-						<div class="d-flex">
-							<el-icon :size="20" color="#0db4e6"> <Refrigerator /> </el-icon>
-							<div class="font-w pl-1 font-16">装柜数据</div>
-						</div>
-					</template>
-					<el-input v-model="data" type="textarea" :rows="25" resize="none" />
-				</el-card>
 				<el-card style="width: 49.5%" v-if="type==2">
 				    <template #header>
 						<div class="d-flex">
@@ -29,6 +20,15 @@
 						</div>
 					</template>
 					<el-input v-model="data3" type="textarea" :rows="25" resize="none" />
+				</el-card>
+				<el-card style="width: 49.5%">
+				    <template #header>
+						<div class="d-flex">
+							<el-icon :size="20" color="#0db4e6"> <Refrigerator /> </el-icon>
+							<div class="font-w pl-1 font-16">装柜数据</div>
+						</div>
+					</template>
+					<el-input v-model="data" type="textarea" :rows="25" resize="none" />
 				</el-card>
 			</div>
 		</el-dialog>
@@ -82,7 +82,7 @@
 	const data2 = ref('');
 	const data3 = ref('');
 	const openLoading = (val, options) => {
-		console.log('openLoading', val, options)
+		// console.log('openLoading哈哈哈H', val, options)
 		saveData.value = val;
 		showDrop.value = true;
 		var boxInfo = val.boxInfo||{};

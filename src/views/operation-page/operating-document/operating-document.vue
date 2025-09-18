@@ -185,7 +185,7 @@
 			loading.value = false;
 			seletData.value = options;
 			
-			AccountsColumn.value[0].form.options = seletData.value.WTTT;
+			AccountsColumn.value[0].form.options = seletData.value.YFTT;
 			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
@@ -247,8 +247,10 @@
 		setTimeout(function(){
 			proxy.$refs.commonForm.resetKey(formListNew.value, true);
 			proxy.$refs.commonForm.changeSave({
-				'order_delegation_header.remark': []
+				'order_delegation_header.remark': [],
 			});
+			formListNew.value[2].formData[0].formItem[1].value = '';
+			formListNew.value[2].formData[0].formItem[1].remark = '';
 			proxy.$refs.commonForm.activeName = '操作单据';
 			proxy.$refs.accountTable.state.tableData = [];
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
@@ -376,9 +378,9 @@
 		var data = {
 			company_header_id: null,
 			no_invoice_remark: null,
-			cny_amount: '',
+			cny_amount: '0.00',
 			cny_invoice_number:null,
-			usd_amount: '',
+			usd_amount: '0.00',
 			usd_invoice_number: null,
 			// contact_phone: null,
 			// contact_person: null,
