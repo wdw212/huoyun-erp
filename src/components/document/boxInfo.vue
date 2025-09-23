@@ -45,7 +45,7 @@
 						<template #bottomCon="{tableData}">
 							<el-row :gutter="20">
 								<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="8">
-									<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1"/>
+									<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" class="mt-1"/>
 								</el-col>
 							</el-row>
 						</template>
@@ -68,7 +68,7 @@
 						<template #bottomCon="{tableData}">
 							<el-row :gutter="20">
 								<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="8">
-									<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1"/>
+									<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" class="mt-1"/>
 								</el-col>
 							</el-row>
 						</template>
@@ -458,12 +458,11 @@
 		emit('boxInfoChange', state.boxList);
 		// console.log('箱子数据', state.boxList)
 	}
-	const delete1 = (row) => {
-		const rowIndex = proxy.$refs.tableListJMT.state.tableData.findIndex(item => item === row);
-		proxy.$refs.tableListJMT.state.tableData.splice(row.index, 1)
+	const delete1 = (row, index) => {
+		proxy.$refs.tableListJMT.state.tableData.splice(index, 1)
 		state.boxList[state.boxIndex].container_items = proxy.$refs.tableListJMT.state.tableData;
 		emit('boxInfoChange', state.boxList);
-		// console.log('paymentDelete', row, rowIndex)
+		// console.log('paymentDelete', row, index)
 	}
 	
 	//装柜地址表格数据
@@ -514,10 +513,11 @@
 			}
 			proxy.$refs.tableListZGDZ.state.tableData[index] = data;
 			proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
+			state.boxList[state.boxIndex].freight_remark = dataNew?.freight||'';
 		}
-		state.boxList[state.boxIndex].container_loading_addresses  =proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
-		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData)
+		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData, proxy.$refs.boxInfoForm.saveData)
 	}
 	const addTableList2 = () => {
 		if(!proxy.$refs.tableListZGDZ.state.tableData){
@@ -533,12 +533,11 @@
 		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
 	}
-	const delete2 = (row) => {
-		const rowIndex = proxy.$refs.tableListZGDZ.state.tableData.findIndex(item => item === row);
-		proxy.$refs.tableListZGDZ.state.tableData.splice(row.index, 1)
+	const delete2 = (row, index) => {
+		proxy.$refs.tableListZGDZ.state.tableData.splice(index, 1)
 		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
 		emit('boxInfoChange', state.boxList);
-		// console.log('paymentDelete', row, rowIndex)
+		// console.log('paymentDelete', row, index)
 	}
 	//新增装柜地址
 	const router = useRouter();

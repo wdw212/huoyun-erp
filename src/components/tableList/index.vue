@@ -13,8 +13,8 @@
 			</div>
 		</div>
 
-		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange" :row-key="rowKey" :max-height="height"
-			:border="border" :size="size" style="font-size: 12px;">
+		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange"
+			:row-key="rowKey" :max-height="height" :border="border" :size="size" style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
 			<template v-for="(item,index) in tableColumn" :key="index">
@@ -22,9 +22,8 @@
 				<el-table-column v-if="item.type=='edit'&&!item.noShow" :fixed="item.fixed" :label="item.label"
 					:align="item.align||'center'" :width="item.width">
 					<template #default="{row,$index}">
-						<!-- {{row[item.prop]}} -->
 						<common-form-item :item="item.form" v-model:formValue="row[item.prop]"
-						@changeValue="(val)=>itemChange(val, $index)"></common-form-item>
+							@changeValue="(val)=>itemChange(val, $index)"></common-form-item>
 					</template>
 					<template #header>
 						<slot :name="'table_'+item.prop"></slot>
@@ -32,10 +31,10 @@
 				</el-table-column>
 
 				<!-- 操作按钮列 -->
-				<el-table-column v-else-if="!item.noShow&&item.prop=='actions'" :fixed="item.fixed" class-name="actionsBtn"
-					:label="item.label" :align="item.align||'center'" :width="item.width">
-					<template #default="{row}">
-						<action-buttons :row="row" :actions="item.actions" />
+				<el-table-column v-else-if="!item.noShow&&item.prop=='actions'" :fixed="item.fixed"
+					class-name="actionsBtn" :label="item.label" :align="item.align||'center'" :width="item.width">
+					<template #default="{row,$index}">
+						<action-buttons :row="row" :index="$index" :actions="item.actions" />
 					</template>
 				</el-table-column>
 
@@ -44,6 +43,9 @@
 					v-else-if="!item.noShow&&item.prop!='actions'&&(!toolbar||(toolbar&&columns[index]&&columns[index].visible))"
 					:label="item.label" :align="item.align||'center'" :prop="item.prop" :width="item.width"
 					:show-overflow-tooltip="item.tooltip||false" :formatter="item.formatter">
+					<template #default="{row,$index}" v-if="item.render">
+						<column-render :row="row" :index="$index" :render="item.render" />
+					</template>
 				</el-table-column>
 
 			</template>
@@ -75,7 +77,10 @@
 		ElButton
 	} from 'element-plus'
 	import commonFormItem from "@/components/commonForm/formItem";
-	import { httpPost, httpGet } from '@/api/apiCommon';
+	import {
+		httpPost,
+		httpGet
+	} from '@/api/apiCommon';
 
 	const props = defineProps({
 		tableConfig: {},
@@ -195,18 +200,18 @@
 			}
 		})
 	}
-	
+
 	const itemChange = (item, index) => {
 		var data = state.tableData[index];
 		data[item.key] = item.value;
 		Object.assign(state.tableData[index], data);
 		emit('tableItemChange', item, index)
 	}
-	
+
 	//更新表格数据  /* 弃用 */
 	const updateTableData = (data) => {
 		Object.assign(state.tableData, data);
-		// console.log('state.tableData-哈哈哈', data, state.tableData)
+		console.log('state.tableData-哈哈哈', data, state.tableData)
 	}
 
 	const emit = defineEmits(['selectionChange', 'tableItemChange'])
@@ -223,6 +228,10 @@
 				type: Object,
 				required: true
 			},
+			index: {
+				type: Number,
+				required: true
+			},
 			actions: {
 				type: Object,
 				required: true
@@ -237,7 +246,7 @@
 							type: action.type || 'primary',
 							size: action.size || 'small',
 							icon: action.icon,
-							onClick: () => action.onClick(props.row),
+							onClick: () => action.onClick(props.row, props.index),
 							style: action.style || {
 								margin: '0px'
 							},
@@ -248,12 +257,38 @@
 			)
 		}
 	})
+
+	// 表格特殊展示行
+	const ColumnRender = defineComponent({
+		props: {
+			row: {
+				type: Object,
+				required: true
+			},
+			index: {
+				type: Number,
+				required: true
+			},
+			render: {
+				type: Object,
+				required: true
+			}
+		},
+		setup(props) {
+			return () => h('div', {
+					class: 'action-buttons'
+				},
+				props.render(props.row, props.index)
+			)
+		}
+	})
 </script>
 
 <style scoped>
-	#tableList{
+	#tableList {
 		padding-bottom: 30px;
 	}
+
 	.action-buttons {
 		display: flex;
 		flex-wrap: wrap;

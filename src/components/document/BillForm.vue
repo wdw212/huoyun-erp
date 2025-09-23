@@ -10,7 +10,7 @@
 					<td rowspan="2" colspan="2" class="bl-none" width="900">
 						<div class="sub-tit">(2)Shipper/ Exporter</div>
 						<div class="mt10">
-							<el-select v-model="value1" placeholder="选择发货人" size="large" style="width: 440px" filterable
+							<el-select v-model="sender_id" placeholder="选择发货人" size="large" style="width: 440px" filterable
 								@change='senderChange'>
 								<template #label="{ label, value }">
 									<span>{{value&&SENDER_LIST.find(v=> v.id==value)&&SENDER_LIST.find(v=> v.id==value).name}}</span>
@@ -21,14 +21,14 @@
 						</div>
 
 						<div class="mt10 mb10">
-							<el-input v-model="senderInfoContent" style="width: 440px" :rows="5" type="textarea"
+							<el-input v-model="sender_info" style="width: 440px" :rows="5" type="textarea"
 								placeholder="具体发货人信息" />
 						</div>
 					</td>
 					<td class="br-none" height="60">
 						<div class="sub-tit">(5)Document No.</div>
 						<div class="mt10 mb10 ml10">
-							<el-input v-model="textarea2" style="width: 250px" type="text"
+							<el-input v-model="bl_no" style="width: 250px" type="text"
 								placeholder="提单号，数据来源于单据中的提单号" />
 						</div>
 					</td>
@@ -41,8 +41,6 @@
 						</div>
 						<div class="mt10 mb10 ml10">
 							<el-button type="primary" @click='addCompanyHead'>增加收发通信息</el-button>
-							<!-- <el-button type="primary" :icon="Refresh" circle style="margin-left: 10px;"
-							@click="getSelectDataList(true)"/> -->
 						</div>
 					</td>
 				</tr>
@@ -50,7 +48,7 @@
 					<td colspan="2" class="bl-none">
 						<div class="sub-tit">(3)Consignee(complete name and address)</div>
 						<div class="mt10">
-							<el-select v-model="value2" placeholder="选择收货人" size="large" style="width: 440px" filterable
+							<el-select v-model="receiver_id" placeholder="选择收货人" size="large" style="width: 440px" filterable
 								@change='receiveChange'>
 								<template #label="{ label, value }">
 									<span>{{value&&RECEIVE_LIST.find(v=> v.id==value)&&RECEIVE_LIST.find(v=> v.id==value).name}}</span>
@@ -60,14 +58,14 @@
 							</el-select>
 						</div>
 						<div class="mt10 mb10">
-							<el-input v-model="receiveInfoContent" style="width: 440px" :rows="5" type="textarea"
+							<el-input v-model="receiver_info" style="width: 440px" :rows="5" type="textarea"
 								placeholder="具体收货人信息" />
 						</div>
 					</td>
 					<td class="br-none">
 						<div class="sub-tit">(7)Forwarding Agent-References</div>
 						<div class="mt10 ml10">
-							<el-input v-model="textarea4" style="width: 440px" :rows="7" type="textarea"
+							<el-input v-model="freight_forwarding" style="width: 440px" :rows="7" type="textarea"
 								placeholder="请输入" />
 						</div>
 					</td>
@@ -76,7 +74,7 @@
 					<td rowspan="2" colspan="2" class="bl-none">
 						<div class="sub-tit">(4) Notify Party (complete name and address)</div>
 						<div class="mt10">
-							<el-select v-model="value3" placeholder="选择通知人" size="large" style="width: 440px" filterable
+							<el-select v-model="notifier_id" placeholder="选择通知人" size="large" style="width: 440px" filterable
 								@change='notiferChange'>
 								<template #label="{ label, value }">
 								    <span>{{value&&NOTIFER_LIST.find(v=> v.id==value)&&NOTIFER_LIST.find(v=> v.id==value).name}}</span>
@@ -86,7 +84,7 @@
 							</el-select>
 						</div>
 						<div class="mt10 mb10">
-							<el-input v-model="notiferInfoContent" style="width: 440px" :rows="5" type="textarea"
+							<el-input v-model="notifier_info" style="width: 440px" :rows="5" type="textarea"
 								placeholder="具体通知人信息" />
 						</div>
 					</td>
@@ -109,13 +107,13 @@
 				<tr>
 					<td class="bl-none">(14)Ocean Vessel/Voy.No.
 						<div class="mt10 mb10">
-							<el-input v-model="textarea6" style="width: 240px" type="text"
+							<el-input v-model="ship_info" style="width: 240px" type="text"
 								placeholder="船名/航次，数据来源于单据中的船名/航次" />
 						</div>
 					</td>
 					<td>(15) Port of Loading
 						<div class="mt10 mb10 ml10">
-							<el-input v-model="textarea7" style="width: 240px" type="text"
+							<el-input v-model="origin_port" style="width: 240px" type="text"
 								placeholder="起运港，数据来源于单据中的起运港" />
 						</div>
 					</td>
@@ -125,7 +123,7 @@
 				<tr>
 					<td class="bl-none">(16) Port of Discharge
 						<div class="mt10 mb10">
-							<el-input v-model="textarea8" style="width: 240px" type="text"
+							<el-input v-model="destination_port" style="width: 240px" type="text"
 								placeholder="目的港，数据来源于单据中的目的港" />
 						</div>
 					</td>
@@ -153,32 +151,32 @@
 					<td class="bl-none">
 						<p class="p1">CONTAINER NO./SEAL NO.</p>
 						<div class="mt10 mb10" style="text-align: center">
-							<el-input v-model="textarea9" style="width: 300px" type="textarea" :rows="8"
+							<el-input v-model="no" style="width: 300px" type="textarea" :rows="8"
 								placeholder="箱封号，数据来源于箱子信息中的箱号/封号（有多组数据）" />
 						</div>
 						<p class="p2">TOTAL NUMBER OF CONTAINERS OR PACKAGES(IN WORDS)</p>
 					</td>
 					<td>
 						<div class="mt10 p10">
-							<el-input v-model="textarea10" style="width: 150px" :rows="9" type="textarea"
+							<el-input v-model="number" style="width: 150px" :rows="9" type="textarea"
 								placeholder="件数" />
 						</div>
 					</td>
 					<td>
 						<div class="mt10 p10">
-							<el-input v-model="textarea11" style="width: 240px;font-size:12px" :rows="11"
+							<el-input v-model="description" style="width: 240px;font-size:12px" :rows="11"
 								type="textarea" placeholder="货描" />
 						</div>
 					</td>
 					<td>
 						<div class="mt10 p10">
-							<el-input v-model="textarea12" style="width: 150px" :rows="9" type="textarea"
+							<el-input v-model="gross_weight" style="width: 150px" :rows="9" type="textarea"
 								placeholder="毛重" />
 						</div>
 					</td>
 					<td class="br-none">
 						<div class="mt10 p10">
-							<el-input v-model="textarea13" style="width: 150px" :rows="9" type="textarea"
+							<el-input v-model="volume" style="width: 150px" :rows="9" type="textarea"
 								placeholder="体积" @input="handleInput" />
 						</div>
 					</td>
@@ -248,18 +246,16 @@
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none" width="900">
 							<div class="sub-tit">(2)Shipper/ Exporter</div>
-							<!-- <div class="mt10">
-								<div style="color: #222;">{{value1&&SENDER_LIST.find(v=> v.id==value1)&&SENDER_LIST.find(v=> v.id==value1).name}}</div>
-							</div> -->
+								<div style="color: #222;">{{sender_id&&SENDER_LIST.find(v=> v.id==sender_id)&&SENDER_LIST.find(v=> v.id==sender_id).name}}</div>
 
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ senderInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ sender_info }}</div>
 							</div>
 						</td>
 						<td class="br-none" height="60">
 							<div class="sub-tit">(5)Document No.</div>
 							<div class="mt10 mb10 ml10 font-black">
-								<div style="width: 250px; white-space: pre-wrap;">{{ textarea2 }}</div>
+								<div style="width: 250px; white-space: pre-wrap;">{{ bl_no }}</div>
 							</div>
 						</td>
 					</tr>
@@ -267,35 +263,30 @@
 						<td class="br-none">
 							<div class="sub-tit">(6) Export References</div>
 							<div class="mt10 mb10 ml10 font-black">
-								<!-- <div>舱单网址</div> -->
 							</div>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="2" class="bl-none">
 							<div class="sub-tit">(3)Consignee(complete name and address)</div>
-							<!-- <div class="mt10">
-								<div style="color: #222;">{{value2&&RECEIVE_LIST.find(v=> v.id==value2)&&RECEIVE_LIST.find(v=> v.id==value2).name}}</div>
-							</div> -->
+								<div style="color: #222;">{{receiver_id&&RECEIVE_LIST.find(v=> v.id==receiver_id)&&RECEIVE_LIST.find(v=> v.id==receiver_id).name}}</div>
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ receiveInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ receiver_info }}</div>
 							</div>
 						</td>
 						<td class="br-none">
 							<div class="sub-tit">(7)Forwarding Agent-References</div>
 							<div class="mt10 ml10 font-black">
-								<div style="width: 440px; white-space: pre-wrap;">{{ textarea4 }}</div>
+								<div style="width: 440px; white-space: pre-wrap;">{{ freight_forwarding }}</div>
 							</div>
 						</td>
 					</tr>
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none">
 							<div class="sub-tit">(4) Notify Party (complete name and address)</div>
-							<!-- <div class="mt10">
-								<div style="color: #222;">{{value3&&NOTIFER_LIST.find(v=> v.id==value3)&&NOTIFER_LIST.find(v=> v.id==value3).name}}</div>
-							</div> -->
+								<div style="color: #222;">{{notifier_id&&NOTIFER_LIST.find(v=> v.id==notifier_id)&&NOTIFER_LIST.find(v=> v.id==notifier_id).name}}</div>
 							<div class="mt10 mb10 font-black">
-								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ notiferInfoContent }}</div>
+								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ notifier_info }}</div>
 							</div>
 						</td>
 						<td class="br-none">
@@ -318,16 +309,12 @@
 					<tr>
 						<td class="bl-none">(14)Ocean Vessel/Voy.No.
 							<div class="mt10 mb10 font-black">
-								<!-- <el-input v-model="textarea6" style="width: 240px" type="text"
-									placeholder="数据来源于对应系统" /> -->
-								<div style="width: 240px;">{{ textarea6 }}</div>
+								<div style="width: 240px;">{{ ship_info }}</div>
 							</div>
 						</td>
 						<td>(15) Port of Loading
 							<div class="mt10 mb10 ml10 font-black">
-								<!-- <el-input v-model="textarea7" style="width: 240px" type="text"
-									placeholder="数据来源于对应系统" /> -->
-								<div style="width: 240px;">{{ textarea7 }}</div>
+								<div style="width: 240px;">{{ origin_port }}</div>
 							</div>
 						</td>
 						<td rowspan="2" class="br-none">(10) Onward inland Routing/Export instructions (which are
@@ -337,9 +324,7 @@
 					<tr>
 						<td class="bl-none">(16) Port of Discharge
 							<div class="mt10 mb10 font-black">
-								<!-- <el-input v-model="textarea8" style="width: 240px" type="text"
-									placeholder="数据来源于对应系统" /> -->
-								<div style="width: 240px; ">{{ textarea8 }}</div>
+								<div style="width: 240px; ">{{ destination_port }}</div>
 							</div>
 						</td>
 						<td>(17)Place of Delivery</td>
@@ -349,7 +334,7 @@
 			<h2>Particulars furnished by the Merchant</h2>
 			<table class="table4">
 				<tbody>
-					<tr>
+					<tr style="height: 40px;">
 						<td class="bl-none">(18) Container No. And Seal No.Marks & Nos.</td>
 						<td>
 							(19)Quantity And Kind of Packages
@@ -366,36 +351,28 @@
 						<td class="bl-none">
 							<p class="p1">CONTAINER NO./SEAL NO.</p>
 							<div class="mt10 mb10 font-black" style="text-align: center">
-								<!-- <el-input v-model="textarea9" style="width: 300px" type="textarea" :rows="8"
-									placeholder="数据来源于对应系统" /> -->
-								<div style="width: 300px; white-space: pre-wrap;">{{ textarea9 }}</div>
+								<div style="width: 300px; white-space: pre-wrap;">{{ no }}</div>
 							</div>
 							<p class="p2">TOTAL NUMBER OF CONTAINERS OR PACKAGES(IN WORDS)</p>
 						</td>
 						<td>
 							<div class="mt10 p10 font-black">
-								<!-- <el-input v-model="textarea10" style="width: 150px" :rows="9" type="textarea"
-									placeholder="我是文本输入框，请输入" /> -->
-								<div style="width: 150px;white-space: pre-wrap;">{{ textarea10 }}</div>
+								<div style="width: 150px;white-space: pre-wrap;">{{ number }}</div>
 							</div>
 						</td>
 						<td>
 							<div class="mt10 p10 font-black">
-								<div style="width: 240px;font-size:12px;white-space: pre-wrap;">{{ textarea11 }}</div>
+								<div style="width: 240px;font-size:12px;white-space: pre-wrap;">{{ description }}</div>
 							</div>
 						</td>
 						<td>
 							<div class="mt10 p10 font-black">
-								<!-- <el-input v-model="textarea12" style="width: 150px" :rows="9" type="textarea"
-									placeholder="我是文本输入框，请输入" /> -->
-								<div style="width: 150px;white-space: pre-wrap;">{{ textarea12 }}</div>
+								<div style="width: 150px;white-space: pre-wrap;">{{ gross_weight }}</div>
 							</div>
 						</td>
 						<td class="br-none">
 							<div class="mt10 p10 font-black">
-								<!-- <el-input v-model="textarea13" style="width: 150px" :rows="9" type="textarea"
-									placeholder="我是文本输入框，请输入" @input="handleInput" /> -->
-								<div style="width: 150px;white-space: pre-wrap;">{{ textarea13 }}</div>
+								<div style="width: 150px;white-space: pre-wrap;">{{ volume }}</div>
 							</div>
 						</td>
 					</tr>
@@ -467,7 +444,6 @@
 	} = getCurrentInstance();
 	
 
-	const textarea = ref('')
 	const options = [{
 			value: 'Option1',
 			label: 'Option1',
@@ -483,30 +459,29 @@
 	]
 	// 发货人
 	const SENDER_LIST = ref([])
-	const senderInfoContent = ref('')
+	const sender_info = ref('')
 	// 收货人
 	const RECEIVE_LIST = ref([])
-	const receiveInfoContent = ref('')
+	const receiver_info = ref('')
 	const receiveUrl = ref('')
 	// 通知人
 	const NOTIFER_LIST = ref([])
-	const notiferInfoContent = ref('')
-	const value1 = ref('')
-	const value2 = ref('')
-	const value3 = ref('')
-	const textarea1 = ref('')
-	const textarea2 = ref('')
-	const textarea3 = ref('')
-	const textarea4 = ref('')
-	const textarea5 = ref('')
-	const textarea6 = ref('')
-	const textarea7 = ref('')
-	const textarea8 = ref('')
-	const textarea9 = ref('')
-	const textarea10 = ref('')
-	const textarea11 = ref('')
-	const textarea12 = ref('')
-	const textarea13 = ref('')
+	const notifier_info = ref('')
+	const sender_id = ref('')
+	const receiver_id = ref('')
+	const notifier_id = ref('')
+	const bl_no = ref('')
+	const freight_forwarding = ref('')
+	const ship_info = ref('')
+	const ship_name = ref('')
+	const ship_no = ref('')
+	const origin_port = ref('')
+	const destination_port = ref('')
+	const no = ref('')
+	const number = ref('')
+	const description = ref('')
+	const gross_weight = ref('')
+	const volume = ref('')
 
 	const open = ref(false)
 	//单据数据
@@ -519,22 +494,66 @@
 			reset()
 		}
 		if(!saveState.value){
-			textarea2.value = val.bl_no;
-			textarea6.value = val.ship_name+'/'+val.ship_no;
-			textarea7.value = val.origin_port;
-			textarea8.value = val.destination_port;
-			textarea9.value = '';
+			bl_no.value = val.bl_no;
+			ship_info.value = val.ship_name+'/'+val.ship_no;
+			ship_name.value = val.ship_name;
+			ship_no.value = val.ship_no;
+			origin_port.value = val.origin_port;
+			destination_port.value = val.destination_port;
+			no.value = '';
 			if(val.boxInfo&&val.boxInfo.length>0){
 				val.boxInfo.forEach((vv,ii)=>{
-					textarea9.value = textarea9.value + vv.no+'/'+vv.seal_number+'\n';
+					no.value = no.value + vv.no+'/'+vv.seal_number+'\n';
 				})
 			}
 		}
-		console.log('billForm提单数据', saveData.value);
+		// console.log('billForm提单数据', saveData.value);
 	}
 	function save(){
 		saveState.value = true;
+		var newData = {
+			sender_id: sender_id.value,
+			receiver_id: receiver_id.value,
+			notifier_id: notifier_id.value,
+			sender_info: sender_info.value,
+			receiver_info: receiver_info.value,
+			notifier_info: notifier_info.value,
+			bl_no: bl_no.value,
+			freight_forwarding: freight_forwarding.value,
+			ship_name: ship_name.value,
+			ship_no: ship_no.value,
+			origin_port: origin_port.value,
+			destination_port: destination_port.value,
+			no: no.value,
+			number: number.value,
+			description: description.value,
+			gross_weight: gross_weight.value,
+			volume: volume.value,
+		}
+		emit('saveBill', newData);
 		proxy.$modal.msgSuccess("保存成功");
+	}
+	const updateBill = (data, state) => {
+		sender_id.value = data.sender_id||'';
+		receiver_id.value = data.receiver_id||'';
+		notifier_id.value = data.notifier_id||'';
+		sender_info.value = data.sender_info||'';
+		receiver_info.value = data.receiver_info||'';
+		notifier_info.value = data.notifier_info||'';
+		bl_no.value = data.bl_no||'';
+		freight_forwarding.value = data.freight_forwarding||'';
+		ship_name.value = data.ship_name||'';
+		ship_no.value = data.ship_no||'';
+		ship_info.value = ship_name.value+'/'+ship_no.value;
+		origin_port.value = data.origin_port||'';
+		destination_port.value = data.destination_port||'';
+		no.value = data.no||'';
+		number.value = data.number||'';
+		description.value = data.description||'';
+		gross_weight.value = data.gross_weight||'';
+		volume.value = data.volume||'';
+		saveState.value = state;
+		// console.log('updateBill提单数据', data);
 	}
 
 	const radio3 = ref("FREIGHT_PREPAID")
@@ -575,23 +594,24 @@
 	};
 
 	const reset = () => {
-		textarea.value = ''
-		value1.value = ''
-		value2.value = ''
-		value3.value = ''
-		textarea1.value = ''
-		textarea2.value = ''
-		textarea3.value = ''
-		textarea4.value = ''
-		textarea5.value = ''
-		textarea6.value = ''
-		textarea7.value = ''
-		textarea8.value = ''
-		textarea9.value = ''
-		textarea10.value = ''
-		textarea11.value = ''
-		textarea12.value = ''
-		textarea13.value = ''
+		sender_id.value = ''
+		receiver_id.value = ''
+		notifier_id.value = ''
+		sender_info.value = ''
+		receiver_info.value = ''
+		notifier_info.value = ''
+		bl_no.value = ''
+		freight_forwarding.value = ''
+		ship_info.value = ''
+		ship_name.value = ''
+		ship_no.value = ''
+		origin_port.value = ''
+		destination_port.value = ''
+		no.value = ''
+		number.value = ''
+		description.value = ''
+		gross_weight.value = ''
+		volume.value = ''
 	}
 	reset()
 
@@ -607,18 +627,18 @@
 	// 发货人下拉框变化
 	function senderChange(e) {
 		if (e) {
-			senderInfoContent.value = SENDER_LIST.value.find(item => item.id === e).type_content
+			sender_info.value = SENDER_LIST.value.find(item => item.id === e).type_content
 		} else {
-			senderInfoContent.value = ''
+			sender_info.value = ''
 		}
 	}
 	// 收货人下拉框变化
 	function receiveChange(e) {
 		if (e) {
-			receiveInfoContent.value = RECEIVE_LIST.value.find(item => item.id === e)?.type_content
+			receiver_info.value = RECEIVE_LIST.value.find(item => item.id === e)?.type_content
 			receiveUrl.value = RECEIVE_LIST.value.find(item => item.id === e).url
 		} else {
-			receiveInfoContent.value = ''
+			receiver_info.value = ''
 			receiveUrl.value = ''
 		}
 		console.log(e, 'e', receiveUrl.value)
@@ -626,9 +646,9 @@
 	// 通知人下拉框变化
 	function notiferChange(e) {
 		if (e) {
-			notiferInfoContent.value = NOTIFER_LIST.value.find(item => item.id === e).type_content
+			notifier_info.value = NOTIFER_LIST.value.find(item => item.id === e).type_content
 		} else {
-			notiferInfoContent.value = ''
+			notifier_info.value = ''
 		}
 	}
 	
@@ -644,8 +664,8 @@
 	}
 
 	function openReceive() {
-		if (value2.value) {
-			let is_confirm = RECEIVE_LIST.value.find(item => item.id === value2.value).is_confirm
+		if (receiver_id.value) {
+			let is_confirm = RECEIVE_LIST.value.find(item => item.id === receiver_id.value).is_confirm
 			if (is_confirm === 1) {
 				if (receiveUrl.value) {
 					window.open(receiveUrl.value, "_blank");
@@ -676,8 +696,8 @@
 	
 	// 导出文件
 	const startSchemeTemplate = ref({
-		VALUE1: value1.value&&SENDER_LIST.value.find(v=> v.id==value1.value)&&SENDER_LIST.value.find(v=> v.id==value1.value).name,
-		SENDERINFOCONTENT: senderInfoContent.value,
+		VALUE1: sender_id.value&&SENDER_LIST.value.find(v=> v.id==sender_id.value)&&SENDER_LIST.value.find(v=> v.id==sender_id.value).name,
+		SENDERINFOCONTENT: sender_info.value,
 	});
 	const downLoad = (type) => {
 		if(type==1){
@@ -697,9 +717,10 @@
 		}
 	};
 	
-	const emit = defineEmits([])
+	const emit = defineEmits(['saveBill'])
 	defineExpose({
-		openBill
+		openBill,
+		updateBill
 	})
 </script>
 
@@ -792,7 +813,7 @@
 	table {
 		width: 100%;
 		max-width: 1200px;
-		margin: 20px auto;
+		margin: 15px auto;
 		border-collapse: collapse;
 		background: white;
 		/* box-shadow: 0 1px 3px rgba(0,0,0,0.12); */

@@ -328,11 +328,11 @@ export const formList = ref([
 					{ type: 'input',value: '',label: '工作编号',placeholder: '请输入工作编号',key: 'job_no', rules: rulesInit('请填写工作编号')},
 					{ type: 'input',value: '',label: '合同号',placeholder: '请输入合同号',key: 'contract_no' },
 					{ type: 'date',value: '',label: '归属时间',placeholder: '请选择归属时间',key: 'finish_at', dateType: 'date' },
-					{ type: 'select',value: '',label: '业务员',placeholder: '请选择业务员',key: 'business_user_id',options: [],rules: rulesInit('请选择业务员', 1),labelName: 'name', valueName: 'id', },
-					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operation_user_id',options: [],labelName: 'name', valueName: 'id', },
-					{ type: 'select',value: '',label: '单证员',placeholder: '请选择单证员',key: 'document_user_id',options: [],rules: rulesInit('请选择单证员', 1),labelName: 'name', valueName: 'id', },
-					{ type: 'select',value: '',label: '商务',placeholder: '请选择商务',key: 'commerce_user_id',options: [],labelName: 'name', valueName: 'id', },
-					{ type: 'select',value: '',label: '船公司',placeholder: '请选择船公司',key: 'shipping_company_id',options: [],labelName: 'name', valueName: 'id' },
+					{ type: 'select',value: '',label: '业务员',placeholder: '请选择业务员',key: 'business_user_id',options: [],rules: rulesInit('请选择业务员', 1),labelName: 'name', valueName: 'id',filterable: true },
+					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operation_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
+					{ type: 'select',value: '',label: '单证员',placeholder: '请选择单证员',key: 'document_user_id',options: [],rules: rulesInit('请选择单证员', 1),labelName: 'name', valueName: 'id',filterable: true },
+					{ type: 'select',value: '',label: '商务',placeholder: '请选择商务',key: 'commerce_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
+					{ type: 'select',value: '',label: '船公司',placeholder: '请选择船公司',key: 'shipping_company_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'input',value: '',label: '提单号',placeholder: '请输入提单号',key: 'bl_no', inputType: 2 },
 					{ type: 'input',value: '',label: '起运港',placeholder: '请输入起运港',key: 'origin_port',rules: rulesInit('请输入起运港'), inputType:2 },
 					{ type: 'input',value: '',label: '目的港',placeholder: '请输入目的港',key: 'destination_port',rules: rulesInit('请输入目的港'), inputType:2 },
@@ -449,7 +449,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '人民币费用', type: 'edit', prop: 'cny_amount',
 		form: {
-			type: 'input',key: 'cny_amount',
+			type: 'input',key: 'cny_amount', inputType: 3
 		}
 	},
 	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '200px',
@@ -464,7 +464,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
 		form: {
-			type: 'input',key: 'usd_amount',
+			type: 'input',key: 'usd_amount', inputType: 3
 		}
 	},
 	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '200px',

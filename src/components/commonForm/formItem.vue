@@ -173,12 +173,13 @@
 				newItems.value = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 			} else if (newItems.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
 				newItems.value = val.replace(/[^a-zA-Z0-9\+\-\*\s]/g, "").toUpperCase();
-			} else if (newItems.inputType == 3) {
-				newItems.value = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
+			} else if (newItems.inputType == 3) {   //只能输入数字和.
+				newItems.value = val.replace(/[^0-9\.]/g, "").toUpperCase();
 			}
 		}else{
 			newItems.value = val;
 		}
+		saveData.value = newItems.value
 		
 		if(newItem.value.type=='select'||newItem.value.type=='selectSearch'){
 			var data = newItem.value.options.find((vv)=>{

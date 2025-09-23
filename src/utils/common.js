@@ -67,7 +67,7 @@ const setKeyInfo = () => {
 		keyInfo.disabledKey = ['finish_at','operation_user_id','commerce_user_id','container_type'];
 		keyInfo.defaultValue.operation_user_id = userStore().id;
 	}else if(role.indexOf('SUPER_ADMIN')>-1){  //超级管理员
-		keyInfo.disabledKey = ['finish_at','operation_user_id'];
+		keyInfo.disabledKey = ['finish_at','operation_user_id','commerce_user_id'];
 	}
 	console.log('role',role);
 	console.log('setKeyInfo',keyInfo);

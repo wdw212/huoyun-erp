@@ -69,8 +69,8 @@
 					<template #AccountsBtn="{saveData,formList}">
 						<div>
 							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作员确认！</span>
-							<el-button :type="fee_state?'success':'danger'" 
-							@click="fee_state=!fee_state">费用{{fee_state?'已':'未'}}完结</el-button>
+							<el-button :type="fee_state==1?'success':'danger'" 
+							@click="fee_state=fee_state==1?0:1">费用{{fee_state==1?'已':'未'}}完结</el-button>
 							<el-button type="primary" plain @click="addAccount()">添加明细</el-button>
 						</div>
 					</template>
@@ -115,7 +115,7 @@
 					
 					<!-- 提单信息 -->
 					<template #billInfo>
-						<BillForm ref="billForm"></BillForm>
+						<BillForm ref="billForm" @saveBill="saveBill"></BillForm>
 					</template>
 					
 					<!-- 文件上传 -->
@@ -145,6 +145,9 @@
 	import { queryParamsDocu, formList, AccountsColumn, amountFormDoc, rulesInit } from '@/utils/documents';
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getTT } from '@/api/commonList';
+	import {
+		ElButton
+	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -207,7 +210,19 @@
 		{label: '业务员', prop: 'business_user.name'},
 		{label: '提货', prop: 'is_delivery', formatter: (row)=> row.is_delivery === 1 ? '已提货' : '未提货'},
 		{label: '文件', prop: 'propcolumn'},
-		{label: '费用完结', prop: 'propcolumn'},
+		{label: '费用完结', prop: 'propcolumn', render: (row, index) => {
+			return [
+				h(ElButton, {
+						type: row.fee_state&&row.fee_state==1?'success':'danger',
+						size: 'small',
+						onClick: () => {},
+						style: {margin: '0px'},
+						key: row.id
+					},
+					() => (row.fee_state&&row.fee_state==1?'已完结':'未完结')
+				)
+			]
+		}},
 		{label: '创建时间', prop: 'created_at'},
 		{label: '备注', prop: 'remark'},
 		
@@ -217,16 +232,16 @@
 			actions: [
 				{
 					label: '修改',
-					onClick: (row) => handleEdit(row)
+					onClick: (row,index) => handleEdit(row,index)
 				},
 				{
 					label: '复制',
-					onClick: (row) => handleCopy(row)
+					onClick: (row,index) => handleCopy(row,index)
 				},
 				{
 					label: '删除',
 					type: 'danger',
-					onClick: (row) => handleDelete(row)
+					onClick: (row,index) => handleDelete(row,index)
 				},
 			],
 			fixed: "right",
@@ -238,7 +253,7 @@
 		requestMethod: httpGet,
 		isQuery: true
 	})
-	const fee_state = ref(false);   //费用完结状态
+	const fee_state = ref(0);   //费用完结状态
 	const addDocument = () => {
 		dialogFormVisible.value = true;
 		editId.value = '';
@@ -251,10 +266,8 @@
 			});
 			formListNew.value[2].formData[0].formItem[1].value = '';
 			formListNew.value[2].formData[0].formItem[1].remark = '';
-			proxy.$refs.commonForm.activeName = '操作单据';
-			proxy.$refs.accountTable.state.tableData = [];
+			resetInfo();
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
-			fee_state.value = false;
 			
 			addDelegation();
 		}, 200)
@@ -279,8 +292,19 @@
 			}, 500)
 		});
 	}
-	function saveDataShow(res, type){
+	function resetInfo(){
+		fee_state.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
+		containers.value = [];
+		proxy.$refs.accountTable.state.tableData = [];
+		order_files.value = [];
+		proxy.$refs.fileInfo.dafultFile([]);
+		billInfo.value = {};
+		proxy.$refs.billForm.updateBill({}, false)
+	}
+	function saveDataShow(res, type){
+		resetInfo();
+		
 		var data = {};
 		var nullKey = ['job_no','contract_no','finish_at','commerce_user_id','container_type'];
 		for(var key in proxy.$refs.commonForm.saveData){
@@ -300,12 +324,16 @@
 		if(data.shipping_company_id){
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id)||{};  //船公司
 		}
-		fee_state.value = data.fee_state||false;
+		fee_state.value = data.fee_state||0;
+		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+		//提单信息
+		billInfo.value = data.bl_info||{};
+		proxy.$refs.billForm.updateBill(billInfo.value, data.bl_info?true:false)
 		
 		proxy.$refs.commonForm.changeSave(data);
-		if((type==2&&!fee_state.value)||type==1){
+		if((type==2&&fee_state.value==0)||type==1){
 			var order_payments = res.order_payments;
-			if(type==2&&!fee_state.value){
+			if(type==2&&fee_state.value==0){
 				order_payments.forEach((vv)=>{
 					vv.cny_invoice_number = '';
 					vv.usd_invoice_number = '';
@@ -320,12 +348,26 @@
 			proxy.$refs.boxInfo.defaultBox(res.containers);
 			order_files.value = res.order_files;  //文件
 			proxy.$refs.fileInfo.dafultFile(res.order_files);
+		}else{
+			proxy.$refs.boxInfo.addBox(true); //箱子数据
 		}
-		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+		updateKeyRemark(data);
+	}
+	//更新表单字段备注信息
+	function updateKeyRemark(data){
+		var remarkList = {
+			entered_port_wharf_id: [2,10],
+		}
+		// console.log('更新表单字段备注信息', formListBox.value[0])
+		for(var key in remarkList){
+			var item = formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]];
+			var dataNew = item.options?item.options.find(v=>{return v.id == data[key]}):{};
+			formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]].remark = dataNew?dataNew.remark:'';
+		}
 	}
 	//单据删除
 	const deleteIds = ref([]);
-	function handleDelete(row) {
+	function handleDelete(row, index) {
 		const _ids = row.id || deleteIds.value;
 		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
 			return httpDelete('/orders/'+_ids);
@@ -378,9 +420,9 @@
 		var data = {
 			company_header_id: null,
 			no_invoice_remark: null,
-			cny_amount: '0.00',
+			cny_amount: 0.00,
 			cny_invoice_number:null,
-			usd_amount: '0.00',
+			usd_amount: 0.00,
 			usd_invoice_number: null,
 			// contact_phone: null,
 			// contact_person: null,
@@ -395,13 +437,16 @@
 		// console.log('accountsDelete', row, rowIndex)
 	}
 	function tableItemChangeAccounts(item, index){
-		console.log('tableItemChangeAccounts', item, index)
-		var tableData = proxy.$refs.accountTable.state.tableData;
-		var dataNew = item.options?item.options.find(v=>{return v.id == tableData[index][item.key]}):{};
+		// console.log('tableItemChangeAccounts', item, index)
+		var tableData = proxy.$refs.accountTable.state.tableData[index];
+		var dataNew = item.options?item.options.find(v=>{return v.id == tableData[item.key]}):{};
 		if(item.key=='company_header_id'){
-			tableData[index].remark = dataNew.remark||''
+			tableData.remark = dataNew.remark||''
 		}
-		proxy.$refs.accountTable.updateTableData(tableData);
+		tableData[item.key] = item.value;
+		proxy.$refs.accountTable.state.tableData[index] = tableData;
+		console.log('tableItemChangeAccounts-tableData', tableData)
+		// proxy.$refs.accountTable.updateTableData(tableData);
 		countAccounts();
 	}
 	function countAccounts (){
@@ -464,10 +509,15 @@
 					boxInfo: containers.value,
 					shipCompany: shipCompany.setTime
 				};
-				console.log('tab变化', tab=='提单信息', proxy.$refs.billForm);
+				// console.log('tab变化', tab=='提单信息', proxy.$refs.billForm);
 				proxy.$refs.billForm.openBill(false, saveData, seletData.value);
-			}, 500)
+			}, 300)
 		}
+	}
+	//提单信息变更
+	const billInfo = ref({});
+	const saveBill = (val) => {
+		billInfo.value = val;
 	}
 	//单独字段操作
 	const itemChange = (data, val, item) => {
@@ -512,7 +562,7 @@
 		}
 		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
 		proxy.$refs.commonForm.changeSave(updateData);
-		console.log('编辑字段:cutoff_at', data, proxy.$refs.commonForm.saveData)
+		// console.log('编辑字段:cutoff_at', data, proxy.$refs.commonForm.saveData)
 	}
 	
 	// 单据信息提交
@@ -524,8 +574,9 @@
 			containers: containers.value,
 			order_payments: order_payments,
 			order_files: order_files.value,
+			bl_info: billInfo.value
 		}
-		var strKey = ['booking_info','order_delegation_header','order_payments','containers','order_files'];
+		var strKey = ['booking_info','order_delegation_header','order_payments','containers','order_files','bl_info'];
 		strKey.forEach((item)=>{
 			if(params[item]&&JSON.stringify(params[item])!='[]'&&JSON.stringify(params[item])!='{}'){
 				params[item] = JSON.stringify(params[item]);

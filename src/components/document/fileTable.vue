@@ -8,7 +8,7 @@
 		</el-upload>
 		
 		<el-table :data="order_files" border  style="margin-top: 20px;">
-			<el-table-column label="文件名" align="center" prop="name" />
+			<el-table-column label="文件名" align="center" prop="file" />
 			<el-table-column label="大小" align="center" prop="size">
 				<template #default="scope">
 					{{ (scope.row.size / 1024).toFixed(2) }} KB
@@ -22,12 +22,12 @@
 				</template>
 			</el-table-column>
 			<el-table-column label="操作" align="center" width="280"
-				class-name="small-padding fixed-width">
+				class-name="small-padding">
 				<template #default="scope">
-					<el-button type="success"
+					<el-button type="success" size="small"
 						v-if="order_files[scope.$index].status === 'success'"
-						@click="toUploadFile(form.order_files[scope.$index].url)">查看详情</el-button>
-					<el-button plain type="danger" icon="Delete"
+						@click="toUploadFile(fileList[scope.$index].url)">查看详情</el-button>
+					<el-button plain type="danger" size="small" icon="Delete"
 						@click="removeFile(scope.$index)">删除</el-button>
 				</template>
 			</el-table-column>
@@ -49,7 +49,7 @@
 		// 更新文件列表
 		// this.fileList = uploadFiles.map(file => file.raw);
 		// console.log(uploadFiles);
-		// console.log(order_files.value);
+		// console.log('更新文件列表', uploadFile, uploadFiles);
 	}
 	
 	// 手动触发上传
@@ -58,7 +58,7 @@
 	}
 	
 	const handleUploadSuccess = (response) => {
-		console.log('上传成功:', response);
+		console.log('上传成功:', order_files.value, response);
 		fileList.value.push({
 			file: response.path,
 			url: response.url
@@ -70,7 +70,7 @@
 		console.error('上传失败:', error);
 	};
 	const removeFile = (index) => {
-		console.log(order_files.value);
+		// console.log(order_files.value);
 		order_files.value.splice(index, 1) // 从本地文件列表中移除
 		fileList.value.splice(index, 1) // 从本地文件列表中移除
 		emit('uploadFile', fileList.value);
@@ -82,6 +82,8 @@
 	
 	function dafultFile(file) {
 		fileList.value = file?file:[];
+		order_files.value = file?file:[];
+		console.log('dafultFile', order_files.value);
 	}
 	
 	const emit = defineEmits(['uploadFile'])

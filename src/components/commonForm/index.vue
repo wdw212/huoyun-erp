@@ -289,8 +289,8 @@
 				newVal = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 			} else if (item.inputType == 2) {   //英文自动大写，+-*/空格，不要输入中文
 				newVal = val.replace(/[^a-zA-Z0-9\+\-\*\s\,\.]/g, "").toUpperCase();
-			} else if (item.inputType == 3) {
-				newVal = val.replace(/[^a-zA-Z0-9+\-*,， ]/g, "").toUpperCase();
+			} else if (item.inputType == 3) {   //只能输入数字和.
+				newVal = val.replace(/[^0-9\.]/g, "").toUpperCase();
 			}
 		}
 		if(item.popover){  //预览
