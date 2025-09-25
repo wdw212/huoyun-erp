@@ -216,6 +216,9 @@
 		state.boxIndex = state.boxList.length-1;
 		proxy.$refs.boxInfoForm.changeSave(data);
 		var timeInter = setInterval(function(){
+			if(isNew){
+				proxy.$refs.packForm.reset(true);
+			}
 			if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
 				proxy.$refs.tableListJMT.state.tableData = data.container_items||[];
 				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_addresses||[];
@@ -223,7 +226,8 @@
 			}
 		}, 500)
 		updateKeyRemark(data);
-		console.log('boxList新增', state.boxIndex, state.boxList)
+		emit('boxInfoChange', state.boxList);
+		// console.log('boxList新增', state.boxIndex, state.boxList)
 	}
 	// 切换选中箱号
 	const changeBox = (index) => {
@@ -234,6 +238,7 @@
 		proxy.$refs.tableListJMT.state.tableData = val.container_items;
 		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_addresses;
 		updateKeyRemark(state.boxList[index]);
+		openPackForm(false);
 		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号

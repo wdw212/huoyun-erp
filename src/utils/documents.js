@@ -416,7 +416,7 @@ export const formList = ref([
 		formData:[
 			{
 				soltName: 'fileInfo',
-				noCard: true
+				// noCard: true
 			}
 		]
 	},

@@ -8,7 +8,11 @@
 		</el-upload>
 		
 		<el-table :data="order_files" border  style="margin-top: 20px;">
-			<el-table-column label="文件名" align="center" prop="file" />
+			<el-table-column label="文件名" align="center">
+				<template #default="scope">
+					{{scope.row.file||scope.row.name}}
+				</template>
+			</el-table-column>
 			<el-table-column label="大小" align="center" prop="size">
 				<template #default="scope">
 					{{ (scope.row.size / 1024).toFixed(2) }} KB

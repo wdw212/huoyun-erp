@@ -246,7 +246,7 @@
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none" width="900">
 							<div class="sub-tit">(2)Shipper/ Exporter</div>
-								<div style="color: #222;">{{sender_id&&SENDER_LIST.find(v=> v.id==sender_id)&&SENDER_LIST.find(v=> v.id==sender_id).name}}</div>
+								<!-- <div style="color: #222;">{{sender_id&&SENDER_LIST.find(v=> v.id==sender_id)&&SENDER_LIST.find(v=> v.id==sender_id).name}}</div> -->
 
 							<div class="mt10 mb10 font-black">
 								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ sender_info }}</div>
@@ -269,7 +269,7 @@
 					<tr>
 						<td colspan="2" class="bl-none">
 							<div class="sub-tit">(3)Consignee(complete name and address)</div>
-								<div style="color: #222;">{{receiver_id&&RECEIVE_LIST.find(v=> v.id==receiver_id)&&RECEIVE_LIST.find(v=> v.id==receiver_id).name}}</div>
+								<!-- <div style="color: #222;">{{receiver_id&&RECEIVE_LIST.find(v=> v.id==receiver_id)&&RECEIVE_LIST.find(v=> v.id==receiver_id).name}}</div> -->
 							<div class="mt10 mb10 font-black">
 								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ receiver_info }}</div>
 							</div>
@@ -284,7 +284,7 @@
 					<tr>
 						<td rowspan="2" colspan="2" class="bl-none">
 							<div class="sub-tit">(4) Notify Party (complete name and address)</div>
-								<div style="color: #222;">{{notifier_id&&NOTIFER_LIST.find(v=> v.id==notifier_id)&&NOTIFER_LIST.find(v=> v.id==notifier_id).name}}</div>
+								<!-- <div style="color: #222;">{{notifier_id&&NOTIFER_LIST.find(v=> v.id==notifier_id)&&NOTIFER_LIST.find(v=> v.id==notifier_id).name}}</div> -->
 							<div class="mt10 mb10 font-black">
 								<div style="width: 440px;white-space: pre-wrap;min-height: 120px;">{{ notifier_info }}</div>
 							</div>
@@ -553,7 +553,7 @@
 		gross_weight.value = data.gross_weight||'';
 		volume.value = data.volume||'';
 		saveState.value = state;
-		// console.log('updateBill提单数据', data);
+		console.log('updateBill提单数据', data, state);
 	}
 
 	const radio3 = ref("FREIGHT_PREPAID")

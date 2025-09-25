@@ -257,16 +257,15 @@
 	const addDocument = () => {
 		dialogFormVisible.value = true;
 		editId.value = '';
-		containers.value = [];
-		order_files.value = [];
 		setTimeout(function(){
+			resetInfo();
+			
 			proxy.$refs.commonForm.resetKey(formListNew.value, true);
 			proxy.$refs.commonForm.changeSave({
 				'order_delegation_header.remark': [],
 			});
 			formListNew.value[2].formData[0].formItem[1].value = '';
 			formListNew.value[2].formData[0].formItem[1].remark = '';
-			resetInfo();
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
 			
 			addDelegation();
@@ -324,11 +323,11 @@
 		if(data.shipping_company_id){
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id)||{};  //船公司
 		}
-		fee_state.value = data.fee_state||0;
+		fee_state.value = res.fee_state||0;
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 		//提单信息
-		billInfo.value = data.bl_info||{};
-		proxy.$refs.billForm.updateBill(billInfo.value, data.bl_info?true:false)
+		billInfo.value = res.bl_info||{};
+		proxy.$refs.billForm.updateBill(billInfo.value, res.bl_info?true:false)
 		
 		proxy.$refs.commonForm.changeSave(data);
 		if((type==2&&fee_state.value==0)||type==1){
@@ -574,7 +573,8 @@
 			containers: containers.value,
 			order_payments: order_payments,
 			order_files: order_files.value,
-			bl_info: billInfo.value
+			bl_info: billInfo.value,
+			fee_state: fee_state.value
 		}
 		var strKey = ['booking_info','order_delegation_header','order_payments','containers','order_files','bl_info'];
 		strKey.forEach((item)=>{
