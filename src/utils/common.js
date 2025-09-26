@@ -64,10 +64,10 @@ const keyInfo = {
 }
 const setKeyInfo = () => {
 	if(role.indexOf('OPERATE')>-1){  //操作员
-		keyInfo.disabledKey = ['finish_at','operation_user_id','commerce_user_id','container_type'];
-		keyInfo.defaultValue.operation_user_id = userStore().id;
+		keyInfo.disabledKey = ['finish_at','operate_user_id','commerce_user_id','container_type'];
+		keyInfo.defaultValue.operate_user_id = userStore().id;
 	}else if(role.indexOf('SUPER_ADMIN')>-1){  //超级管理员
-		keyInfo.disabledKey = ['finish_at','operation_user_id','commerce_user_id'];
+		keyInfo.disabledKey = ['finish_at','operate_user_id','commerce_user_id'];
 	}
 	console.log('role',role);
 	console.log('setKeyInfo',keyInfo);

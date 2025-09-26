@@ -140,7 +140,7 @@
 	const formListBox = ref([]);
 	
 	onMounted(async () => {
-		console.log('boxInfo', props);
+		// console.log('boxInfo', props);
 		MT.value = await getMT();
 		CHD.value = await getCHD();
 		XZLX.value = await getXZLX();
@@ -180,7 +180,6 @@
 		if(isNew){
 			state.boxList = [];
 			state.saveData = {};
-			proxy.$refs.packForm.reset(true);
 		}
 		var data = {
 			cargo_weight: null,
@@ -266,7 +265,7 @@
 				}
 			}, 500)
 		}
-		console.log('boxList-箱子数据回显', state.boxList)
+		// console.log('boxList-箱子数据回显', state.boxList)
 	}
 	//单据数据更新
 	const updateSaveData = (data, options) => {
@@ -348,14 +347,18 @@
 		}
 		
 		// 柜型统计
-		var containerInfo = [];
+		var containerKey = {};
 		if(item.key=='container_type_id'){
 			state.boxList.forEach((vv,ii)=>{
 				var container = item.options?item.options.find(v=>{return v.id == vv.container_type_id}):{};
 				if(container&&container.id){
-					containerInfo.push(container.name)
+					containerKey[container.name] = containerKey[container.name]?containerKey[container.name]+1:1;
 				}
 			})
+			var containerInfo = [];
+			for(var key in containerKey){
+				containerInfo.push(containerKey[key]+'*'+key);
+			}
 			emit('containerInfo', containerInfo.join(';'));
 		}
 		emit('boxInfoChange', newBox);

@@ -231,7 +231,7 @@
 			<el-button type="primary" @click="open = true">提单预览</el-button>
 			<el-button @click="downLoad(1)">订舱托书</el-button>
 			<el-button @click="downLoad(2)">提单确认件</el-button>
-			<el-button type="primary" @click="save">保存</el-button>
+			<el-button type="primary" @click="save(1)">保存</el-button>
 		</div>
 	</div>
 
@@ -509,8 +509,7 @@
 		}
 		// console.log('billForm提单数据', saveData.value);
 	}
-	function save(){
-		saveState.value = true;
+	function save(type){
 		var newData = {
 			sender_id: sender_id.value,
 			receiver_id: receiver_id.value,
@@ -530,8 +529,13 @@
 			gross_weight: gross_weight.value,
 			volume: volume.value,
 		}
-		emit('saveBill', newData);
-		proxy.$modal.msgSuccess("保存成功");
+		if(type==1){  //当前页面保存
+			saveState.value = true;
+			emit('saveBill', newData);
+			proxy.$modal.msgSuccess("保存成功");
+		}else{   //只要保存数据
+			return newData;
+		}
 	}
 	const updateBill = (data, state) => {
 		sender_id.value = data.sender_id||'';
@@ -553,7 +557,7 @@
 		gross_weight.value = data.gross_weight||'';
 		volume.value = data.volume||'';
 		saveState.value = state;
-		console.log('updateBill提单数据', data, state);
+		// console.log('updateBill提单数据', data, state);
 	}
 
 	const radio3 = ref("FREIGHT_PREPAID")
@@ -720,7 +724,8 @@
 	const emit = defineEmits(['saveBill'])
 	defineExpose({
 		openBill,
-		updateBill
+		updateBill,
+		save
 	})
 </script>
 

@@ -94,11 +94,12 @@ service.interceptors.response.use(res => {
 		// 未设置状态码则默认成功状态
 		const code = res.status || 200;
 		// 获取错误信息
-		const msg = errorCode[code] || res.data.message || errorCode['default']
+		const msg = res.data.message || errorCode[code] || errorCode['default']
 		// 二进制数据则直接返回
 		// if (res.request.responseType === 'blob' || res.request.responseType === 'arraybuffer') {
 		// 	return res.data
 		// }
+		// console.log('获取错误信息', msg, res)
 		if (code === 401) {
 			if (!isRelogin.show) {
 				isRelogin.show = true;

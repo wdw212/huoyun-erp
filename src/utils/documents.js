@@ -209,7 +209,7 @@ export const queryParams = ref([
 		type: 'select',
 		value: '',
 		placeholder: '操作员',
-		key: 'operation_user_id',
+		key: 'operate_user_id',
 		labelName: 'name',
 		valueName: 'id',
 		options: []
@@ -329,7 +329,7 @@ export const formList = ref([
 					{ type: 'input',value: '',label: '合同号',placeholder: '请输入合同号',key: 'contract_no' },
 					{ type: 'date',value: '',label: '归属时间',placeholder: '请选择归属时间',key: 'finish_at', dateType: 'date' },
 					{ type: 'select',value: '',label: '业务员',placeholder: '请选择业务员',key: 'business_user_id',options: [],rules: rulesInit('请选择业务员', 1),labelName: 'name', valueName: 'id',filterable: true },
-					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operation_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
+					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operate_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'select',value: '',label: '单证员',placeholder: '请选择单证员',key: 'document_user_id',options: [],rules: rulesInit('请选择单证员', 1),labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'select',value: '',label: '商务',placeholder: '请选择商务',key: 'commerce_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'select',value: '',label: '船公司',placeholder: '请选择船公司',key: 'shipping_company_id',options: [],labelName: 'name', valueName: 'id',filterable: true },

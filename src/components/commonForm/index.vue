@@ -222,7 +222,7 @@
 						if (saveData[vv.key]&&JSON.stringify(saveData[vv.key])!='[]'&&!reset) {
 							data[vv.key] = saveData[vv.key];
 						} else {
-							data[vv.key] = vv.defaultValue || vv.value || '';
+							data[vv.key] = vv.value || vv.defaultValue || '';
 						}
 					})
 				}
