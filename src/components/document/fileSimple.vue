@@ -84,6 +84,20 @@
 	});
 	const uploadRef = ref();
 	
+	watch(()=>props.modelValue, (newVal, oldVal) => {
+		if(props.uploadType==1){
+			order_files.value = newVal?.url?[newVal]:[];
+			file.value.path = newVal?.path||'';
+			file.value.url = newVal?.url||'';
+		}else{
+			order_files.value = newVal||[];
+			fileList.value = newVal||[];
+		}
+		console.log('props.modelValue-上传信息', newVal, oldVal, order_files.value)
+	}, {
+		deep: true
+	})
+	
 	onMounted(()=>{
 		
 	})
@@ -97,32 +111,44 @@
 	}
 	
 	const handleUploadSuccess = (response) => {
-		console.log('上传成功:', response);
 		if(props.uploadType==1){
 			file.value.path = response.path;
 			file.value.url = response.url;
+			emit('uploadFile', file.value);
 		}else{
 			fileList.value.push({
 				file: response.path,
 				url: response.url
 			})
+			emit('uploadFile', fileList.value);
 		}
-		emit('uploadFile', props.uploadType==1?file.value:fileList.value);
+		console.log('上传成功:', response, order_files.value);
 	};
 	
 	const handleUploadError = (error) => {
 		console.error('上传失败:', error);
 	};
 	const removeFile = (index) => {
-		console.log(order_files.value);
+		// console.log(order_files.value);
 		order_files.value.splice(index, 1) // 从本地文件列表中移除
 		if(props.uploadType==1){
 			file.value.path = '';
 			file.value.url = ''; // 从本地文件列表中移除
+			emit('uploadFile', file.value);
 		}else{
 			fileList.value.splice(index, 1) // 从本地文件列表中移除
+			emit('uploadFile', fileList.value);
 		}
-		emit('uploadFile', props.uploadType==1?file.value:fileList.value);
+	}
+	
+	const clearFile = () => {
+		order_files.value = [];
+		if(props.uploadType==1){
+			file.value.path = '';
+			file.value.url = ''; // 从本地文件列表中移除
+		}else{
+			fileList.value = []; // 从本地文件列表中移除
+		}
 	}
 	
 	function toUploadFile(url) {

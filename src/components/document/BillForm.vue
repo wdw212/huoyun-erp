@@ -231,7 +231,7 @@
 			<el-button type="primary" @click="open = true">提单预览</el-button>
 			<el-button @click="downLoad(1)">订舱托书</el-button>
 			<el-button @click="downLoad(2)">提单确认件</el-button>
-			<el-button type="primary" @click="save(1)">保存</el-button>
+			<!-- <el-button type="primary" @click="save(1)">保存</el-button> -->
 		</div>
 	</div>
 

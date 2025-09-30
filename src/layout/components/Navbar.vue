@@ -77,11 +77,13 @@
 	import useAppStore from '@/store/modules/app'
 	import useUserStore from '@/store/modules/user'
 	import useSettingsStore from '@/store/modules/settings'
+	import useTableMenuStore from "@/store/modules/tableMenu";
 	import noticesLook from '@/views/system/notices/component/notices-look'	
 	import messagePopup from '@/views/system/messages/component/popup'	
 
 	const appStore = useAppStore()
 	const userStore = useUserStore()
+	const tableMenu = useTableMenuStore();
 	const settingsStore = useSettingsStore()
 
 	function toggleSideBar() {
@@ -111,6 +113,7 @@
 			userStore.logOut().then(() => {
 				location.href = '/index';
 			})
+			tableMenu.clearMenu();
 		}).catch(() => {});
 	}
 

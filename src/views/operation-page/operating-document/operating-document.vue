@@ -5,12 +5,12 @@
 		<search-top ref="searchTop" :queryParams="queryParamsDocu" @search="searchConfirm"></search-top>
 
 		<!-- 表格 -->
-		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList">
+		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
 			<template #headerCon></template>
 			<template #headerLeft> </template>
 			<template #headerRight>
-				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1">新增</el-button>
-				<el-button type="danger" plain icon="Delete" @click="" class="mb-1 mr-1" disabled>批量删除</el-button>
+				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1 mr-1">新增</el-button>
+				<!-- <el-button type="danger" plain icon="Delete" @click="" class="mb-1 mr-1" disabled>批量删除</el-button> -->
 			</template>
 		</table-list>
 
@@ -153,7 +153,7 @@
 		h,
 		getCurrentInstance
 	} from "vue";
-	import SearchTop from "@/components/searchTop/index";
+	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import DropBox from "@/components/document/dropBox";
@@ -226,7 +226,7 @@
 	onMounted(async () => {
 		// queryParamsDocu.value[11].options = YWY.value;
 		// queryParamsDocu.value[12].options = CZY.value;
-
+		
 		keyStatus(formList.value, '操作单据', function(form, options) {
 			formListNew.value = form;
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc
@@ -265,7 +265,11 @@
 		},
 		{
 			label: '委托抬头',
-			prop: 'propcolumn'
+			prop: 'company_name',
+			formatter: (row) => {
+				var company_name = row?.orderDelegationHeader?.company_header?.company_name || ''
+				return company_name
+			}
 		},
 		{
 			label: '操作模式',
@@ -298,7 +302,7 @@
 		{
 			label: '提货',
 			prop: 'is_delivery',
-			formatter: (row) => row.is_delivery === 1 ? '已提货' : '未提货'
+			formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货')
 		},
 		{
 			label: '文件',
@@ -324,29 +328,29 @@
 			}
 		},
 		{
-			label: '创建时间',
-			prop: 'created_at'
+			label: '归属时间',
+			prop: 'finish_at',
+			formatter: (row) => row.finish_at ? row.finish_at.substring(0,10) : ''
 		},
 		{
 			label: '备注',
-			prop: 'remark',
+			prop: 'order_remark',
 			render: (row, index) => {
 				return [
-					h(ElButton, {
-							type: 'text',
-							size: 'small',
-							onClick: () => {
-								remarkVisible.value = true;
-								editId.value = row.id;
-								remark.value = row.order_remark;
-							},
-							style: {
-								margin: '0px'
-							},
-							key: row.id
+					h('div', {
+						class: 'avoidOverflow2',
+						style: {
+							margin: '0px',
+							cursor: 'pointer',
+							color: row.order_remark?'#000':'#888',
+							width: '50px',
 						},
-						() => '点击查看'
-					)
+						onClick: () => {
+							remarkVisible.value = true;
+							editId.value = row.id;
+							remark.value = row.order_remark;
+						},
+					}, row.order_remark||'暂无')
 				]
 			}
 		},
@@ -374,7 +378,14 @@
 	const tableConfig = ref({
 		url: '/orders',
 		requestMethod: httpGet,
-		isQuery: true
+		isQuery: true,
+		tableRowClassName: (row, rowIndex) => {
+			console.log('列表类名', row.id, rowIndex)
+			if(row.is_delivery===2){
+				return 'danger-row'
+			}
+			return '';
+		}
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
@@ -386,9 +397,9 @@
 		}else{
 			httpPut(`/orders/${editId.value}/payment-finish`).then(res => {
 				payment_status.value = 1;
-				// proxy.$refs.commonForm.changeSave({
-				// 	'finish_at': res.data
-				// });
+				proxy.$refs.commonForm.changeSave({
+					'finish_at': res?.finish_at||''
+				});
 			});
 		}
 	}
@@ -405,6 +416,7 @@
 			formListNew.value[2].formData[0].formItem[1].value = '';
 			formListNew.value[2].formData[0].formItem[1].remark = '';
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
+			updateKeyRemark(proxy.$refs.commonForm.saveData);
 
 			addDelegation();
 		}, 200)
@@ -439,6 +451,7 @@
 		proxy.$refs.fileInfo.dafultFile([]);
 		billInfo.value = {};
 		proxy.$refs.billForm.updateBill({}, false)
+		shipCompany.value = {};
 	}
 
 	function saveDataShow(res, type) {
@@ -446,16 +459,19 @@
 
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
+		var defaultKey = ['insurance', 'is_delivery', 'is_finish', 'is_allowed'];  //保持默认不变的值
 		for (var key in proxy.$refs.commonForm.saveData) {
-			if (key.indexOf('.') > -1) {
-				var keys = key.split('.');
-				var keyData = res[keys[0]]?.[keys[1]] || '';
-				data[key] = keyData === 0 ? '0' : (keys[1] == 'remark' ? keyData || [] : keyData || '');
-			} else {
-				data[key] = res[key] === 0 ? '0' : res[key];
-			}
-			if (type == 2 && nullKey.indexOf(key) > -1) {
-				data[key] = '';
+			if(!(type==2&&defaultKey.indexOf(key) > -1)){
+				if (key.indexOf('.') > -1) {
+					var keys = key.split('.');
+					var keyData = res[keys[0]]?.[keys[1]] || '';
+					data[key] = keyData === 0 ? '0' : (keys[1] == 'remark' ? keyData || [] : keyData || '');
+				} else {
+					data[key] = res[key] === 0 ? '0' : res[key];
+				}
+				if (type == 2 && nullKey.indexOf(key) > -1) {
+					data[key] = '';
+				}
 			}
 		}
 		// console.log('单据数据', data)
@@ -505,7 +521,6 @@
 		var remarkList = {
 			entered_port_wharf_id: [2, 10],
 		}
-		// console.log('更新表单字段备注信息', formListBox.value[0])
 		for (var key in remarkList) {
 			var item = formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]];
 			var dataNew = item.options ? item.options.find(v => {
@@ -730,6 +745,10 @@
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('单据信息提交:', data)
+		if(containers.value.findIndex(v=>{return !v.container_type_id})>-1){
+			proxy.$modal.msgWarning("请完善箱子信息!");
+			return;
+		}
 		var order_payments = proxy.$refs.accountTable.state.tableData
 		var params = {
 			...data,

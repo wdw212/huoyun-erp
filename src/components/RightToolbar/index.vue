@@ -80,7 +80,7 @@
 
 	// 刷新
 	function refresh() {
-		emits("queryTable");
+		emits("queryTable", 1);
 	}
 
 	// 右侧列表元素变化
@@ -108,6 +108,7 @@
 	// 勾选
 	function checkboxChange(event, label) {
 		props.columns.filter(item => item.label == label)[0].visible = event;
+		emits("queryTable", 2);
 	}
 </script>
 

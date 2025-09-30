@@ -23,7 +23,7 @@
 
 <script setup name="ProfitStatistics">
 	import { ref, onMounted, h } from "vue";
-	import SearchTop from "@/components/searchTop/index";
+	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import { httpPost, httpGet } from '@/api/apiCommon'
 	

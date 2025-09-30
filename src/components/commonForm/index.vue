@@ -311,7 +311,7 @@
 			}
 		}
 		Object.assign(saveData, data);
-		// console.log('changeSave-回显', saveData);
+		console.log('changeSave-回显', saveData);
 	}
 	
 	// 上传文件
@@ -319,6 +319,7 @@
 		var data = JSON.parse(JSON.stringify(saveData));
 		data[item.key] = val;
 		Object.assign(saveData, data);
+		console.log('uploadFileSimple', saveData, val, item);
 		emit('itemChange', data, val, item);
 	}
 

@@ -19,8 +19,9 @@ export const queryParamsDocu = ref([
 	{
 		type: 'input',
 		value: '',
-		placeholder: '编号、提单号、分箱数据',
-		key: 'keyword'
+		placeholder: '工作编号、合同号、提单号、目的港、箱号、封号、订舱及备注、列表备注',
+		key: 'keyword',
+		style: 'width: 350px'
 	},
 	{
 		type: 'date',
@@ -289,8 +290,8 @@ const commonInfo = [
 // 操作单据合计
 export const amountFormDoc = ref([
 	{ type: 'textarea',value: '',label: '整单备注',key: 'remark', span: 24 },
-	{ type: 'input',value: '',label: '总计人民币￥',key: 'cny_amount_total', span: 6, disabled: true },
-	{ type: 'input',value: '',label: '总计美金$',key: 'usd_amount_total', span: 6, disabled: true },
+	{ type: 'input',value: '',label: '总计人民币￥',key: 'cny_amount_total', span: 6, disabled: true, placeholder: ' '},
+	{ type: 'input',value: '',label: '总计美金$',key: 'usd_amount_total', span: 6, disabled: true, placeholder: ' ' },
 ])
 
 //财务单据合计信息
@@ -359,7 +360,7 @@ export const formList = ref([
 			{
 				label: '委托抬头',
 				formItem: [
-					{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [],labelName: 'name', valueName: 'id',span: 6 },
+					{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [],labelName: 'name', valueName: 'id',span: 6,rules: rulesInit('请选择销货单位', 1) },
 					{ type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [],  labelName: 'company_name', valueName: 'id', filterable: true, labelWidth: '80px', afterSolt: 'addHeader',span: 10 },
 					{ type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true,span: 8 },
 					{ type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true,span: 8 },
@@ -389,7 +390,7 @@ export const formList = ref([
 					{ type: 'select',value: '',label: '保险',placeholder: '请选择保险',key: 'insurance',options: optionsComm['保险'], defaultValue: '0' },
 					{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'is_delivery',options: optionsComm['提货'], defaultValue: 1 },
 					{ label: '落箱数据', soltName: 'template11' },
-					{ type: 'select',value: '',label: '结单状态',placeholder: '请选择结单状态',key: 'is_finish',options: optionsComm['完结状态'] },
+					{ type: 'select',value: '',label: '结单状态',placeholder: '请选择结单状态',key: 'is_finish',options: optionsComm['完结状态'], defaultValue: '0' },
 					{ type: 'select',value: '',label: '提单状态',placeholder: '请选择提单状态',key: 'bl_status',options: optionsComm['提单状态'], defaultValue: '0' },
 					{ type: 'select',value: '',label: '是否放行',placeholder: '请选择是否放行',key: 'is_allowed',options: optionsComm['放行'], defaultValue: '0' },
 					{ span: 12 },
@@ -454,7 +455,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '人民币发票号', type: 'edit', prop: 'cny_invoice_number',width: '200px',
 		form: {
-			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true
+			type: 'input',key: 'cny_invoice_number',clearable:true,popover:true,placeholder: ' '
 		}
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
@@ -469,7 +470,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '美金发票号', type: 'edit', prop: 'usd_invoice_number',width: '200px',
 		form: {
-			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true
+			type: 'input',key: 'usd_invoice_number',clearable:true,popover:true,placeholder: ' '
 		}
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,

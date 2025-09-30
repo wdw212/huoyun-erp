@@ -139,11 +139,13 @@ service.interceptors.response.use(res => {
 		}
 	},
 	error => {
-		console.log('err' + error)
+		// console.log('err', error)
 		let {
 			message
 		} = error;
-		if (message == "Network Error") {
+		if(error?.response?.data?.message){
+			message = error.response.data.message;
+		}else if (message == "Network Error") {
 			message = "后端接口连接异常";
 		} else if (message.includes("timeout")) {
 			message = "系统接口请求超时";

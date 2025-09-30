@@ -125,7 +125,7 @@
 
 <script setup name="FinancialDocuments">
 	import { ref, onMounted, h, getCurrentInstance } from "vue";
-	import SearchTop from "@/components/searchTop/index";
+	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import BoxInfo from "@/components/document/boxInfo";

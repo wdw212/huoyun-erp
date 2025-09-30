@@ -9,12 +9,14 @@
 			</div>
 			<div class="flex">
 				<slot name="headerRight"></slot>
-				<right-toolbar @queryTable="getList" :columns="columns" v-show="toolbar"></right-toolbar>
+				<right-toolbar @queryTable="queryTable" :columns="columns" v-show="toolbar"></right-toolbar>
 			</div>
 		</div>
 
 		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange"
-			:row-key="rowKey" :max-height="height" :border="border" :size="size" style="font-size: 12px;">
+			:row-key="rowKey" :max-height="height" :border="border" :size="size"
+			:row-class-name="(row,rowIndex)=>tableRowClassName(row,rowIndex)"
+			style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
 			<template v-for="(item,index) in tableColumn" :key="index">
@@ -70,7 +72,7 @@
 		computed,
 		defineComponent
 	} from "vue";
-	import SearchTop from "@/components/searchTop/index";
+	import SearchTop from "@/components/searchTop/searchTop";
 	import Pagination from "@/components/Pagination";
 	import RightToolbar from "@/components/RightToolbar";
 	import {
@@ -81,6 +83,7 @@
 		httpPost,
 		httpGet
 	} from '@/api/apiCommon';
+	import useTableMenuStore from "@/store/modules/tableMenu";
 
 	const props = defineProps({
 		tableConfig: {},
@@ -124,6 +127,13 @@
 		},
 	})
 
+	const tableRowClassName = ({row, rowIndex}) => {
+		if(props.tableConfig.tableRowClassName){
+			return props.tableConfig.tableRowClassName(row, rowIndex)
+		}
+		return '';
+	};
+
 	onMounted(() => {
 		// console.log('tableColumn', props.tableColumn);
 		Object.assign(state.tableData, []);
@@ -143,7 +153,6 @@
 	}, {
 		deep: true
 	})
-
 	function init() {
 		if (props.toolbar) {
 			columnsInit();
@@ -187,18 +196,36 @@
 		});
 	}
 
+	const tableMenu = useTableMenuStore(); //缓存中的列表设置数据
+	const route = useRoute();
+
 	const columns = ref([]);
-	const columnsInit = () => {
+	const columnsInit = (reset) => {
 		columns.value = [];
-		props.tableColumn.forEach((item, index) => {
-			if (item.prop != 'actions') {
-				columns.value.push({
-					key: index,
-					label: item.label,
-					visible: true
-				})
-			}
-		})
+		// console.log('tableMenu', route.name, tableMenu.menuList);
+		if (!reset && tableMenu.menuList && tableMenu.menuList[route.name]) {
+			columns.value = tableMenu.menuList[route.name];
+		} else {
+			props.tableColumn.forEach((item, index) => {
+				if (item.prop != 'actions') {
+					columns.value.push({
+						key: index,
+						label: item.label,
+						visible: true
+					})
+				}
+			})
+			tableMenu.updateMenu(route.name, columns.value);
+		}
+	}
+	//列设置信息更新
+	const queryTable = (type) => {
+		// console.log('列设置信息更新');
+		if (type == 2) {
+			tableMenu.updateMenu(route.name, columns.value);
+		} else {
+			getList();
+		}
 	}
 
 	const itemChange = (item, index) => {
@@ -276,7 +303,7 @@
 		},
 		setup(props) {
 			return () => h('div', {
-					class: 'action-buttons'
+					class: 'column-buttons'
 				},
 				props.render(props.row, props.index)
 			)
@@ -296,6 +323,13 @@
 		gap: 8px;
 	}
 
+	.column-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
+	}
+
 	.flex {
 		display: flex;
 		flex-wrap: wrap;
@@ -305,5 +339,14 @@
 <style>
 	.el-table.is-scrolling-left .el-table-fixed-column--right.is-first-column:before {
 		border-right: 1px solid #dcdfe6;
+	}
+	.el-table .danger-row {
+		background-color: #ffbaba;
+	}
+	.el-table .warning-row {
+		background-color: #ffcb8f;
+	}
+	.el-table .success-row {
+		background-color: #9ce290;
 	}
 </style>

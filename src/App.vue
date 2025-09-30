@@ -44,4 +44,14 @@
 	.el-select__placeholder {
 		color: #000
 	}
+	
+	.el-input.is-disabled .el-input__wrapper,
+	.el-select__wrapper.is-disabled{
+		background-color: #f8f8f8;
+	}
+	.el-input.is-disabled .el-input__inner,
+	.el-select__wrapper.is-disabled .el-select__selected-item{
+		color: #666;
+		-webkit-text-fill-color: #666
+	}
 </style>

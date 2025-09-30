@@ -42,11 +42,11 @@
 											</div>
 											<p class="tit mt10">进箱开始时间：<el-date-picker @change="changeValue" v-model="form.startTime" type="datetime"
 													:prefix-icon="null" style="width:160px" placeholder="开港时间"
-													format="YYYY-MM-DD HH:mm" date-format="MMM DD, YYYY" time-format="HH:mm" />
+													format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm" time-format="HH:mm" />
 											</p>
 											<p class="tit mt10 mb10">进箱截止时间：<el-date-picker @change="changeValue" v-model="form.endTime"
 													type="datetime" :prefix-icon="null" style="width:160px" placeholder="进港时间"
-													format="YYYY-MM-DD HH:mm" date-format="MMM DD, YYYY" time-format="HH:mm" />
+													format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm" time-format="HH:mm" />
 											</p>
 										</div>
 									</td>
@@ -103,7 +103,7 @@
 									<td>
 										<div class="mtb5 tit redColor">有效期:<el-date-picker @change="changeValue" v-model="form.periodTime" :prefix-icon="null"
 												type="datetime" style="width:155px;color: red;" placeholder="条码有效期"
-												format="YYYY-MM-DD HH:mm:ss" date-format="MMM DD, YYYY" time-format="HH:mm"/>
+												format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm" time-format="HH:mm"/>
 										</div>
 									</td>
 								</tr>
@@ -228,8 +228,8 @@
 											<div>
 												<div class="tit">Packing Date 装箱日期</div>
 												<p class="ml10"><el-date-picker @change="changeValue" v-model="form.endTime2" type="datetime"
-														placeholder="装柜时间" format="YYYY-MM-DD HH:mm:ss"
-														date-format="MMM DD, YYYY" time-format="HH:mm" /></p>
+														placeholder="装柜时间" format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm"
+													 time-format="HH:mm" /></p>
 											</div>
 											<p class="tit">Packed By</p>
 										</div>
@@ -372,7 +372,7 @@
 									<tr>
 										<td>
 											<div class="mtb5 tit">有效期:
-												{{form.periodTime}}
+												<span style="color: red;">{{form.periodTime}}</span>
 											</div>
 										</td>
 									</tr>

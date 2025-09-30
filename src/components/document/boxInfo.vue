@@ -1,6 +1,6 @@
 <template>
 	<div id="boxInfo" class="flex1" style="width: 100%;height: 800px;">
-		
+		<!-- <div style="width: 100%;">{{state.boxList}}</div> -->
 		<el-card class="mr-2 h-100" style="padding: 8px 10px;">
 			<template #header>
 				<el-row justify="space-between" class="pb">
@@ -209,7 +209,11 @@
 				remark: null
 			}],
 			freight_status: null,
-			freight_remark: null
+			freight_remark: null,
+			no_image: {},
+			seal_number_image: {},
+			wharf_record_image: {},
+			entered_port_record_image: {}
 		}
 		state.boxList.push(data);
 		state.boxIndex = state.boxList.length-1;
@@ -231,14 +235,15 @@
 	// 切换选中箱号
 	const changeBox = (index) => {
 		state.boxIndex = index;
-		var val = state.boxList[index];
-		proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
-		proxy.$refs.boxInfoForm.changeSave(state.boxList[index]);
+		var val = JSON.parse(JSON.stringify(state.boxList[index]));
+		console.log('changeBox', state.boxList, val)
+		// proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
+		proxy.$refs.boxInfoForm.changeSave(val);
 		proxy.$refs.tableListJMT.state.tableData = val.container_items;
 		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_addresses;
-		updateKeyRemark(state.boxList[index]);
+		updateKeyRemark(val);
 		openPackForm(false);
-		// console.log('boxList', state.boxList, proxy.$refs.boxInfoForm.saveData)
+		console.log('boxList', proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号
 	const deleteBox = () => {
@@ -334,7 +339,7 @@
 	//单据字段信息变更
 	const itemChange = (data, val, item) => {
 		Object.assign(state.boxList[state.boxIndex], data);
-		// state.boxList[state.boxIndex] = data;
+		// state.boxList[state.boxIndex][item.key] = val;
 		var newBox = JSON.parse(JSON.stringify(state.boxList));
 		var dataNew = item.options?item.options.find(v=>{return v.id == val}):{};
 		var remarkList = {
@@ -362,9 +367,8 @@
 			emit('containerInfo', containerInfo.join(';'));
 		}
 		emit('boxInfoChange', newBox);
-		
 		openPackForm(false);
-		// console.log('单据信息变更', data, state.boxList, formListBox.value)
+		console.log('单据信息变更', data, state.boxList, formListBox.value)
 	}
 	// 单据信息提交
 	const confirmSubmit = (data) => {
@@ -379,7 +383,7 @@
 					formItem: [
 						{ labelWidth:'auto',type: 'input',value: '',label: '箱号',placeholder: '请输入箱号',key: 'no'},
 						{ labelWidth:'auto',type: 'input',value: '',label: '封号',placeholder: '请输入封号',key: 'seal_number' },
-						{ labelWidth:'auto',type: 'select',value: '',label: '柜型',placeholder: '请选择柜型',key: 'container_type_id',options: [], labelName: 'name', valueName: 'id' },
+						{ labelWidth:'auto',type: 'select',value: '',label: '柜型',placeholder: '请选择柜型',key: 'container_type_id',options: [], labelName: 'name', valueName: 'id',rules: { required: true, message: '请选择柜型', trigger: 'change' } },
 						{ labelWidth:'auto',type: 'input',value: '',label: '序列号',placeholder: '请输入序列号',key: 'serial_number' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '预提',placeholder: '请选择预提',key: 'pre_pull_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '提箱码头',placeholder: '请选择提箱码头',key: 'wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },

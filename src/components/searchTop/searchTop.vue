@@ -6,11 +6,13 @@
 			v-show="!(item.noShow||!moreShow||(moreShow&&!moreShowType&&index>showMaxNum -1))">
 				<template v-if="item.type=='input'">
 					<el-input v-model="searchQuery[item.key]" 
+					:style="item.style||'width:180px'"
 					:placeholder="item.placeholder" clearable :size="item.size||'default'"
 					@keyup.enter="handleQuery" :disabled="item.disabled"/>
 				</template>
 				<template v-if="item.type=='date'">
-					<el-date-picker v-model="searchQuery[item.key]"  :size="item.size||'default'"
+					<el-date-picker v-model="searchQuery[item.key]" 
+					:style="item.style||''" :size="item.size||'default'"
 					:placeholder="item.placeholder" :value-format="item.valueFormat||'YYYY-MM-DD'" 
 					:type="item.dateType||'daterange'" :disabled="item.disabled"
 					:start-placeholder="item.startPlaceholder||'开始时间'" 
@@ -18,7 +20,8 @@
 					:range-separator="item.rangeSeparator||'-'"  />
 				</template>
 				<template v-if="item.type=='select'">
-					<el-select v-model="searchQuery[item.key]" :style="item.style||'width:180px'"
+					<el-select v-model="searchQuery[item.key]" 
+					:style="item.style||'width:180px'"
 					:placeholder="item.placeholder||'请选择'" clearable
 					:disabled="item.disabled" :size="item.size||'default'">
 						<el-option v-for="vv in item.options" 
@@ -28,14 +31,15 @@
 					</el-select>
 				</template>
 				<template v-if="item.type=='selectSearch'">
-					<el-select v-model="searchQuery[item.key]" filterable
+					<el-select v-model="searchQuery[item.key]" 
+					:style="item.style||'width:180px'" filterable
 					:disabled="item.disabled" :suffix-icon="Search"
 					:multiple="item.multiple" remote
 					:placeholder="item.placeholder||'请选择'"
 					:reserve-keyword="item.reserveKeyword"
 					:remote-show-suffix="item.remoteShowSuffix"
 					:remote-method="item.remoteMethod"
-					:loading="item.loading" :style="item.style" :size="item.size||'default'"
+					:loading="item.loading" :size="item.size||'default'"
 					>
 						<el-option v-for="vv in item.options"
 						:key="item.keyName?vv[item.keyName]:'id'"

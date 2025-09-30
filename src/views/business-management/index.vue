@@ -138,7 +138,7 @@
 </template>
 
 <script setup>
-	import SearchTop from "@/components/searchTop/index";
+	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
 	import DropBox from "@/components/document/dropBox";
