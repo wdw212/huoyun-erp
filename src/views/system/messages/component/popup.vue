@@ -68,7 +68,7 @@
 	}
 	function handleNoLook() {
 		markAsRead().then(response => {
-			proxy.$modal.msgSucess('已全部已读')
+			proxy.$modal.msgSuccess('已全部已读')
 		}).catch((e) => proxy.$modal.msgError(e?.toString() ?? '未知错误'))
 		.finally(()=>{});
 	}

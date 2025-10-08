@@ -20,6 +20,12 @@
 			<el-tab-pane label="预落堆场码头" name="预落堆场码头">
 				<yardWharves />
 			</el-tab-pane>
+			<el-tab-pane label="发票类型" name="发票类型">
+				<invoiceType />
+			</el-tab-pane>
+			<el-tab-pane label="开票明细" name="开票明细">
+				<invoiceForm />
+			</el-tab-pane>
 		</el-tabs>
 	</div>
 </template>
@@ -33,6 +39,8 @@
 	import fleets from './fleets.vue'
 	import containerTypes from './container-types.vue'
 	import yardWharves from './yard-wharves.vue'
+	import invoiceType from './invoiceType.vue'
+	import invoiceForm from './invoiceForm.vue'
 
 	const activeName = ref('船公司')
 

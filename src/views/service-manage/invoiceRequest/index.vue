@@ -3,7 +3,7 @@
 	<div>
 		<div>
 			<!-- 顶部搜索 -->
-			<search-top ref="searchTop" :queryParams="queryParamsBusiness" @search="searchConfirm" :showMaxNum="5"></search-top>
+			<search-top ref="searchTop" :queryParams="queryParamsInvoice" @search="searchConfirm" :showMaxNum="5"></search-top>
 			
 			<!-- <div style="display: flex;align-items: center;justify-content: flex-end;position: relative;top: -71px">
 				<span style="margin-right: 10px">操作票数：0票</span>
@@ -24,113 +24,10 @@
 		</table-list>
 		
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false">
-			<el-card>
-				<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit" 
-				@cancel="dialogFormVisible = false;">
-					<!-- 订舱信息及备注 -->
-					<template #remarkBtn="{formList,saveData}">
-						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
-						<el-button type="primary" @click="saveData.booking_info.push('')">订舱信息及备注</el-button>
-					</template>
-					<template #remarkList="{formList,saveData}">
-						<el-row :gutter="20">
-							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
-								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
-								@click="saveData.booking_info.splice(index, 1)"><Close /></el-icon>
-								<el-input v-model="saveData.booking_info[index]" :rows="4" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>
-							</el-col>
-						</el-row>
-					</template>
-					<!-- 委托抬头新增 -->
-					<template #addHeader>
-						<el-button type="primary" :icon="Refresh" circle style="margin-left: 10px;"
-						@click="refreshCompanyHead"/>
-						<el-button type="danger" :icon="Plus" circle style="margin-left: 10px;"
-						@click="addCompanyHead"/>
-					</template>
-					
-					<!-- 一代联系方式/费用 -->
-					<template #order_delegationBtn="{formList,saveData}">
-						<el-button type="primary" @click="addDelegation(saveData)">增加</el-button>
-					</template>
-					<template #order_delegationList="{formList,saveData}">
-						<el-row :gutter="20">
-							<template v-for="(item,index) in saveData['order_delegation_header.remark']" :key="index">
-								<el-col class="mt-1" :span="6">
-									<p class="pb">一代联系方式</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['contact_phone']" :rows="3" type="textarea" placeholder="请输入" resize="none" />
-								</el-col>
-								<el-col class="p-r mt-1" :span="6">
-									<el-icon class="p-a r_0 t_0 z-1000 hand" style="margin: 5px 15px;"
-									@click="saveData['order_delegation_header.remark'].splice(index, 1)"><Close /></el-icon>
-									<p class="pb">一代费用</p>
-									<el-input v-model="saveData['order_delegation_header.remark'][index]['fee']" :rows="3" type="textarea" placeholder="请输入" resize="none"/>
-								</el-col>
-							</template>
-						</el-row>
-					</template>
-					
-					<!-- 应付款 -->
-					<!-- <template #AccountsBtn="{saveData,formList}">
-						<div>
-							<el-button type="primary">费用已完结</el-button>
-							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
-						</div>
-					</template>
-					<template #AccountsPayable="{saveData,formList}">
-						<table-list :tableConfig="tableConfigAccounts" :tableColumn="AccountsColumns" :multiple="false" :border="true" ref="accountTable">
-							<template #bottomCon="{tableData}">
-								<el-row :gutter="20">
-									<el-col class="p-r" v-for="(item,index) in tableData" :key="index" :span="6">
-										<el-input v-model="tableData[index].remark" :rows="3" type="textarea" placeholder="请输入" resize="none" class="mt-1" disabled/>
-									</el-col>
-								</el-row>
-							</template>
-						</table-list>
-					</template> -->
-					
-					<!-- 应收款 -->
-					<!-- <template #PaymentBtn="{saveData,formList}">
-						<div>
-							<el-button type="primary" @click="addPayment()">添加应收款</el-button>
-						</div>
-					</template>
-					<template #PaymentPayable="{saveData,formList}">
-						<table-list :tableConfig="tableConfigPayment" :tableColumn="PaymentColumns" :multiple="false" :border="true" ref="paymentTable"></table-list>
-					</template> -->
-					
-					<!-- 落箱数据 -->
-					<template #shoppingCompany>
-						<div style="margin-left: 100px;">
-							<el-tooltip class="box-item" effect="dark"
-								:content="shipCompany.phone ? shipCompany.phone :'暂无电话'"
-								placement="top">
-								<el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
-							</el-tooltip>
-						</div>
-					</template>
-					<template #template11="{saveData,formList}">
-						<el-form-item style="width: 100%;" label="落箱数据" label-width="100px">
-							<el-button type="primary" @click="createDrop">生成</el-button>
-						</el-form-item>
-						<drop-box ref="dropBox"></drop-box>
-					</template>
-					<template #boxInfo>
-						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
-					</template>
-					
-					<!-- 提单信息 -->
-					<template #billInfo>
-						<BillForm ref="billForm" @saveBill="saveBill"></BillForm>
-					</template>
-					
-					<!-- 文件上传 -->
-					<!-- <template #fileInfo>
-						<file-Table ref="fileInfo" @uploadFile="uploadFile"></file-Table>
-					</template> -->
-				</common-form>
-			</el-card>
+		<el-dialog v-model="dialogFormVisible" title="申请开票" width="80%" :close-on-click-modal="false">
+			<!-- <el-card> -->
+				<InvoiceForm />
+			<!-- </el-card> -->
 		</el-dialog>
 		
 	</div>
@@ -149,9 +46,10 @@
 	import { Close, Plus, Refresh } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
 	// import { queryParamsBusiness, formList, statistic,rulesInit } from '@/utils/business';
-	import { queryParamsBusiness, formList, rulesInit,statistic } from '@/utils/business';
+	import { queryParamsInvoice, formList, rulesInit,statistic } from '@/utils/services';
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
+	import InvoiceForm from '../../../components/InvoiceForm.vue'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -190,7 +88,7 @@
 		// formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
 		// formListNew.value[0].formData[0].formItem[4].options = YWY.value;
 		
-		keyStatus(formList.value, '商务详情', function(form, options){
+		keyStatus(formList.value, '申请开票', function(form, options){
 			formListNew.value = form;
 			// formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
 			formListNew.value[5].formData[1].noShow = true;
@@ -213,48 +111,26 @@
 	
 	/** 查询列表 */
 	const tableColumn = ref([
-		{label: '工作编号',prop: 'job_no'},
-		{label: '起运港',prop: 'origin_port'},
-		{label: '目的港',prop: 'destination_port'},
-		{label: '船公司',prop: 'shipping_company'},
-		{label: '提单号',prop: 'bl_no'},
-		{label: '箱型',prop: 'container_type'},
-		{label: '船期',prop: 'sailing_schedule'},
-		{label: '开船日期',prop: 'sailing_at'},
-		{label: '到港日期',prop: 'arrival_at'},
-		{label: '船舰/归属月份',prop: 'finish_at'},
-		{label: '操作员',prop: 'operation_user.name'},
-		{label: '业务员',prop: 'business_user.name'},
-		{label: '是否提货',prop: 'is_delivery', formatter: (row)=> optionsComm['提货'].find(item =>item.value=== row.is_delivery)?.label},
-		{label: '订舱信息',prop: 'booking_info'},
-		{
-			label: '备注',
-			prop: 'order_remark',
-			render: (row, index) => {
-				return [
-					h('div', {
-						class: 'avoidOverflow2',
-						style: {
-							margin: '0px',
-							cursor: 'pointer',
-							color: row.order_remark?'#000':'#888',
-							width: '50px',
-						},
-						onClick: () => {
-							remarkVisible.value = true;
-							editId.value = row.id;
-							remark.value = row.order_remark;
-						},
-					}, row.order_remark||'暂无')
-				]
-			}
-		},
+		{label: '开票数据',prop: 'job_no'},
+		{label: '名称',prop: 'origin_port'},
+		{label: '销货单位',prop: 'destination_port'},
+		{label: '发票类型',prop: 'shipping_company'},
+		{label: '单子完结',prop: 'bl_no'},
+		{label: '人民币金额',prop: 'container_type'},
+		{label: '人民币发票',prop: 'sailing_schedule'},
+		{label: '美金金额',prop: 'sailing_at'},
+		{label: '美金发票',prop: 'arrival_at'},
+		{label: '申请时间',prop: 'finish_at'},
+		{label: '需寄发票',prop: 'operation_user.name'},
+		{label: '寄件分类',prop: 'business_user.name'},
+		{label: '快递单号',prop: 'business_user.name'},
+		{label: '确认开票时间',prop: 'business_user.name'},
 		{ 
 			label: '操作',
 			prop: 'actions',
 			actions: [
 				{
-					label: '修改',
+					label: '查看详情',
 					onClick: (row) => handleEdit(row)
 				},
 				{

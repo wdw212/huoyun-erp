@@ -7,7 +7,7 @@
 
 		<div class="right-menu">
 			<div class="p-r mr-2 flex" @click="handleViewMessage">
-				<el-badge :value="12" class="item" style="display: flex;">
+				<el-badge :value="messageNum" class="item" style="display: flex;">
 				  <img src="../../assets/icons/message_icon.png" style="width: 20px;height: 20px;"/>
 				</el-badge>
 				<!-- <div class="p-a radius-c" style="height:40px;font-size: 12px; top: -10px;right: -7px;border: 1px solid #f56c6c;background-color: #f56c6c;color: #fff;">12</div> -->
@@ -80,11 +80,13 @@
 	import useTableMenuStore from "@/store/modules/tableMenu";
 	import noticesLook from '@/views/system/notices/component/notices-look'	
 	import messagePopup from '@/views/system/messages/component/popup'	
+	import { httpGet } from '@/api/apiCommon';
 
 	const appStore = useAppStore()
 	const userStore = useUserStore()
 	const tableMenu = useTableMenuStore();
 	const settingsStore = useSettingsStore()
+	const messageNum= ref(0)
 
 	function toggleSideBar() {
 		appStore.toggleSideBar()
@@ -136,6 +138,13 @@
 	function handleViewMessage(){
 		openViewMessage.value= openViewMessage.value=== true?false: true
 	}
+	function handleMessageNum() {
+		httpGet('/notifications/unread-notification-count').then(res =>{
+			messageNum.value= res.count
+			console.log(res,'res143')
+		})
+	}
+	handleMessageNum()
 </script>
 
 <style lang='scss' scoped>
