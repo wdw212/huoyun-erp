@@ -302,7 +302,17 @@
 		{
 			label: '提货',
 			prop: 'is_delivery',
-			formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货')
+			// formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货'),
+			render: (row, index) => {
+				return [
+					h('div', {
+						style: {
+							margin: '0px',
+							color: row.is_delivery == 2?'#ff0000':'#222',
+						}
+					}, row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+				]
+			}
 		},
 		{
 			label: '文件',
@@ -379,29 +389,22 @@
 		url: '/orders',
 		requestMethod: httpGet,
 		isQuery: true,
-		tableRowClassName: (row, rowIndex) => {
-			console.log('列表类名', row.id, rowIndex)
-			if(row.is_delivery===2){
-				return 'danger-row'
-			}
-			return '';
-		}
+		// tableRowClassName: (row, rowIndex) => {
+		// 	// console.log('列表类名', row.id, rowIndex)
+		// 	if(row.is_delivery===2){
+		// 		return 'danger-row'
+		// 	}
+		// 	return '';
+		// }
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
-		if(payment_status.value==1){
-			payment_status.value = 0;
+		httpPut(`/orders/${editId.value}/payment-finish`).then(res => {
+			payment_status.value = payment_status.value==1?0:1;
 			proxy.$refs.commonForm.changeSave({
-				'finish_at': '',
+				'finish_at': res?.finish_at||''
 			});
-		}else{
-			httpPut(`/orders/${editId.value}/payment-finish`).then(res => {
-				payment_status.value = 1;
-				proxy.$refs.commonForm.changeSave({
-					'finish_at': res?.finish_at||''
-				});
-			});
-		}
+		});
 	}
 	const addDocument = () => {
 		dialogFormVisible.value = true;
@@ -652,7 +655,7 @@
 	// 文件上传
 	const uploadFile = (file) => {
 		order_files.value = file;
-		// console.log('uploadFile', file);
+		console.log('uploadFile', file);
 	}
 
 	//船公司信息

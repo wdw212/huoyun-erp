@@ -166,7 +166,7 @@
 	});
 	const pageInit = ref({
 		page: 1,
-		pageSize: 30,
+		pageSize: 15,
 		total: 0
 	})
 
