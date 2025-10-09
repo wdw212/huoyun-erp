@@ -146,7 +146,7 @@
 	const tableConfig = ref({
 		url: '/orders',
 		requestMethod: httpGet,
-		isQuery: true,
+		isQuery: false,
 		tableRowClassName: (row, rowIndex) => {
 			console.log('列表类名', row.id, rowIndex)
 			if(row.is_delivery===2){

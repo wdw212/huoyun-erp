@@ -296,7 +296,7 @@
 
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
-	const paySureVisible = ref(true); //文件信息
+	const paySureVisible = ref(false); //文件信息
 
 	function accountInit() {
 		// AccountsColumn.value[4].noShow = true;
@@ -540,7 +540,7 @@
 	const tableConfig = ref({
 		url: '/orders',
 		requestMethod: httpGet,
-		isQuery: true,
+		isQuery: false,
 		tableRowClassName: (row, rowIndex) => {
 			console.log('列表类名', row.id, rowIndex)
 			// if(row.is_delivery===2){
