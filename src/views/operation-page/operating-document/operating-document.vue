@@ -416,8 +416,6 @@
 			proxy.$refs.commonForm.changeSave({
 				'order_delegation_header.remark': [],
 			});
-			formListNew.value[2].formData[0].formItem[1].value = '';
-			formListNew.value[2].formData[0].formItem[1].remark = '';
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
 			updateKeyRemark(proxy.$refs.commonForm.saveData);
 
@@ -446,6 +444,13 @@
 	}
 
 	function resetInfo() {
+		formListNew.value[2].formData[0].formItem[1].value = '';
+		formListNew.value[2].formData[0].formItem[1].remark = '';
+		formListNew.value[0].formData[0].formItem[17].disabled = false;
+		formListNew.value[2].formData[0].formItem[7].disabled = false;
+		formListNew.value[0].formData[0].formItem[17].rules = rulesInit('请选择截单日期', 1);
+		formListNew.value[2].formData[0].formItem[7].rules = rulesInit('请选择截单日期', 1);
+		
 		payment_status.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
 		containers.value = [];
@@ -478,11 +483,18 @@
 			}
 		}
 		// console.log('单据数据', data)
-		formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
-		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
+		formListNew.value[2].formData[0].formItem[1].value = data.ship_name&&data.ship_no?data.ship_name + '/' + data.ship_no:'';
+		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name&&data.ship_no?data.ship_name + '/' + data.ship_no:'';
 		if (data.shipping_company_id) {
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id) || {}; //船公司
 		}
+		if(data.cutoff_status == 3){
+			formListNew.value[0].formData[0].formItem[17].disabled = true;
+			formListNew.value[2].formData[0].formItem[7].disabled = true;
+			delete formListNew.value[0].formData[0].formItem[17].rules;
+			delete formListNew.value[2].formData[0].formItem[7].rules;
+		}
+		
 		payment_status.value = res.payment_status || 0;
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 		
@@ -655,7 +667,7 @@
 	// 文件上传
 	const uploadFile = (file) => {
 		order_files.value = file;
-		console.log('uploadFile', file);
+		// console.log('uploadFile', file);
 	}
 
 	//船公司信息

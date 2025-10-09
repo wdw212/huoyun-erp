@@ -196,15 +196,16 @@
 		});
 	}
 
-	const tableMenu = useTableMenuStore(); //缓存中的列表设置数据
+	// const tableMenu = useTableMenuStore(); //缓存中的列表设置数据vuex
+	const tableMenu = JSON.parse(localStorage.getItem('tableMenu')||'{}'); //缓存中的列表设置数据
 	const route = useRoute();
 
 	const columns = ref([]);
 	const columnsInit = (reset) => {
 		columns.value = [];
-		// console.log('tableMenu', route.name, tableMenu.menuList);
-		if (!reset && tableMenu.menuList && tableMenu.menuList[route.name]) {
-			columns.value = tableMenu.menuList[route.name];
+		// console.log('tableMenu', route.name, tableMenu);
+		if (!reset && tableMenu && tableMenu[route.name]) {
+			columns.value = tableMenu[route.name];
 		} else {
 			props.tableColumn.forEach((item, index) => {
 				if (item.prop != 'actions') {
@@ -215,14 +216,17 @@
 					})
 				}
 			})
-			tableMenu.updateMenu(route.name, columns.value);
+			// tableMenu.updateMenu(route.name, columns.value);
+			tableMenu[route.name] = columns.value;
+			localStorage.setItem('tableMenu', JSON.stringify(tableMenu))
 		}
 	}
 	//列设置信息更新
 	const queryTable = (type) => {
 		// console.log('列设置信息更新');
 		if (type == 2) {
-			tableMenu.updateMenu(route.name, columns.value);
+			tableMenu[route.name] = columns.value;
+			localStorage.setItem('tableMenu', JSON.stringify(tableMenu))
 		} else {
 			getList();
 		}
