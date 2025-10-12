@@ -167,60 +167,291 @@
 				</div>
 			</template>
 		</el-dialog>
-		<el-dialog v-model="paySureVisible" title="费用确认单" width="80%" :close-on-click-modal="false">
+		<el-dialog v-model="paySureVisible" title="费用确认单" width="90%" :close-on-click-modal="false">
 			<el-card>
-				<common-form ref="commonForm" v-model:formList="paySureFromList" @confirm="confirmSubmit"
-					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
-					<!-- <template #PaymentBtn="{saveData,paySureFromList}">
-						<div>
-							<el-button type="primary" @click="addPaySure()">添加</el-button>
+				<div class="d-flex">
+					<div class="pt-2 flex-1 bR-0 pr-2">
+						<div class="flex1">
+							<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 400px;height: 80px;"/>
+							<p class="font-32 font-w">Logistics & Services</p>
 						</div>
-					</template> -->
-					<template #PaymentPayable="{saveData,paySureFromList}">
-						<table-list :tableConfig="tableConfigPayment" :tableColumn="paySureLists" :multiple="false" :border="true" ref="paymentTable"></table-list>
-					</template>
-					<!-- <template #PaymentBtn1="{saveData,paySureFromList}">
-						<div>
-							<el-button type="primary" @click="addPaySure()">添加</el-button>
+						<div class="font-40 t-c bB-0 pb-2">费用确认单</div>
+						<div class="flex a-center flex-wrap pb-1 bB-0">
+							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1">
+								 <el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									 <div  class="flex ">
+									 	<p style="width: 100px;">委托人：</p>
+										<el-input v-model="name1"></el-input>
+									 	<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
+									 </div>
+								 </el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									 <div  class="flex">
+									 	<p  style="width: 100px;">起运港：</p>
+										<el-input v-model="name1"></el-input>
+									 	<!-- <p class="color0">Ningbo</p> -->
+									 </div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">提单号：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">COSU9503431040</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">合同号：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">25NS-2129</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="pt-2">
+									<div class="flex">
+										<p style="width: 100px;">目的港：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">Liverpool</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">船名/航次：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">MONACO MAERSK/521W</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">工作编号：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">HO8-ZH25176</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">开船日期：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">24-May-2025</p> -->
+									</div>
+								</el-checkbox>
+								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
+									<div class="flex">
+										<p style="width: 100px;">到港日期：</p>
+										<el-input v-model="name1"></el-input>
+										<!-- <p class="color0">07-Ju1-2025</p> -->
+									</div>
+								</el-checkbox>
+							</el-checkbox-group>
 						</div>
-					</template> -->
-					<template #PaymentPayable1="{saveData,paySureFromList}">
-						<table-list :tableConfig="tableConfigPayment" :tableColumn="paySureList1s" :multiple="false" :border="true" ref="paymentTable"></table-list>
-						<div>请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</div>
-					</template>
-					<template #PaymentPayable2="{saveData,paySureFromList}">
-						<el-row :gutter="20">
-							<el-col class="p-r"  :span="20">
-								<el-input v-model="remark" :rows="5" type="textarea"
-									placeholder="请输入" class="mt-1" />
-							</el-col>
-						</el-row>
-					</template>
-					<template #PaymentPayable3="{saveData,paySureFromList}">
-						<el-row :gutter="20">
-							<el-col class="p-r"  :span="20">
-								<el-input v-model="remark" :rows="5" type="textarea"
-									placeholder="请输入" class="mt-1" />
-							</el-col>
-						</el-row>
-					</template>
-					<template #PaymentPayable4="{saveData,paySureFromList}">
-						<el-row :gutter="20">
-							<el-col class="p-r"  :span="20">
-								<el-input v-model="remark" :rows="5" type="textarea"
-									placeholder="请输入" class="mt-1" />
-							</el-col>
-						</el-row>
-					</template>
-					<template #PaymentPayable5="{saveData,paySureFromList}">
-						<el-row :gutter="20">
-							<el-col class="p-r"  :span="20">
-								<el-input v-model="remark" :rows="5" type="textarea"
-									placeholder="请输入" class="mt-1 font-center" />
-							</el-col>
-						</el-row>
-					</template>
-				</common-form>
+						<div class="bB-0 py-2">
+							<el-table
+							    ref="multipleTable"
+							    :data="tableData"
+							    tooltip-effect="dark"
+							    style="width: 100%;text-align: center;"
+								:header-row-style="{backgroundColor:' #fff'}"
+							    @selection-change="handleSelectionChange">
+							    <el-table-column
+							      type="selection"
+							      width="55">
+							    </el-table-column>
+								<!-- <el-table-column
+								      type="index"
+								      width="50">
+								    </el-table-column> -->
+							    <el-table-column
+							      label="费用明细"
+								  align="center" width="240">
+							      <template v-slot="{row}">
+									  <el-select v-model="row.name3" placeholder="请选择费用明细" filterable>
+									    <el-option label="代理码头港务港建费" value="shanghai"></el-option>
+									    <el-option label="区域二" value="beijing"></el-option>
+									  </el-select>
+								  </template>
+							    </el-table-column>
+							    <el-table-column
+							      prop="name"
+							      label="币种"
+								  align="center">
+								  <template v-slot="{row}">
+								  		<el-select v-model="row.name" placeholder="请选择币种">
+										  <el-option label="区域一" value="shanghai"></el-option>
+										  <el-option label="区域二" value="beijing"></el-option>
+										</el-select>
+								  </template>
+							    </el-table-column>
+								<!-- <el-table-column
+								  label="单位"
+								  align="center">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name"></el-input>
+								  </template>
+								</el-table-column> -->
+								<el-table-column
+								  label="数量"
+								  align="center">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name" type="number"></el-input>
+								  </template>
+								</el-table-column>
+								<el-table-column
+								  label="单价"
+								  align="center">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name" type="number"></el-input>
+								  </template>
+								</el-table-column>
+							    <el-table-column
+							      prop="address"
+							      label="总计"
+								  align="center">
+							    </el-table-column>
+								<el-table-column
+								  label="备注"
+								  align="center"
+								  width="240">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name"></el-input>
+								  </template>
+								</el-table-column>
+								<el-table-column label="操作" align="center" width="180">
+								  <template v-slot="scope">
+									<el-button
+									  size="mini">增加</el-button>
+									<el-button
+									  size="mini"
+									  type="danger"
+									  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+								  </template>
+								</el-table-column>
+							  </el-table>
+						</div>
+						<div class="pb-2">
+							<el-table
+							    ref="multipleTable"
+							    :data="tableData"
+							    tooltip-effect="dark"
+							    style="width: 100%;text-align: center;"
+								 :span-method="objectSpanMethod"
+							    @selection-change="handleSelectionChange">
+							    <el-table-column
+							      type="selection"
+							      width="55">
+							    </el-table-column>
+								<el-table-column
+								      type="index"
+								      width="50">
+								    </el-table-column>
+							    <el-table-column
+							      label="箱号"
+								  prop="name1"
+								  align="center">
+								  <template v-slot="{row}">
+								  		 <el-input v-model="row.name1"></el-input>
+								  </template>
+								  </el-table-column>
+								<el-table-column
+								  label="柜型"
+								  align="center"
+								  width="100">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name2"></el-input>
+								  </template>
+								</el-table-column>
+								<el-table-column
+								  label="司机信息"
+								  align="center">
+								  <template v-slot="{row}">
+									  <el-input v-model="row.name2"></el-input>
+								  </template>
+								</el-table-column>
+								<el-table-column label="操作" align="center">
+								  <template v-slot="scope">
+									<el-button
+									  size="mini">增加</el-button>
+									<el-button
+									  size="mini"
+									  type="danger"
+									  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+								  </template>
+								</el-table-column>
+								<el-table-column
+								  label="总计"
+								  align="center">
+								  <template v-slot="{row}">
+									  <p>CNY：</p>
+									  <p>USD：</p>
+								  </template>
+								</el-table-column>
+							  </el-table>
+							  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
+							  <div class="pt-2 w-80">
+								  <el-input
+								    type="textarea"
+								    :rows="4"
+								    placeholder="请输入内容"
+								    v-model="textarea">
+								  </el-input>
+							  </div>
+							  <div class="pt-2 w-80">
+								  <el-input
+									type="textarea"
+									:rows="4"
+									placeholder="请输入内容"
+									v-model="textarea">
+								  </el-input>
+							  </div>
+							  <div class="pt-2 w-80">
+								  <el-input
+									type="textarea"
+									:rows="4"
+									placeholder="请输入内容"
+									v-model="textarea">
+								  </el-input>
+							  </div>
+							  <div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
+								  <div class="w-60">
+									  <el-input
+										type="textarea"
+										:rows="5"
+										placeholder="请输入内容"
+										v-model="textarea">
+									  </el-input>
+								  </div>
+							  </div>
+						</div>
+					</div>
+					<div style="width: 40%;" class="pl-2">
+						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px">
+						  <el-form-item label="导出文件名">
+						    <el-input v-model="form.name" placeholder=""></el-input>
+						  </el-form-item>
+						  <el-form-item>
+						    <el-button type="primary" @click="onSubmit">导出word</el-button>
+						    <el-button type="primary" @click="onSubmit">导出pdf</el-button>
+						  </el-form-item>
+						</el-form>
+						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px" >
+						  <el-form-item label="模板名字">
+						    <el-input v-model="form.name" placeholder=""></el-input>
+						  </el-form-item>
+						  <el-form-item>
+						    <el-button type="primary" @click="onSubmit">保存模板</el-button>
+						  </el-form-item>
+						</el-form>
+						<div class="b-0 px-2 py-1 radius10" style="display: inline-block;">
+							<span class="pr-2">模板1</span>
+							<el-button class="icon-color-black" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+						</div>
+					</div>
+				</div>
+				<div class="pt-2">
+					<div class="dialog-footer">
+						<el-button type="primary" @click="submitForm">生成图片</el-button>
+						<el-button type="primary" @click="submitForm">保 存</el-button>
+						<el-button @click="cancel">取 消</el-button>
+					</div>
+				</div>
 			</el-card>
 		</el-dialog>
 	</div>
@@ -297,6 +528,9 @@
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
 	const paySureVisible = ref(false); //文件信息
+	const  checkList= ref(['复选框']) 
+	const tableData= ref([{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'}])
+	const form= ref({name: '测试'})
 
 	function accountInit() {
 		// AccountsColumn.value[4].noShow = true;
@@ -991,10 +1225,47 @@
 			usd_is_cashed: 0
 		});
 	}
+	
+	/** 删除模板 */
+	function handlePaySureDelete(item) {
+		proxy.$modal.confirm('是否确认删除此模板？').then(function() {
+			return delByIds(item.id);
+		}).then(() => {
+			getList();
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
+	
+	function objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+		console.log(rowIndex,1226)
+	        if (columnIndex === 6) {
+			  if (rowIndex  === 0) {
+				return {
+				  rowspan: tableData.value.length,
+				  colspan: 1
+				};
+			  } else {
+				return {
+				  rowspan: 0,
+				  colspan: 0
+				};
+			  }
+			}
+	}
 </script>
 
 <style>
 	.font-center .el-textarea__inner{
 		text-align: center !important;
+	}
+	.icon-color-black{
+	  color: #333;
+	  font-size: 20px;
+	  border: none
+	}
+</style>
+<style scoped>
+	.dialog-footer{
+		text-align: right
 	}
 </style>

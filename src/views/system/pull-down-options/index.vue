@@ -23,7 +23,7 @@
 			<el-tab-pane label="发票类型" name="发票类型">
 				<invoiceType />
 			</el-tab-pane>
-			<el-tab-pane label="开票明细" name="开票明细">
+			<el-tab-pane label="费用类型" name="开票明细">
 				<invoiceForm />
 			</el-tab-pane>
 		</el-tabs>

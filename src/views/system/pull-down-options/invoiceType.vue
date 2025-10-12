@@ -23,7 +23,7 @@
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="名称" align="center" prop="name" />
-			<el-table-column label="税点" align="center" prop="phone" />
+			<el-table-column label="税点" align="center" prop="tax_rate" />
 			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="排序" align="center" prop="sort" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -49,7 +49,7 @@
 				</el-form-item>
 
 				<el-form-item label="税点">
-					<el-input v-model="form.phone" placeholder="请输入" />
+					<el-input v-model="form.tax_rate" placeholder="请输入" />
 				</el-form-item>
 
 				<el-form-item label="备注" prop="remark">
@@ -77,7 +77,7 @@
 		delByIds,
 		addData,
 		updateData
-	} from "@/api/system/pull-down-options/wharves";
+	} from "@/api/system/pull-down-options/invoice-type";
 
 	const {
 		proxy
@@ -153,9 +153,9 @@
 		form.value = {
 			id: null,
 			name: null,
-			phone: null,
+			tax_rate: null,
 			remark: null,
-			sort: null
+			sort: 0
 		};
 		proxy.resetForm("formRef");
 	}

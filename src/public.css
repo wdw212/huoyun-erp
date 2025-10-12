@@ -139,6 +139,7 @@ div{box-sizing: border-box;}
 .floatR{float: right;}
 
 /* 字体颜色 */
+.color0{color: #000;}
 .color2{color: #222;}
 .color6{color: #666;}
 .color8{color: #888;}
@@ -158,6 +159,12 @@ div{box-sizing: border-box;}
 .bL-e1{border-left: 1px solid #e1e1e1;}
 .bR-e1{border-right: 1px solid #e1e1e1;}
 .bB-e1{border-bottom: 1px solid #e1e1e1;}
+
+.b-0{border: 1px solid #000;}
+.bT-0{border-top: 1px solid #000;}
+.bL-0{border-left: 1px solid #000;}
+.bR-0{border-right: 1px solid #000;}
+.bB-0{border-bottom: 1px solid #000;}
 
 .b-DBe1{border-bottom: 1px dashed #e1e1e1;}
 .b-DTe1{border-top: 1px dashed #e1e1e1;}

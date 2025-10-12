@@ -23,7 +23,7 @@
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="项目名称" align="center" prop="name" />
-			<el-table-column label="币种" align="center" prop="phone" />
+			<el-table-column label="币种" align="center" prop="type" />
 			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="排序" align="center" prop="sort" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -48,8 +48,8 @@
 					<el-input v-model="form.name" placeholder="请输入" />
 				</el-form-item>
 
-				<el-form-item label="币种" prop="phone">
-					<el-select v-model="form.phone" placeholder="请选择币种" @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
+				<el-form-item label="币种" prop="type">
+					<el-select v-model="form.type" placeholder="请选择币种" @click="getTypeContentLabel(form.type)" :disabled="disabled?true:false">
 						<el-option v-for="item in MONEY_LIST" :key="item.value" :label="item.label"
 							:value="item.value" />
 					</el-select>
@@ -80,7 +80,7 @@
 		delByIds,
 		addData,
 		updateData
-	} from "@/api/system/pull-down-options/wharves";
+	} from "@/api/system/pull-down-options/invoice-form";
 	import InvoiceForm from '../../../components/InvoiceForm.vue'
 
 	const {
@@ -98,11 +98,11 @@
 	
 	const MONEY_LIST = ref([{
 				label: 'CNY',
-				value: 'sender'
+				value: 'cny'
 			},
 			{
 				label: 'USD',
-				value: 'receiver'
+				value: 'usd'
 			}
 		])
 
@@ -119,7 +119,7 @@
 				message: "名称不能为空",
 				trigger: "blur"
 			}],
-			phone: [{
+			type: [{
 				required: true,
 				message: "币种不能为空",
 				trigger: "blur"
@@ -154,9 +154,9 @@
 		form.value = {
 			id: null,
 			name: null,
-			phone: null,
+			type: null,
 			remark: null,
-			sort: null
+			sort: 0
 		};
 		proxy.resetForm("formRef");
 	}
