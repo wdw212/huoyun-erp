@@ -27,7 +27,7 @@
 		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false">
 			<el-card>
 				<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit" 
-				@cancel="dialogFormVisible = false;">
+				@cancel="dialogFormVisible = false;" :btnShow="btnShow">
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
@@ -152,6 +152,7 @@
 	import { queryParamsBusiness, formList, rulesInit,statistic } from '@/utils/business';
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
+	import useUserStore from '@/store/modules/user'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -166,6 +167,8 @@
 	const TT = ref([]); //抬头/公司名称
 	const XHDW = ref([]); //销货单位
 	const containers = ref([]); //箱子信息
+	const userStore = useUserStore()
+	const btnShow= ref(true)  //是否显示确认按钮
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
@@ -254,13 +257,26 @@
 			prop: 'actions',
 			actions: [
 				{
+					label: '查看',
+					onClick: (row) => handleLook(row),
+					style: (row) => ({
+					        display: row.is_claimed === 1 ? 'block' : 'none'
+					    })
+				},
+				{
 					label: '修改',
-					onClick: (row) => handleEdit(row)
+					onClick: (row) => handleEdit(row),
+					style: (row) => ({
+					        display: row.is_claimed === 1 ? 'none' : 'block'
+					    })
 				},
 				{
 					label: '删除',
 					type: 'danger',
-					onClick: (row) => handleDelete(row)
+					onClick: (row) => handleDelete(row),
+					style: (row) => ({
+					        display: row.is_claimed === 1 ? 'none' : 'block'
+					    })
 				},
 			],
 			fixed: "right",
@@ -298,6 +314,7 @@
 	const addDocument = () => {
 		dialogFormVisible.value = true;
 		editId.value = '';
+		btnShow.value= true
 		setTimeout(function() {
 			resetInfo();
 	
@@ -306,15 +323,34 @@
 				'order_delegation_header.remark': [],
 			});
 			formListNew.value[2].formData[0].formItem[1].value = '';
-			formListNew.value[2].formData[0].formItem[1].remark = '';
+			formListNew.value[2].formData[0].formItem[1].value = '';
+			console.log(userStore,312)
+			formListNew.value[0].formData[0].formItem[7].value = userStore.userRoleCode=== 'COMMERCE'?userStore.id: '';
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
 			updateKeyRemark(proxy.$refs.commonForm.saveData);
 	
 			addDelegation();
 		}, 200)
 	}
+	// 查看操作处理方法
+	const handleLook = (row) => {
+		btnShow.value= false
+		getDataDetails(row)
+		// httpGet(`/orders/${row.id}`).then(res => {
+		// 	dialogFormVisible.value = true;
+		// 	editId.value = row.id;
+		// 	btnShow.value= true
+		// 	setTimeout(function() {
+		// 		saveDataShow(res, 1);
+		// 	}, 500)
+		// });
+	}
 	// 编辑操作处理方法
 	const handleEdit = (row) => {
+		btnShow.value= true
+		getDataDetails(row)
+	}
+	const getDataDetails= (row) =>{
 		httpGet(`/orders/${row.id}`).then(res => {
 			dialogFormVisible.value = true;
 			editId.value = row.id;

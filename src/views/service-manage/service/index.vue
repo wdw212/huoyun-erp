@@ -167,8 +167,10 @@
 				</div>
 			</template>
 		</el-dialog>
-		<el-dialog v-model="paySureVisible" title="费用确认单" width="90%" :close-on-click-modal="false">
-			<el-card>
+		<div v-draggable style="width: 60%;">
+		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
+  :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
+			<el-card class="w-100">
 				<div class="d-flex">
 					<div class="pt-2 flex-1 bR-0 pr-2">
 						<div class="flex1">
@@ -385,31 +387,43 @@
 								</el-table-column>
 							  </el-table>
 							  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
-							  <div class="pt-2 w-80">
-								  <el-input
-								    type="textarea"
-								    :rows="4"
-								    placeholder="请输入内容"
-								    v-model="textarea">
-								  </el-input>
-							  </div>
-							  <div class="pt-2 w-80">
-								  <el-input
-									type="textarea"
-									:rows="4"
-									placeholder="请输入内容"
-									v-model="textarea">
-								  </el-input>
-							  </div>
-							  <div class="pt-2 w-80">
-								  <el-input
-									type="textarea"
-									:rows="4"
-									placeholder="请输入内容"
-									v-model="textarea">
-								  </el-input>
-							  </div>
-							  <div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
+							  <div class="flex">
+								  <div class="w-70">
+									  <div class="pt-2 w-100">
+										  <el-input
+											type="textarea"
+											:rows="4"
+											placeholder="请输入内容"
+											v-model="textarea">
+										  </el-input>
+									  </div>
+									  <div class="pt-2 w-100">
+										  <el-input
+											type="textarea"
+											:rows="4"
+											placeholder="请输入内容"
+											v-model="textarea">
+										  </el-input>
+									  </div>
+									  <div class="pt-2 w-100">
+										  <el-input
+											type="textarea"
+											:rows="4"
+											placeholder="请输入内容"
+											v-model="textarea">
+										  </el-input>
+									  </div>
+								  </div>
+								  <div class="pl-2">
+									  <el-switch
+									    v-model="value1">
+									  </el-switch>
+									  <div class="mt-2">
+										 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
+									  </div>
+								  </div>
+								</div>
+								<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
 								  <div class="w-60">
 									  <el-input
 										type="textarea"
@@ -417,11 +431,11 @@
 										placeholder="请输入内容"
 										v-model="textarea">
 									  </el-input>
-								  </div>
+								</div>
 							  </div>
 						</div>
 					</div>
-					<div style="width: 40%;" class="pl-2">
+					<div style="width: 200px" class="pl-2">
 						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px">
 						  <el-form-item label="导出文件名">
 						    <el-input v-model="form.name" placeholder=""></el-input>
@@ -453,7 +467,8 @@
 					</div>
 				</div>
 			</el-card>
-		</el-dialog>
+		<!-- </el-dialog> -->
+		</div>
 	</div>
 
 </template>
@@ -528,9 +543,12 @@
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
 	const paySureVisible = ref(false); //文件信息
+	// 模板
 	const  checkList= ref(['复选框']) 
 	const tableData= ref([{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'}])
 	const form= ref({name: '测试'})
+	const value1= ref(true)
+	const textarea= ref('我司收款账户公司名称：宁波华奇国际物流有限公司税务登记号：91330212MAE09CKNXD开户行名称：浙江泰隆商业银行宁波鄞州支行（行号：313332070108）开户行账号：33030040201000049084  (RMB)33030040201000049092 (USD)33030040201000049100（欧元）')
 
 	function accountInit() {
 		// AccountsColumn.value[4].noShow = true;

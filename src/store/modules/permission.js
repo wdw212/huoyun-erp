@@ -403,6 +403,44 @@ const routerList = [{
 	name: "BusinessManagement",
 	path: "/business-management",
 	redirect: "noRedirect",
+},
+{
+	alwaysShow: true,
+	children: [{
+		component: "service-manage/service/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "业务系统",
+		},
+		name: "serviceManageIndex",
+		path: "service-management-index",
+	},
+	{
+		component: "service-manage/invoiceRequest/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "申请开票",
+		},
+		name: "InvoiceRequest",
+		path: "invoice-request",
+	}],
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "业务管理",
+	},
+	name: "ServeManagement",
+	path: "/service-management",
+	redirect: "noRedirect",
 }];
 
 

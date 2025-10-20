@@ -79,11 +79,32 @@ app.component('svg-icon', SvgIcon)
 
 directive(app)
 
+
+// import { draggable } from './directives/draggable'; // 导入指令
+// app.directive('draggable', draggable); // 全局注册指令
 // 使用element-plus 并且设置全局的大小
+
+import vDraggable from './directives/v-draggable'
+app.directive('draggable', vDraggable);
+
+
 app.use(ElementPlus, {
   locale: locale,
   // 支持 large、default、small
   size: Cookies.get('size') || 'default'
 })
+// 导入自定义指令
+import dialogDrag from './directives/dialogDrag';
+// app.use(ElementPlus);
+
+// 全局注册自定义指令，使用名为 `v-dialog-drag`
+app.directive('dialog-drag', dialogDrag);
+// app.directive('drag', {
+//   // 当被绑定的元素插入到 DOM 中时……
+//   mounted(el) {
+//     // Focus the element
+//     el.dragDirective()
+//   }
+// })
 
 app.mount('#app')

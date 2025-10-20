@@ -50,6 +50,36 @@
 				<el-form-item label="开户账号" prop="bank_account">
 					<el-input v-model="form.bank_account" placeholder="请输入开户账号" />
 				</el-form-item>
+				<el-form-item label="LOGO">
+					<div v-if="form.logo" class="flex">
+						   <img  :src="form.logo.url+'?' +Math.random()" class="avatar">
+						   <p class="font-32 px-2 hand" @click="form.logo= null;">×</p>
+					</div>
+					<el-upload
+					  v-else
+					  ref="uploadRef"
+					  class="avatar-uploader"
+					   :show-file-list="false"
+					  :action="baseUrl + '/uploads/file'"
+					   :on-success="handleUploadSuccess">
+					  <el-button type="primary">点击上传</el-button>
+					</el-upload>
+				</el-form-item>
+				<el-form-item label="财务公章">
+					<div v-if="form.financial_seal" class="flex">
+						   <img :src="form.financial_seal.url+'?' +Math.random()" class="avatar">
+						   <p class="font-32 px-2 hand" @click="form.financial_seal= null;">×</p>
+					</div>
+					<el-upload
+					  v-else
+					  ref="uploadRef"
+					  class="avatar-uploader"
+					   :show-file-list="false"
+					  :action="baseUrl + '/uploads/file'"
+					   :on-success="handleUploadSuccessFinancialSeal">
+					  <el-button type="primary">点击上传</el-button>
+					</el-upload>
+				</el-form-item>
 			</el-form>
 			<template #footer>
 				<div class="dialog-footer">
@@ -58,10 +88,13 @@
 				</div>
 			</template>
 		</el-dialog>
+		<!-- <test /> -->
 	</div>
 </template>
 
 <script setup>
+	// import test from './test'
+	
 	import {
 		listData,
 		getData,
@@ -73,6 +106,7 @@
 	const {
 		proxy
 	} = getCurrentInstance();
+	const baseUrl = import.meta.env.VITE_APP_BASE_API;
 
 	const dataList = ref([]);
 	const open = ref(false);
@@ -129,7 +163,11 @@
 			phone: null,
 			address: null,
 			bank_name: null,
-			bank_account: null
+			bank_account: null,
+			logo: null,
+			logoUrl: null,
+			// financial_seal:  null,
+			// financialSealUrl: null
 		};
 		proxy.resetForm("formRef");
 	}
@@ -175,6 +213,9 @@
 	function submitForm() {
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
+				form.value.logo = JSON.stringify(form.value.logo)
+				form.value.financial_seal = JSON.stringify(form.value.financial_seal)
+				// const {logoUrl,financialSealUrl,...data}= form.value
 				if (form.value.id != null) {
 					updateData(form.value).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
@@ -182,7 +223,7 @@
 						getList();
 					});
 				} else {
-					addData(form.value).then(response => {
+					addData(data).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();
@@ -202,6 +243,25 @@
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
-
+	
+	const handleUploadSuccess = (response) => {
+		console.log('上传成功:', response);
+		form.value.logo= response
+		// form.value.logoUrl= response.url
+	};
+	
+	const handleUploadSuccessFinancialSeal= (response) => {
+		console.log('上传成功:', response);
+		form.value.financial_seal= response
+		// form.value.financialSealUrl= response.url
+	};
+	
 	getList();
 </script>
+ <style scope>
+ 	.avatar {
+ 	    width: 300px;
+ 	   height: auto;
+		/* object-fit: cover; */
+ 	  }
+ </style>

@@ -41,7 +41,7 @@
 					<el-input v-model="form.tracking_url" placeholder="请输入" />
 				</el-form-item>
 				<el-form-item label="电话" prop="phone">
-					<el-input v-model="form.phone" placeholder="请输入" />
+					<el-input v-model="form.phone" type="textarea" placeholder="请输入" :autosize="{ minRows: 1, maxRows: 4 }"/>
 				</el-form-item>
 				<el-form-item label="备注" prop="remark">
 					<el-input v-model="form.remark" placeholder="请输入" />

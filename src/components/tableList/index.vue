@@ -35,7 +35,7 @@
 				<!-- 操作按钮列 -->
 				<el-table-column v-else-if="!item.noShow&&item.prop=='actions'" :fixed="item.fixed"
 					class-name="actionsBtn" :label="item.label" :align="item.align||'center'" :width="item.width">
-					<template #default="{row,$index}">
+					<template #default="{row,$index}" >
 						<action-buttons :row="row" :index="$index" :actions="item.actions" />
 					</template>
 				</el-table-column>
@@ -264,7 +264,7 @@
 				required: true
 			},
 			actions: {
-				type: Object,
+				type: Array,
 				required: true
 			}
 		},
@@ -272,19 +272,23 @@
 			return () => h('div', {
 					class: 'action-buttons'
 				},
-				props.actions.map((action, i) =>
+				props.actions.map((action, i) => 
 					h(ElButton, {
 							type: action.type || 'primary',
 							size: action.size || 'small',
 							icon: action.icon,
 							onClick: () => action.onClick(props.row, props.index),
-							style: action.style || {
-								margin: '0px'
+							style: {
+								margin: '0px',
+								...(typeof action.style === 'function' 
+									? action.style(props.row) 
+									: action.style || {})
 							},
 							key: i
 						},
 						() => action.label
-					))
+					)
+				)
 			)
 		}
 	})

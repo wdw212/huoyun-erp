@@ -103,9 +103,16 @@
 					<!-- 落箱数据 -->
 					<template #shoppingCompany>
 						<div style="margin-left: 100px;">
-							<el-tooltip class="box-item" effect="dark"
+							<!-- <el-tooltip class="box-item" effect="dark"
 								:content="shipCompany.phone ? shipCompany.phone :'暂无电话'" placement="top">
 								<el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
+							</el-tooltip> -->
+							<el-tooltip placement="top">
+							  <!-- 使用带样式的插槽内容 -->
+							  <template #content>
+								<div class="tooltip-content multiline-text">{{ shipCompany.phone ? shipCompany.phone :'暂无电话' }}</div>
+							  </template>
+							  <el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
 							</el-tooltip>
 						</div>
 					</template>
@@ -316,7 +323,22 @@
 		},
 		{
 			label: '文件',
-			prop: 'file'
+			prop: 'file',
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.file?'success' : 'danger',
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.file ? '有' : '无')
+					)
+				]
+			}
 		},
 		{
 			label: '费用完结',
@@ -814,6 +836,26 @@
 	})
 </script>
 
-<style scoped>
-
+<style >
+	/* 提示框内容样式 */
+	.tooltip-content {
+	  max-width: 300px; /* 控制最大宽度 */
+	  white-space: normal; /* 允许换行 */
+	  word-break: break-all; /* 强制换行 */
+	  line-height: 1.5; /* 行高 */
+	}
+	
+	/* 单元格文本溢出显示省略号 */
+	.ellipsis-text {
+	  display: inline-block;
+	  width: 100px; /* 固定宽度 */
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
+	}
+	
+	.multiline-text {
+	  white-space: pre-line; /* 保留换行符并自动换行 */
+	  /* 或者使用 white-space: pre-wrap; 保留所有空白和换行 */
+	}
 </style>
