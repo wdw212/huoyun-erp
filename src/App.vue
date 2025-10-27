@@ -54,4 +54,5 @@
 		color: #666;
 		-webkit-text-fill-color: #666
 	}
+	.el-dialog__wrapper { pointer-events: none !important } .el-dialog { pointer-events: auto; }
 </style>

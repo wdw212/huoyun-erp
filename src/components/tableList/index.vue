@@ -54,7 +54,7 @@
 		</el-table>
 
 		<pagination v-show="pageShow&&pageInit.total>0" v-model:page="pageInit.page" :total="pageInit.total"
-			v-model:limit="pageInit.pageSize" @pagination="getList" />
+			v-model:limit="pageInit.page_size" @pagination="getList" />
 
 		<slot name="bottomCon" :tableData="state.tableData"></slot>
 
@@ -70,7 +70,8 @@
 		defineEmits,
 		onMounted,
 		computed,
-		defineComponent
+		defineComponent,
+		nextTick
 	} from "vue";
 	import SearchTop from "@/components/searchTop/searchTop";
 	import Pagination from "@/components/Pagination";
@@ -166,7 +167,7 @@
 	});
 	const pageInit = ref({
 		page: 1,
-		pageSize: 15,
+		page_size: 15,
 		total: 0
 	})
 
@@ -181,7 +182,10 @@
 			...props.tableConfig.data
 		};
 		requestMethod(url, params).then(res => {
-			Object.assign(state.tableData, res.data);
+			// Object.assign(state.tableData, res.data);
+			// nextTick(()=>{
+				state.tableData= res.data
+			// })
 			pageInit.value.total = res.meta.total;
 			loading.value = false;
 		});

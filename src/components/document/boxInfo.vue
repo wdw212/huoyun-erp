@@ -62,7 +62,7 @@
 						<template #table_loading_address>
 							<div style="display: flex;justify-content: space-between;">
 								<div>装柜地址</div>
-								<el-button type="warning" size="small" plain @click="addAddress">添加地址</el-button>
+								<el-button type="warning" size="small" plain @click="addAddress" v-if="isShow=== true">添加地址</el-button>
 							</div>
 						</template>
 						<template #bottomCon="{tableData}">
@@ -123,6 +123,13 @@
 	const { proxy } = getCurrentInstance();
 	const props = defineProps({
 		isOperate: {
+			type: Boolean,
+			default: () => {
+				return true
+			}
+		},
+		// 装柜地址按钮是否展示,默认展示
+		isShow: {
 			type: Boolean,
 			default: () => {
 				return true
@@ -215,7 +222,9 @@
 			wharf_record_image: {},
 			entered_port_record_image: {}
 		}
-		state.boxList.push(data);
+		var list = JSON.parse(JSON.stringify(state.boxList));
+		list.push(data)
+		state.boxList= JSON.parse(JSON.stringify(list));
 		state.boxIndex = state.boxList.length-1;
 		proxy.$refs.boxInfoForm.changeSave(data);
 		var timeInter = setInterval(function(){
@@ -229,21 +238,23 @@
 			}
 		}, 500)
 		updateKeyRemark(data);
+		console.log(state.boxList,'state.boxList')
 		emit('boxInfoChange', state.boxList);
 		// console.log('boxList新增', state.boxIndex, state.boxList)
 	}
 	// 切换选中箱号
 	const changeBox = (index) => {
 		state.boxIndex = index;
+		console.log('changeBox239', state.boxList, val)
 		var val = JSON.parse(JSON.stringify(state.boxList[index]));
-		console.log('changeBox', state.boxList, val)
+		// var val = { ...toRaw(state.boxList[index]) }
+		console.log('changeBox241', state.boxList, val)
 		// proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
 		proxy.$refs.boxInfoForm.changeSave(val);
 		proxy.$refs.tableListJMT.state.tableData = val.container_items;
 		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_addresses;
 		updateKeyRemark(val);
 		openPackForm(false);
-		console.log('boxList', proxy.$refs.boxInfoForm.saveData)
 	}
 	// 删除选中箱号
 	const deleteBox = () => {

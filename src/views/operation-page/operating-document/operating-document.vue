@@ -241,14 +241,18 @@
 			formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
 			seletData.value = options;
-
+			console.log(seletData.value,'seletData.value')
 			AccountsColumn.value[0].form.options = seletData.value.YFTT;
 			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
 
 	const searchConfirm = (val) => {
-		console.log('searchConfirm', val)
+		val.start_sailing_date= val.start_sailing_dates?.[0] ?? ''
+		val.end_sailing_date= val.start_sailing_dates?.[1] ?? ''
+		tableConfig.value.data= val
+		tableConfig.value.isQuery= true
+		
 	}
 
 	const remarkVisible = ref(false); //备注弹框
@@ -312,13 +316,26 @@
 			// formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货'),
 			render: (row, index) => {
 				return [
-					h('div', {
-						style: {
-							margin: '0px',
-							color: row.is_delivery == 2?'#ff0000':'#222',
-						}
-					}, row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+					h(ElButton, {
+							type: row.is_delivery == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+					)
 				]
+				// return [
+				// 	h('div', {
+				// 		style: {
+				// 			margin: '0px',
+				// 			color: row.is_delivery == 2?'#ff0000':'#222',
+				// 		}
+				// 	}, row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+				// ]
 			}
 		},
 		{
@@ -327,7 +344,7 @@
 			render: (row, index) => {
 				return [
 					h(ElButton, {
-							type: row.file?'success' : 'danger',
+							type: row.order_files_count> 0?'success' : 'danger',
 							size: 'small',
 							onClick: () => {},
 							style: {
@@ -335,7 +352,7 @@
 							},
 							key: row.id
 						},
-						() => (row.file ? '有' : '无')
+						() => (row.order_files_count> 0 ? '有' : '无')
 					)
 				]
 			}
@@ -412,10 +429,10 @@
 		requestMethod: httpGet,
 		isQuery: true,
 		// tableRowClassName: (row, rowIndex) => {
-		// 	// console.log('列表类名', row.id, rowIndex)
-		// 	if(row.is_delivery===2){
-		// 		return 'danger-row'
-		// 	}
+		// 	console.log('列表类名', row.id, rowIndex)
+		// 	// if(row.is_delivery===2){
+		// 	// 	return 'danger-row'
+		// 	// }
 		// 	return '';
 		// }
 	})
@@ -469,6 +486,8 @@
 		formListNew.value[2].formData[0].formItem[1].value = '';
 		formListNew.value[2].formData[0].formItem[1].remark = '';
 		formListNew.value[0].formData[0].formItem[17].disabled = false;
+		formListNew.value[0].formData[0].formItem[20].disabled = false;
+		formListNew.value[0].formData[0].formItem[21].disabled = false;
 		formListNew.value[2].formData[0].formItem[7].disabled = false;
 		formListNew.value[0].formData[0].formItem[17].rules = rulesInit('请选择截单日期', 1);
 		formListNew.value[2].formData[0].formItem[7].rules = rulesInit('请选择截单日期', 1);
@@ -486,7 +505,7 @@
 
 	function saveDataShow(res, type) {
 		resetInfo();
-
+		console.log(res,'res585')
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
 		var defaultKey = ['insurance', 'is_delivery', 'is_finish', 'is_allowed'];  //保持默认不变的值
@@ -502,9 +521,18 @@
 				if (type == 2 && nullKey.indexOf(key) > -1) {
 					data[key] = '';
 				}
+			}else{
+				data['insurance']= '0'
+				data['is_finish']= '0'
+				data['is_allowed']= '0'
+				if(res['order_type_id']=== 3 || res['order_type_id']=== 4){
+					data['is_delivery']= 0
+				}else{
+					data['is_delivery']= 1
+				}
 			}
 		}
-		// console.log('单据数据', data)
+		console.log('单据数据', data)
 		formListNew.value[2].formData[0].formItem[1].value = data.ship_name&&data.ship_no?data.ship_name + '/' + data.ship_no:'';
 		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name&&data.ship_no?data.ship_name + '/' + data.ship_no:'';
 		if (data.shipping_company_id) {
@@ -516,7 +544,12 @@
 			delete formListNew.value[0].formData[0].formItem[17].rules;
 			delete formListNew.value[2].formData[0].formItem[7].rules;
 		}
-		
+		if(data.actual_sailing_at){
+			formListNew.value[0].formData[0].formItem[20].disabled = true;
+		}
+		if(data.actual_arrival_at){
+			formListNew.value[0].formData[0].formItem[21].disabled = true;
+		}
 		payment_status.value = res.payment_status || 0;
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 		
@@ -677,7 +710,7 @@
 	// 箱子信息变更
 	const boxInfoChange = (data) => {
 		containers.value = data;
-		// console.log('箱子信息变更', containers.value)
+		console.log('箱子信息变更', containers.value)
 	}
 	//箱子柜型数据统计
 	function containerInfo(info) {
@@ -708,6 +741,8 @@
 			...proxy.$refs.commonForm.saveData,
 			boxInfo: containers.value
 		};
+		console.log(saveData,'saveData')
+		console.log(seletData.value,'seletData.value')
 		proxy.$refs.dropBox.openDrop(saveData, seletData.value);
 	}
 	//tab变更
@@ -781,7 +816,8 @@
 
 	// 单据信息提交
 	const confirmSubmit = (data) => {
-		// console.log('单据信息提交:', data)
+		console.log('单据信息提交:', data)
+		console.log('箱子数据:', containers.value)
 		if(containers.value.findIndex(v=>{return !v.container_type_id})>-1){
 			proxy.$modal.msgWarning("请完善箱子信息!");
 			return;

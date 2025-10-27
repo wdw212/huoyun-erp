@@ -473,7 +473,7 @@ export const formList = ref([
 					{ span: 12 },
 					{ type: 'select',value: '',label: '截单状态',placeholder: '请选择截单状态',key: 'cutoff_status',options: optionsComm['截单状态'], defaultValue: 1 },
 					{ type: 'dateTime',value: '',label: '开港时间',placeholder: '请选择开港时间',key: 'port_open_at', format: 'YYYY-MM-DD HH:mm' },
-					{ type: 'dateTime',value: '',label: '实际开船时间',placeholder: '请选择实际开船时间',key: 'actual_sailing_at', dateType: 'date' },
+					{ type: 'date',value: '',label: '实际开船时间',placeholder: '请选择实际开船时间',key: 'actual_sailing_at', dateType: 'date' },
 					{ label: '', soltName: 'shoppingCompany' },
 					{ type: 'dateTime',value: '',label: '截单时间',placeholder: '请选择截单时间',key: 'cutoff_at', format: 'YYYY-MM-DD HH:mm',rules: rulesInit('请选择截单时间', 1) },
 					{ type: 'dateTime',value: '',label: '截港时间',placeholder: '请选择截港时间',key: 'port_close_at', format: 'YYYY-MM-DD HH:mm' },

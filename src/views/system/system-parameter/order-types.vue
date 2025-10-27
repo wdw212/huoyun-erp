@@ -13,6 +13,7 @@
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="名称" align="center" prop="name" />
+			<el-table-column label="角色" align="center" prop="roles" />
 			<el-table-column label="排序" align="center" prop="sort" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
 				<template #default="scope">
@@ -30,6 +31,11 @@
 			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="名称" prop="name">
 					<el-input v-model="form.name" placeholder="请输入" />
+				</el-form-item>
+				<el-form-item label="角色">
+					<el-select v-model="form.role_ids" placeholder="请选择" filterable clearable multiple>
+						<el-option v-for="item in roleList" :key="item.id" :label="item.name" :value="item.id" :disabled="item.select"/>
+					</el-select>
 				</el-form-item>
 				<el-form-item label="排序" prop="sort">
 					<el-input v-model="form.sort" placeholder="请输入" />
@@ -53,6 +59,9 @@
 		addData,
 		updateData
 	} from "@/api/system/system-parameter/order-types";
+	import {
+				listRole 
+			} from "@/api/system/role";
 
 	const {
 		proxy
@@ -114,6 +123,7 @@
 		form.value = {
 			id: null,
 			name: null,
+			role_ids: null,
 			sort: null
 		};
 		proxy.resetForm("formRef");
@@ -160,14 +170,16 @@
 	function submitForm() {
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
+				let param = JSON.parse(JSON.stringify(form.value));
+				param.role_ids= param.role_ids.length> 0 ? JSON.stringify(param.role_ids): ''
 				if (form.value.id != null) {
-					updateData(form.value).then(response => {
+					updateData(param).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
 						open.value = false;
 						getList();
 					});
 				} else {
-					addData(form.value).then(response => {
+					addData(param).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();
@@ -189,4 +201,14 @@
 	}
 
 	getList();
+	
+	const roleList= ref([])
+	/** 查询角色列表 */
+	function getRoleList() {
+		listRole({is_paginate: 0}).then(response => {
+			// console.log(response.data);
+			roleList.value = response.data;
+		});
+	}
+	getRoleList()
 </script>

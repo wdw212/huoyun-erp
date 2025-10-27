@@ -407,9 +407,9 @@ export const formList = ref([
 					label: '委托抬头',
 					formItem: [
 						{ type: 'select',value: '',label: '销货单位',placeholder: '请选择销货单位',key: 'order_delegation_header.seller_id',options: [],labelName: 'name', valueName: 'id',span: 6 },
-						// { type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [],  labelName: 'company_name', valueName: 'id', filterable: true, labelWidth: '80px', afterSolt: 'addHeader',span: 10 },
-						// { type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true,span: 8 },
-						// { type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true,span: 8 },
+						{ type: 'select',value: '',label: '公司抬头',placeholder: '请选择公司抬头',key: 'order_delegation_header.company_header_id',options: [],  labelName: 'company_name', valueName: 'id', filterable: true, labelWidth: '80px', afterSolt: 'addHeader',span: 10 },
+						{ type: 'input',value: '',label: '联系人',placeholder: '请输入联系人',key: 'order_delegation_header.contact_person', disabled: true,span: 8 },
+						{ type: 'input',value: '',label: '联系电话',placeholder: '请输入联系电话',key: 'order_delegation_header.contact_phone', disabled: true,span: 8 },
 						{ label: '', soltName: 'order_delegationBtn' },
 						{ value: [], label: '', soltName: 'order_delegationList',key: 'order_delegation_header.remark',span: 24 },
 					]

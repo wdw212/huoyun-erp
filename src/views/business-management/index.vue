@@ -15,19 +15,20 @@
 			<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 		</el-select> -->
 		<!-- 表格 -->
-		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2" :number="true">
+		<<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
+			<template #headerCon></template>
 			<template #headerLeft> </template>
 			<template #headerRight>
-				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1">新增</el-button>
+				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1 mr-1">新增</el-button>
+				<!-- <el-button type="danger" plain icon="Delete" @click="" class="mb-1 mr-1" disabled>批量删除</el-button> -->
 			</template>
 		</table-list>
 		
 		<!-- 单据详情 -->
 		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false">
 			<el-card>
-				<common-form ref="commonForm" :formList="formListNew" @confirm="confirmSubmit" 
-				@cancel="dialogFormVisible = false;" :btnShow="btnShow">
+				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
+					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
@@ -103,10 +104,12 @@
 					<!-- 落箱数据 -->
 					<template #shoppingCompany>
 						<div style="margin-left: 100px;">
-							<el-tooltip class="box-item" effect="dark"
-								:content="shipCompany.phone ? shipCompany.phone :'暂无电话'"
-								placement="top">
-								<el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
+							<el-tooltip placement="top">
+							  <!-- 使用带样式的插槽内容 -->
+							  <template #content>
+								<div class="tooltip-content multiline-text">{{ shipCompany.phone ? shipCompany.phone :'暂无电话' }}</div>
+							  </template>
+							  <el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
 							</el-tooltip>
 						</div>
 					</template>
@@ -117,7 +120,7 @@
 						<drop-box ref="dropBox"></drop-box>
 					</template>
 					<template #boxInfo>
-						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange"></box-info>
+						<box-info ref="boxInfo" :boxData="boxData" class="mt-2" @boxInfoChange="boxInfoChange" :isShow="userStore.userRoleCode === 'COMMERCE'?false: true"></box-info>
 					</template>
 					
 					<!-- 提单信息 -->
@@ -132,7 +135,14 @@
 				</common-form>
 			</el-card>
 		</el-dialog>
-		
+		<el-dialog v-model="remarkVisible" title="备注信息" width="500px" :close-on-click-modal="false">
+			<el-input v-model="remark" :rows="5" type="textarea" placeholder="备注内容" />
+			<template #footer>
+				<div class="dialog-footer">
+					<el-button type="primary" @click="updateRemark()"> 确认 </el-button>
+				</div>
+			</template>
+		</el-dialog>
 	</div>
 	
 </template>
@@ -153,6 +163,9 @@
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
 	import useUserStore from '@/store/modules/user'
+	import {
+		ElButton
+	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -172,13 +185,13 @@
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
-		statistic.value.forEach((item,index)=>{
-			const source = ref(0)
-			statistic.value[index].value = useTransition(source, {
-				duration: 1000,
-			})
-			source.value = 102658.344 + index*1000000
-		})
+		// statistic.value.forEach((item,index)=>{
+		// 	const source = ref(0)
+		// 	statistic.value[index].value = useTransition(source, {
+		// 		duration: 1000,
+		// 	})
+		// 	source.value = 102658.344 + index*1000000
+		// })
 		YWY.value = await getYWY();
 		CZY.value = await getCZY();
 		YWLX.value = await getYWLX();
@@ -187,7 +200,7 @@
 		queryParamsBusiness.value[3].options = CZY.value;
 		queryParamsBusiness.value[4].options = YWY.value;
 		queryParamsBusiness.value[9].options = XHDW.value;
-		console.log(queryParamsBusiness.value[3],'queryParams.value[3]')
+		// console.log(queryParamsBusiness.value[3],'queryParams.value[3]')
 		// formListNew.value = JSON.parse(JSON.stringify(formList.value))
 		// formListNew.value[0].formData[2].noShow = false;
 		// formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
@@ -196,9 +209,11 @@
 		keyStatus(formList.value, '商务详情', function(form, options){
 			formListNew.value = form;
 			// formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
-			formListNew.value[5].formData[1].noShow = true;
+			// formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
 			seletData.value = options;
+			console.log(options,'options')
+			console.log(seletData.value,'seletData.value')
 			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
@@ -212,7 +227,18 @@
 			tableConfig.value= res.data?.length>0?res.data: []
 		})
 	}
-	
+	const remarkVisible = ref(false); //备注弹框
+	const remark = ref(''); //备注信息
+	function updateRemark(){
+		httpPut(`/orders/${editId.value}/update-remark`, {
+			remark: remark.value
+		}).then(res => {
+			remarkVisible.value = false;
+			editId.value = '';
+			proxy.$modal.msgSuccess("备注成功!");
+			proxy.$refs.tableList.getList();
+		});
+	}
 	
 	/** 查询列表 */
 	const tableColumn = ref([
@@ -228,7 +254,25 @@
 		{label: '船舰/归属月份',prop: 'finish_at'},
 		{label: '操作员',prop: 'operation_user.name'},
 		{label: '业务员',prop: 'business_user.name'},
-		{label: '是否提货',prop: 'is_delivery', formatter: (row)=> optionsComm['提货'].find(item =>item.value=== row.is_delivery)?.label},
+		{
+			label: '是否提货',
+			prop: 'is_delivery', 
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.is_delivery == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+					)
+				]
+			}
+		},
 		{label: '订舱信息',prop: 'booking_info'},
 		{
 			label: '备注',
@@ -271,6 +315,13 @@
 					    })
 				},
 				{
+					label: '复制',
+					onClick: (row, index) => handleCopy(row, index),
+					style: () => ({
+					        display: userStore.userRoleCode === 'COMMERCE' ? 'block' : 'none'
+					    })
+				},
+				{
 					label: '删除',
 					type: 'danger',
 					onClick: (row) => handleDelete(row),
@@ -287,13 +338,13 @@
 		url: '/orders',
 		requestMethod: httpGet,
 		isQuery: true,
-		tableRowClassName: (row, rowIndex) => {
-			console.log('列表类名', row.id, rowIndex)
-			if(row.is_delivery===2){
-				return 'danger-row'
-			}
-			return '';
-		}
+		// tableRowClassName: (row, rowIndex) => {
+		// 	console.log('列表类名', row.id, rowIndex)
+		// 	if(row.is_delivery===2){
+		// 		return 'danger-row'
+		// 	}
+		// 	return '';
+		// }
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
@@ -371,6 +422,15 @@
 	}
 	
 	function resetInfo() {
+		formListNew.value[2].formData[0].formItem[1].value = '';
+		formListNew.value[2].formData[0].formItem[1].remark = '';
+		formListNew.value[0].formData[0].formItem[17].disabled = false;
+		formListNew.value[0].formData[0].formItem[20].disabled = false;
+		formListNew.value[0].formData[0].formItem[21].disabled = false;
+		formListNew.value[2].formData[0].formItem[7].disabled = false;
+		formListNew.value[0].formData[0].formItem[17].rules = rulesInit('请选择截单日期', 1);
+		formListNew.value[2].formData[0].formItem[7].rules = rulesInit('请选择截单日期', 1);
+		
 		payment_status.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
 		containers.value = [];
@@ -400,6 +460,20 @@
 				if (type == 2 && nullKey.indexOf(key) > -1) {
 					data[key] = '';
 				}
+			}else{
+				data['insurance']= '0'
+				data['is_finish']= '0'
+				data['is_allowed']= '0'
+				if(res['order_type_id']=== 3 || res['order_type_id']=== 4){
+					data['is_delivery']= 0
+				}else{
+					data['is_delivery']= 1
+				}
+				data['job_no']= ''
+				data['contract_no']= ''
+				data['finish_at']= ''
+				data['container_type']= ''
+				data['order_delegation_header.seller_id']= null
 			}
 		}
 		// console.log('单据数据', data)
@@ -410,7 +484,12 @@
 		}
 		payment_status.value = res.payment_status || 0;
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
-		
+		if(data.actual_sailing_at){
+			formListNew.value[0].formData[0].formItem[20].disabled = true;
+		}
+		if(data.actual_arrival_at){
+			formListNew.value[0].formData[0].formItem[21].disabled = true;
+		}
 		//提单信息
 		billInfo.value = res.bl_info || {};
 		if(type==2){

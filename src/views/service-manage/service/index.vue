@@ -27,7 +27,7 @@
 		</table-list>
 
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="单据详情" width="80%" :close-on-click-modal="false">
+		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
 					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
@@ -91,7 +91,7 @@
 							@click="changePaymentStatus">费用{{payment_status==1?'已':'未'}}完结</el-button> -->
 							<el-button type="success" plain>费用未完结</el-button>
 							<el-button type="success" plain>账单未做</el-button>
-							<el-button type="primary" plain @click="addAccount()">制作账单</el-button>
+							<el-button type="primary" plain @click="toBillPage()">制作账单</el-button>
 							<el-button type="primary" plain @click="addAccount()">添加明细</el-button>
 						</div>
 					</template>
@@ -128,9 +128,12 @@
 					<!-- 落箱数据 -->
 					<template #shoppingCompany>
 						<div style="margin-left: 100px;">
-							<el-tooltip class="box-item" effect="dark"
-								:content="shipCompany.phone ? shipCompany.phone :'暂无电话'" placement="top">
-								<el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
+							<el-tooltip placement="top">
+							  <!-- 使用带样式的插槽内容 -->
+							  <template #content>
+								<div class="tooltip-content multiline-text">{{ shipCompany.phone ? shipCompany.phone :'暂无电话' }}</div>
+							  </template>
+							  <el-button type="text" @click="toShipCompanyUrl">船公司网址</el-button>
 							</el-tooltip>
 						</div>
 					</template>
@@ -167,85 +170,90 @@
 				</div>
 			</template>
 		</el-dialog>
-		<div v-draggable style="width: 60%;">
+		<el-dialog v-model="billVisible" title="账单列表" width="80%" :close-on-click-modal="false">
+			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" class="px-2" ref="tableListBill" :number="true" :multiple="false">
+				<template #headerRight></template>
+			</table-list>
+		</el-dialog>
+		<div  v-show="billBool== true" v-draggable style="width: 60%;top: 20px;z-index: 9999;max-height: 800px;font-size: 12px;overflow: hidden;" class="shadow-lg">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<el-card class="w-100">
-				<div class="d-flex">
-					<div class="pt-2 flex-1 bR-0 pr-2">
+			<div v-if="billBool== true"  class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
+				<div class="d-flex w-100" style=" flex-shrink: 0;">
+					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="">
 						<div class="flex1">
-							<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 400px;height: 80px;"/>
+							<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
 							<p class="font-32 font-w">Logistics & Services</p>
 						</div>
-						<div class="font-40 t-c bB-0 pb-2">费用确认单</div>
-						<div class="flex a-center flex-wrap pb-1 bB-0">
-							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1">
+						<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
+						<div class="flex a-center flex-wrap pb-1 bB-0 w-100">
+							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1 w-100">
 								 <el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									 <div  class="flex ">
 									 	<p style="width: 100px;">委托人：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.delegation_header"></el-input>
 									 	<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
 									 </div>
 								 </el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									 <div  class="flex">
 									 	<p  style="width: 100px;">起运港：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.origin_port"></el-input>
 									 	<!-- <p class="color0">Ningbo</p> -->
 									 </div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">提单号：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.bl_no"></el-input>
 										<!-- <p class="color0">COSU9503431040</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">合同号：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.contract_no"></el-input>
 										<!-- <p class="color0">25NS-2129</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="pt-2">
 									<div class="flex">
 										<p style="width: 100px;">目的港：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.destination_port"></el-input>
 										<!-- <p class="color0">Liverpool</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">船名/航次：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.ship_name"></el-input>
 										<!-- <p class="color0">MONACO MAERSK/521W</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">工作编号：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.job_no"></el-input>
 										<!-- <p class="color0">HO8-ZH25176</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">开船日期：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.sailing_at"></el-input>
 										<!-- <p class="color0">24-May-2025</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">到港日期：</p>
-										<el-input v-model="name1"></el-input>
+										<el-input v-model="formBill.arrival_at"></el-input>
 										<!-- <p class="color0">07-Ju1-2025</p> -->
 									</div>
 								</el-checkbox>
 							</el-checkbox-group>
 						</div>
-						<div class="bB-0 py-2">
+						<div class="bB-0 py-2 w-100">
 							<el-table
 							    ref="multipleTable"
 							    :data="tableData"
@@ -263,7 +271,7 @@
 								    </el-table-column> -->
 							    <el-table-column
 							      label="费用明细"
-								  align="center" width="240">
+								  align="center" width="180">
 							      <template v-slot="{row}">
 									  <el-select v-model="row.name3" placeholder="请选择费用明细" filterable>
 									    <el-option label="代理码头港务港建费" value="shanghai"></el-option>
@@ -311,7 +319,7 @@
 								<el-table-column
 								  label="备注"
 								  align="center"
-								  width="240">
+								  width="180">
 								  <template v-slot="{row}">
 									  <el-input v-model="row.name"></el-input>
 								  </template>
@@ -435,7 +443,7 @@
 							  </div>
 						</div>
 					</div>
-					<div style="width: 200px" class="pl-2">
+					<div style="width: 400px; flex-shrink: 0; " class="pl-2">
 						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px">
 						  <el-form-item label="导出文件名">
 						    <el-input v-model="form.name" placeholder=""></el-input>
@@ -463,10 +471,10 @@
 					<div class="dialog-footer">
 						<el-button type="primary" @click="submitForm">生成图片</el-button>
 						<el-button type="primary" @click="submitForm">保 存</el-button>
-						<el-button @click="cancel">取 消</el-button>
+						<el-button @click="cancelBill">取 消</el-button>
 					</div>
 				</div>
-			</el-card>
+			</div>
 		<!-- </el-dialog> -->
 		</div>
 	</div>
@@ -531,6 +539,7 @@
 	} = getCurrentInstance();
 
 	const dialogFormVisible = ref(false);
+	const billVisible = ref(false)
 	const editId = ref('');
 	const formListNew = ref([]);
 	const AccountsColumns = ref([]);
@@ -543,6 +552,34 @@
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
 	const paySureVisible = ref(false); //文件信息
+	const billBool= ref(false)
+	const formBill= ref({})
+	const contentContainer= ref(null)
+	function toBillPage(){
+		billBool.value= true
+		console.log(contentContainer.value,'contentContainer.value')
+		if(contentContainer.value){
+			contentContainer.value.scrollTop = 0
+			contentContainer.value.scrollLeft = 0
+		}
+		formBill.value= {
+			delegation_header: proxy.$refs.commonForm.saveData.delegation_header,
+			job_no: proxy.$refs.commonForm.saveData.job_no,
+			contract_no: proxy.$refs.commonForm.saveData.contract_no,
+			bl_no: proxy.$refs.commonForm.saveData.bl_no,
+			origin_port: proxy.$refs.commonForm.saveData.origin_port,
+			destination_port: proxy.$refs.commonForm.saveData.destination_port,
+			ship_name: proxy.$refs.commonForm.saveData.ship_name,
+			ship_no: proxy.$refs.commonForm.saveData.ship_no,
+			sailing_at: proxy.$refs.commonForm.saveData.sailing_at,
+			arrival_at: proxy.$refs.commonForm.saveData.arrival_at
+		}
+		console.log(formBill.value,'formBill.value')
+		console.log(proxy.$refs.commonForm.saveData,'formListNew.value[0].formData[0]')
+	}
+	function cancelBill(){
+		billBool.value= false
+	}
 	// 模板
 	const  checkList= ref(['复选框']) 
 	const tableData= ref([{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'}])
@@ -721,11 +758,41 @@
 		{
 			label: '提货',
 			prop: 'is_delivery',
-			formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货')
+			// formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货'),
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.is_delivery == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+					)
+				]
+			}
 		},
 		{
 			label: '文件',
-			prop: 'file'
+			prop: 'file',
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.order_files_count> 0?'success' : 'danger',
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.order_files_count> 0 ? '有' : '无')
+					)
+				]
+			}
 		},
 		{
 			label: '费用完结',
@@ -783,6 +850,10 @@
 				{
 					label: '申请开票',
 					onClick: (row, index) => handleCopy(row, index)
+				},
+				{
+					label: '帐单列表',
+					onClick: (row, index) => handleBillList(row, index)
 				}
 			],
 			fixed: "right",
@@ -790,16 +861,39 @@
 		}
 	]);
 	const tableConfig = ref({
-		url: '/orders',
+		url: '/orders/business-index',
 		requestMethod: httpGet,
-		isQuery: false,
-		tableRowClassName: (row, rowIndex) => {
-			console.log('列表类名', row.id, rowIndex)
-			// if(row.is_delivery===2){
-			// 	return 'danger-row'
-			// }
-			return '';
-		}
+		isQuery: true
+	})
+	
+	// 账单列表
+	const tableColumnBill = ref([{
+			label: '工作编号',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '操作',
+			prop: 'actions',
+			actions: [{
+					label: '查看详情',
+					onClick: (row, index) => handleEdit(row, index)
+				},
+				{
+					label: '申请开票',
+					onClick: (row, index) => handleCopy(row, index)
+				},
+				{
+					label: '帐单列表',
+					onClick: (row, index) => handleBillList(row, index)
+				}
+			],
+			fixed: "right",
+			width: '190px'
+		}])
+	const tableConfigBill= ref({
+		url: '/order-bills',
+		requestMethod: httpGet,
+		isQuery: false
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
@@ -855,6 +949,14 @@
 			}, 500)
 		});
 	}
+	
+	// 帐单列表
+	function handleBillList(row){
+		console.log(row,'row')
+		billVisible.value = true;
+		tableConfigBill.value.data= {order_id: row.id}
+		tableConfigBill.value.isQuery= true
+	}
 
 	function resetInfo() {
 		payment_status.value = 0;
@@ -864,7 +966,7 @@
 		order_files.value = [];
 		proxy.$refs.fileInfo.dafultFile([]);
 		billInfo.value = {};
-		proxy.$refs.billForm.updateBill({}, false)
+		// proxy.$refs.billForm.updateBill({}, false)
 		shipCompany.value = {};
 	}
 
@@ -896,7 +998,8 @@
 		}
 		payment_status.value = res.payment_status || 0;
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
-		
+		proxy.$refs.paymentTable.tableData = [];
+		addPayment();
 		//提单信息
 		billInfo.value = res.bl_info || {};
 		if(type==2){
@@ -904,7 +1007,7 @@
 				billInfo.value[vv] = '';
 			})
 		}
-		proxy.$refs.billForm.updateBill(billInfo.value, true) //装箱单
+		// proxy.$refs.billForm.updateBill(billInfo.value, true) //装箱单
 
 		proxy.$refs.commonForm.changeSave(data);
 		if ((type == 2 && payment_status.value == 0) || type == 1) {
@@ -1112,7 +1215,7 @@
 					shipCompany: shipCompany.setTime
 				};
 				// console.log('tab变化', tab=='提单信息', proxy.$refs.billForm);
-				proxy.$refs.billForm.openBill(false, saveData, seletData.value);
+				// proxy.$refs.billForm.openBill(false, saveData, seletData.value);
 			}, 300)
 		}
 	}
@@ -1184,7 +1287,7 @@
 			containers: containers.value,
 			order_payments: order_payments,
 			order_files: order_files.value,
-			bl_info: proxy.$refs.billForm.save(2),
+			// bl_info: proxy.$refs.billForm.save(2),
 			payment_status: payment_status.value
 		}
 		var strKey = ['booking_info', 'order_delegation_header', 'order_payments', 'containers', 'order_files',

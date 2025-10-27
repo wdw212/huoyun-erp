@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-	import { ref, defineProps, watch, defineExpose, defineEmits, onMounted } from "vue";
+	import { ref, defineProps, watch, defineExpose, defineEmits, onMounted, toRefs, computed } from "vue";
 	
 	const props = defineProps({
 		modelValue: [String, Object, Array],
@@ -76,26 +76,61 @@
 	})
 	
 	const baseUrl = import.meta.env.VITE_APP_BASE_API;
-	const order_files = ref([]);
-	const fileList = ref([]);
+	// const order_files = ref([]);
+	// const fileList = ref([]);
+	const uploadRef = ref();
+	
+	// watch(()=>props.modelValue, (newVal, oldVal) => {
+	// 	console.log(newVal.url !=oldVal.url)
+	// 	if(!oldVal || JSON.stringify(newVal) !== JSON.stringify(oldVal) ){
+	// 		if(props.uploadType==1){
+	// 			order_files.value = newVal?.url?[newVal]:[];
+	// 			file.value.path = newVal?.path||'';
+	// 			file.value.url = newVal?.url||'';
+	// 		}else{
+	// 			order_files.value = newVal||[];
+	// 			fileList.value = newVal||[];
+	// 		}
+	// 		console.log('props.modelValue-上传信息', newVal, oldVal, order_files.value)
+	// 	}
+	// }, {
+	// 	deep: true
+	// })
+	
+	// 使用 toRefs 解构 props 确保响应性
+	const { modelValue, uploadType } = toRefs(props)
+	
+	// 使用计算属性处理派生数据
+	const order_files = computed(() => {
+	  if (uploadType.value === 1) {
+	    return modelValue.value?.url ? [modelValue.value] : []
+	  } else {
+	    return modelValue.value || []
+	  }
+	})
+	
+	const fileList = computed(() => {
+	  return uploadType.value === 1 ? [] : (modelValue.value || [])
+	})
+	
 	const file = ref({
 		path: '',
 		url: ''
 	});
-	const uploadRef = ref();
 	
-	watch(()=>props.modelValue, (newVal, oldVal) => {
-		if(props.uploadType==1){
-			order_files.value = newVal?.url?[newVal]:[];
-			file.value.path = newVal?.path||'';
-			file.value.url = newVal?.url||'';
-		}else{
-			order_files.value = newVal||[];
-			fileList.value = newVal||[];
-		}
-		console.log('props.modelValue-上传信息', newVal, oldVal, order_files.value)
+	// 只监听需要副作用的情况
+	watch([modelValue, uploadType], ([newVal, uploadType], [oldVal, oldUploadType]) => {
+	  // 只处理文件路径的更新
+	  if (uploadType === 1) {
+	    file.value = {
+	      path: newVal?.path || '',
+	      url: newVal?.url || ''
+	    }
+	  }
+	  
+	  console.log('props.modelValue-上传信息', newVal, oldVal, order_files.value)
 	}, {
-		deep: true
+	  deep: true
 	})
 	
 	onMounted(()=>{

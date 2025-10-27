@@ -319,7 +319,7 @@
 		var data = JSON.parse(JSON.stringify(saveData));
 		data[item.key] = val;
 		Object.assign(saveData, data);
-		console.log('uploadFileSimple', saveData, val, item);
+		console.log('uploadFileSimple', data, val, item);
 		emit('itemChange', data, val, item);
 	}
 
