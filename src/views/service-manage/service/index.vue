@@ -175,18 +175,30 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div  v-show="billBool== true" v-draggable style="width: 60%;top: 20px;z-index: 9999;max-height: 800px;font-size: 12px;overflow: hidden;" class="shadow-lg">
+		<div v-draggable>
+		  <div class="drag-handle">拖拽这里</div>
+		  <el-select v-model="name" placeholder="请选择币种">
+		    <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
+		  </el-select>
+		</div>
+		<div v-draggable style="width: 60%;top: 20px;z-index: 9999;max-height: 800px;font-size: 12px;overflow: hidden;" class="shadow-lg">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<div v-if="billBool== true"  class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
+			<div   class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
 				<div class="d-flex w-100" style=" flex-shrink: 0;">
 					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="">
-						<div class="flex1">
-							<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
-							<p class="font-32 font-w">Logistics & Services</p>
+						<div class="drag-handle">
+							<div class="flex1">
+								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
+								<p class="font-32 font-w">Logistics & Services</p>
+							</div>
+							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
 						</div>
-						<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
+						<el-select v-model="name" placeholder="请选择币种">
+						  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
+						</el-select>
 						<div class="flex a-center flex-wrap pb-1 bB-0 w-100">
+							
 							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1 w-100">
 								 <el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									 <div  class="flex ">
@@ -241,7 +253,6 @@
 									<div class="flex">
 										<p style="width: 100px;">开船日期：</p>
 										<el-input v-model="formBill.sailing_at"></el-input>
-										<!-- <p class="color0">24-May-2025</p> -->
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
@@ -284,9 +295,9 @@
 							      label="币种"
 								  align="center">
 								  <template v-slot="{row}">
+									  <!-- <div>{{optionsComm['币种']}}</div> -->
 								  		<el-select v-model="row.name" placeholder="请选择币种">
-										  <el-option label="区域一" value="shanghai"></el-option>
-										  <el-option label="区域二" value="beijing"></el-option>
+										  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
 										</el-select>
 								  </template>
 							    </el-table-column>
@@ -443,7 +454,7 @@
 							  </div>
 						</div>
 					</div>
-					<div style="width: 400px; flex-shrink: 0; " class="pl-2">
+					<div style="width: 400px; flex-shrink: 0; " class="pl-2 pt-2">
 						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px">
 						  <el-form-item label="导出文件名">
 						    <el-input v-model="form.name" placeholder=""></el-input>
@@ -529,7 +540,8 @@
 	} from '@/utils/common'
 	import {
 		getCZY,
-		getSW
+		getSW,
+		optionsComm
 	} from '@/api/commonList';
 	import {
 		ElButton
@@ -552,7 +564,7 @@
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
 	const paySureVisible = ref(false); //文件信息
-	const billBool= ref(false)
+	const billBool= ref(true)
 	const formBill= ref({})
 	const contentContainer= ref(null)
 	function toBillPage(){

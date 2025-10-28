@@ -206,4 +206,13 @@ export const optionsComm = {
 		{label: '驮鸟未确认',value: 3},
 		{label: '驮鸟已确认',value: 4},
 	],
+	'币种': [{
+					label: 'CNY',
+					value: 'cny'
+				},
+				{
+					label: 'USD',
+					value: 'usd'
+				}
+			]
 }

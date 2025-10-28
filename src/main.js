@@ -94,11 +94,11 @@ app.use(ElementPlus, {
   size: Cookies.get('size') || 'default'
 })
 // 导入自定义指令
-import dialogDrag from './directives/dialogDrag';
+// import dialogDrag from './directives/dialogDrag';
 // app.use(ElementPlus);
 
 // 全局注册自定义指令，使用名为 `v-dialog-drag`
-app.directive('dialog-drag', dialogDrag);
+// app.directive('dialog-drag', dialogDrag);
 // app.directive('drag', {
 //   // 当被绑定的元素插入到 DOM 中时……
 //   mounted(el) {
