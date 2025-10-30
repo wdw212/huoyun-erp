@@ -129,6 +129,16 @@ export async function getZGDZ(data={}) {
 	return res.data||[]
 }
 
+//费用类型
+export async function getFYLX(data={}) {
+	var params = {
+		is_paginate: 0,
+		...data
+	}
+	let res = await httpGet('/fee-types', params);
+	return res.data||[]
+}
+
 
 //其他选项
 export const optionsComm = {

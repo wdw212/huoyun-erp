@@ -82,7 +82,7 @@ export default {
   
   unmounted(el) {
     if (el._dragHandler) {
-      const handleSelector = binding.value?.handle || '.drag-handle';
+      const handleSelector = binding?.value?.handle || '.drag-handle';
       const dragHandle = el.querySelector(handleSelector);
       const dragElement = dragHandle || el;
       dragElement.removeEventListener('mousedown', el._dragHandler);

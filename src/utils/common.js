@@ -19,7 +19,7 @@ export const detailInfo = (formList, data) => {
 }
 
 import userStore from "@/store/modules/user";
-import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT, getXZLX,getLX } from '@/api/commonList';
+import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT, getXZLX,getLX,getFYLX } from '@/api/commonList';
 const role = userStore().roles;
 //权限限制
 export const commonParam = () => {
@@ -53,6 +53,7 @@ export const getSelect = async (callBack) => {
 		XZLX: await getXZLX(),  //箱子类型
 		LX: await getLX({type: 1}),  //落箱堆场
 		YT: await getLX({type: '0'}),  //预提
+		FYLX: await getFYLX(),  //预提
 	}
 	callBack(data);
 }

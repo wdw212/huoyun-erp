@@ -175,18 +175,12 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable>
-		  <div class="drag-handle">拖拽这里</div>
-		  <el-select v-model="name" placeholder="请选择币种">
-		    <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
-		  </el-select>
-		</div>
-		<div v-draggable style="width: 60%;top: 20px;z-index: 9999;max-height: 800px;font-size: 12px;overflow: hidden;" class="shadow-lg">
+		<div v-draggable v-show="billBool== true" style="width: 60%;top: 20px;z-index: 2045;max-height: 800px;font-size: 12px;overflow: hidden;border: 4px solid #ddd;" class="shadow-lg radius10">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<div   class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
+			<div v-if="billBool== true"  class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
 				<div class="d-flex w-100" style=" flex-shrink: 0;">
-					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="">
+					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="font-size: 12px;">
 						<div class="drag-handle">
 							<div class="flex1">
 								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
@@ -194,9 +188,6 @@
 							</div>
 							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
 						</div>
-						<el-select v-model="name" placeholder="请选择币种">
-						  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
-						</el-select>
 						<div class="flex a-center flex-wrap pb-1 bB-0 w-100">
 							
 							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1 w-100">
@@ -252,22 +243,34 @@
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">开船日期：</p>
-										<el-input v-model="formBill.sailing_at"></el-input>
+										<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
+										<el-date-picker
+										style="width: 100%;"
+										      v-model="formBill.sailing_at"
+										      type="date"
+										      placeholder="选择日期">
+										    </el-date-picker>
 									</div>
 								</el-checkbox>
 								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
 									<div class="flex">
 										<p style="width: 100px;">到港日期：</p>
-										<el-input v-model="formBill.arrival_at"></el-input>
+										<!-- <el-input v-model="formBill.arrival_at"></el-input> -->
+										<el-date-picker
+										style="width: 100%;"
+										      v-model="formBill.arrival_at"
+										      type="date"
+										      placeholder="选择日期">
+										    </el-date-picker>
 										<!-- <p class="color0">07-Ju1-2025</p> -->
 									</div>
 								</el-checkbox>
 							</el-checkbox-group>
 						</div>
-						<div class="bB-0 py-2 w-100">
+						<div class="bB-0 py-2 w-100" style="font-size: 12px;">
 							<el-table
 							    ref="multipleTable"
-							    :data="tableData"
+							    :data="orderBillItems"
 							    tooltip-effect="dark"
 							    style="width: 100%;text-align: center;"
 								:header-row-style="{backgroundColor:' #fff'}"
@@ -284,19 +287,19 @@
 							      label="费用明细"
 								  align="center" width="180">
 							      <template v-slot="{row}">
-									  <el-select v-model="row.name3" placeholder="请选择费用明细" filterable>
-									    <el-option label="代理码头港务港建费" value="shanghai"></el-option>
-									    <el-option label="区域二" value="beijing"></el-option>
+									  <el-select v-model="row.fee_type_id" placeholder="请选择币种">
+									    <el-option v-for="item in seletData.FYLX" :key="item.id" :label="item.name" :value="item.id"/>
 									  </el-select>
 								  </template>
 							    </el-table-column>
 							    <el-table-column
 							      prop="name"
 							      label="币种"
-								  align="center">
+								  align="center"
+								  width="100">
 								  <template v-slot="{row}">
 									  <!-- <div>{{optionsComm['币种']}}</div> -->
-								  		<el-select v-model="row.name" placeholder="请选择币种">
+								  		<el-select v-model="row.currency" placeholder="请选择币种">
 										  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
 										</el-select>
 								  </template>
@@ -312,37 +315,41 @@
 								  label="数量"
 								  align="center">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.name" type="number"></el-input>
+									  <el-input v-model="row.quantity" type="number"></el-input>
 								  </template>
 								</el-table-column>
 								<el-table-column
 								  label="单价"
 								  align="center">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.name" type="number"></el-input>
+									  <el-input v-model="row.price" type="number"></el-input>
 								  </template>
 								</el-table-column>
 							    <el-table-column
 							      prop="address"
 							      label="总计"
 								  align="center">
+								  <template v-slot="{row}">
+								  		<p>{{row.quantity * row.price}}</p>
+								  </template>
 							    </el-table-column>
 								<el-table-column
 								  label="备注"
 								  align="center"
 								  width="180">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.name"></el-input>
+									  <el-input v-model="row.remark"></el-input>
 								  </template>
 								</el-table-column>
 								<el-table-column label="操作" align="center" width="180">
-								  <template v-slot="scope">
+								  <template v-slot="{row,$index}">
 									<el-button
-									  size="mini">增加</el-button>
+									  size="mini" @click="handleAddOrderBill($index)">增加</el-button>
 									<el-button
+									 v-if="orderBillItems.length> 1"
 									  size="mini"
 									  type="danger"
-									  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+									  @click="handleDeletePrderBill($index)">删除</el-button>
 								  </template>
 								</el-table-column>
 							  </el-table>
@@ -350,7 +357,7 @@
 						<div class="pb-2">
 							<el-table
 							    ref="multipleTable"
-							    :data="tableData"
+							    :data="orderBillContainers"
 							    tooltip-effect="dark"
 							    style="width: 100%;text-align: center;"
 								 :span-method="objectSpanMethod"
@@ -365,10 +372,10 @@
 								    </el-table-column>
 							    <el-table-column
 							      label="箱号"
-								  prop="name1"
+								  prop="no"
 								  align="center">
 								  <template v-slot="{row}">
-								  		 <el-input v-model="row.name1"></el-input>
+								  		 <el-input v-model="row.no"></el-input>
 								  </template>
 								  </el-table-column>
 								<el-table-column
@@ -376,32 +383,33 @@
 								  align="center"
 								  width="100">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.name2"></el-input>
+									  <el-input v-model="row.container_type"></el-input>
 								  </template>
 								</el-table-column>
 								<el-table-column
 								  label="司机信息"
 								  align="center">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.name2"></el-input>
+									  <el-input v-model="row.driver"></el-input>
 								  </template>
 								</el-table-column>
 								<el-table-column label="操作" align="center">
-								  <template v-slot="scope">
+								  <template v-slot="{row,$index}">
 									<el-button
-									  size="mini">增加</el-button>
+									  size="mini" @click="handleAddOrderContainers($index)">增加</el-button>
 									<el-button
+									v-if="orderBillContainers.length> 1"
 									  size="mini"
 									  type="danger"
-									  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+									  @click="handleDeleteContainers($index)">删除</el-button>
 								  </template>
 								</el-table-column>
 								<el-table-column
 								  label="总计"
 								  align="center">
 								  <template v-slot="{row}">
-									  <p>CNY：</p>
-									  <p>USD：</p>
+									  <p>CNY：{{row.totalCNY}}</p>
+									  <p>USD：{{row.totalUSD}}</p>
 								  </template>
 								</el-table-column>
 							  </el-table>
@@ -413,7 +421,7 @@
 											type="textarea"
 											:rows="4"
 											placeholder="请输入内容"
-											v-model="textarea">
+											v-model="cost_share">
 										  </el-input>
 									  </div>
 									  <div class="pt-2 w-100">
@@ -421,7 +429,7 @@
 											type="textarea"
 											:rows="4"
 											placeholder="请输入内容"
-											v-model="textarea">
+											v-model="customer_payment_info">
 										  </el-input>
 									  </div>
 									  <div class="pt-2 w-100">
@@ -429,7 +437,7 @@
 											type="textarea"
 											:rows="4"
 											placeholder="请输入内容"
-											v-model="textarea">
+											v-model="cost_share">
 										  </el-input>
 									  </div>
 								  </div>
@@ -478,7 +486,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="pt-2">
+				<div class="py-2">
 					<div class="dialog-footer">
 						<el-button type="primary" @click="submitForm">生成图片</el-button>
 						<el-button type="primary" @click="submitForm">保 存</el-button>
@@ -497,7 +505,8 @@
 		ref,
 		onMounted,
 		h,
-		getCurrentInstance
+		getCurrentInstance,
+		computed
 	} from "vue";
 	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
@@ -536,7 +545,8 @@
 	import {
 		detailInfo,
 		keyStatus,
-		commonParam
+		commonParam,
+		getSelect
 	} from '@/utils/common'
 	import {
 		getCZY,
@@ -564,9 +574,14 @@
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
 	const paySureVisible = ref(false); //文件信息
-	const billBool= ref(true)
+	const billBool= ref(false)
 	const formBill= ref({})
 	const contentContainer= ref(null)
+	const orderBillItems= ref([{fee_type_id:'',currency:'',quantity:'',price:'',remark:''}])
+	const orderBillContainers= ref([])
+	const cost_share= ref('')
+	const customer_payment_info= ref('')
+	const company_receipt_info= ref('')
 	function toBillPage(){
 		billBool.value= true
 		console.log(contentContainer.value,'contentContainer.value')
@@ -586,13 +601,33 @@
 			sailing_at: proxy.$refs.commonForm.saveData.sailing_at,
 			arrival_at: proxy.$refs.commonForm.saveData.arrival_at
 		}
-		console.log(formBill.value,'formBill.value')
+		
+		if(containers.value.length>0){
+			// const item= {no:'',container_type:'',driver:'',totalCNY:'',totalUSD:''}
+			// console.log(containers.value,'containers.value')
+			const containersItem= JSON.parse(JSON.stringify(containers.value))
+			// console.log(containersItem,'containersItem')
+			orderBillContainers.value.push(...containersItem.map(item => ({
+			  no: item.no?item.no: '',
+			  container_type: item.container_type?item.container_type: '',
+			  driver: item.driver?item.driver: '',
+			  totalCNY: 0,
+			  totalUSD: 0,
+			})))
+			console.log(orderBillContainers.value,'orderBillContainers.value')
+			// orderBillContainers.value= containersItem.map(item => ({no: item.no,container_type: item.container_type,driver: item.driver,totalCNY: '',totalUSD: ''}))
+		}else{
+			orderBillContainers.value= [{no:'',container_type:'',driver:'',totalCNY:0,totalUSD:0}]
+		}
+		
 		console.log(proxy.$refs.commonForm.saveData,'formListNew.value[0].formData[0]')
 	}
 	function cancelBill(){
 		billBool.value= false
 	}
 	// 模板
+	
+	// const cost_share= ref('')
 	const  checkList= ref(['复选框']) 
 	const tableData= ref([{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'}])
 	const form= ref({name: '测试'})
@@ -1385,6 +1420,58 @@
 			  }
 			}
 	}
+	
+	// 费用明细新增
+	function handleAddOrderBill(index){
+			console.log(index)
+			const item= {fee_type_id:'',currency:'',quantity:'',price:'',remark:''}
+			orderBillItems.value.splice(index+1, 0, item)
+	}
+	function handleDeletePrderBill(index){
+			if(orderBillItems.value.length> 0){
+				proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+					orderBillItems.value.splice(index, 1);
+				})
+			}
+	}
+	
+	function handleAddOrderContainers(index){
+		const item= {no:'',container_type:'',driver:'',totalCNY:'',totalUSD:''}
+		orderBillContainers.value.splice(index+1, 0, item)
+	}
+	function handleDeleteContainers(index){
+			if(orderBillContainers.value.length> 0){
+				proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+					orderBillContainers.value.splice(index, 1);
+				})
+			}
+	}
+	// 计算总金额的计算属性
+	const totals = computed(() => {
+	  let totalCNY = 0
+	  let totalUSD = 0
+	  
+	  orderBillItems.value.forEach(item => {
+	    const quantity = Number(item.quantity) || 0
+	    const price = Number(item.price) || 0
+	    
+	    if (item.currency === 'cny') {
+	      totalCNY += quantity * price
+	    } else if (item.currency === 'usd') {
+	      totalUSD += quantity * price
+	    }
+	  })
+	  
+	  return { totalCNY, totalUSD }
+	})
+	watch(totals, (newTotals) => {
+	  orderBillContainers.value.forEach(container => {
+	    container.totalCNY = newTotals.totalCNY
+	    container.totalUSD = newTotals.totalUSD
+	  })
+	  console.log(orderBillContainers,'orderBillContainers1434')
+	  console.log(orderBillContainers,'orderBillContainers1434')
+	}, { immediate: true })
 </script>
 
 <style>
