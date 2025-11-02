@@ -175,7 +175,7 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable v-show="billBool== true" style="width: 60%;top: 20px;z-index: 2045;max-height: 800px;font-size: 12px;overflow: hidden;border: 4px solid #ddd;" class="shadow-lg radius10">
+		<div v-draggable v-show="billBool== true" style="width: 60%;top: 20px;z-index: 2100;max-height: 800px;font-size: 12px;overflow: hidden;border: 4px solid #ddd;" class="shadow-lg radius10">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
 			<div v-if="billBool== true"  class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
@@ -437,13 +437,13 @@
 											type="textarea"
 											:rows="4"
 											placeholder="请输入内容"
-											v-model="cost_share">
+											v-model="company_receipt_info">
 										  </el-input>
 									  </div>
 								  </div>
 								  <div class="pl-2">
 									  <el-switch
-									    v-model="value1">
+									    v-model="is_show_seal">
 									  </el-switch>
 									  <div class="mt-2">
 										 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
@@ -456,7 +456,7 @@
 										type="textarea"
 										:rows="5"
 										placeholder="请输入内容"
-										v-model="textarea">
+										v-model="remarkBill">
 									  </el-input>
 								</div>
 							  </div>
@@ -489,7 +489,7 @@
 				<div class="py-2">
 					<div class="dialog-footer">
 						<el-button type="primary" @click="submitForm">生成图片</el-button>
-						<el-button type="primary" @click="submitForm">保 存</el-button>
+						<el-button type="primary" @click="submitFormBill">保 存</el-button>
 						<el-button @click="cancelBill">取 消</el-button>
 					</div>
 				</div>
@@ -582,6 +582,8 @@
 	const cost_share= ref('')
 	const customer_payment_info= ref('')
 	const company_receipt_info= ref('')
+	const is_show_seal= ref(1)
+	const remarkBill= ref('')
 	function toBillPage(){
 		billBool.value= true
 		console.log(contentContainer.value,'contentContainer.value')
@@ -589,7 +591,9 @@
 			contentContainer.value.scrollTop = 0
 			contentContainer.value.scrollLeft = 0
 		}
+		console.log(editId.value,'editId')
 		formBill.value= {
+			order_id: editId.vakue,
 			delegation_header: proxy.$refs.commonForm.saveData.delegation_header,
 			job_no: proxy.$refs.commonForm.saveData.job_no,
 			contract_no: proxy.$refs.commonForm.saveData.contract_no,
@@ -1472,6 +1476,25 @@
 	  console.log(orderBillContainers,'orderBillContainers1434')
 	  console.log(orderBillContainers,'orderBillContainers1434')
 	}, { immediate: true })
+	
+	
+	function submitFormBill(){
+		const data= {
+			...formBill.value,
+			order_bill_items: JSON.stringify(orderBillItems.value),
+			order_bill_containers: JSON.stringify(orderBillContainers.value),
+			cost_share: cost_share.value,
+			customer_payment_info: customer_payment_info.value,
+			company_receipt_info: company_receipt_info.value,
+			is_show_seal: is_show_seal.value,
+			remark: remarkBill.value,
+		}
+		httpPost(`/order-bills`, data).then(res => {
+			dialogFormVisible.value = false;
+			proxy.$modal.msgSuccess("新增成功!");
+			proxy.$refs.tableList.getList();
+		});
+	}
 </script>
 
 <style>
