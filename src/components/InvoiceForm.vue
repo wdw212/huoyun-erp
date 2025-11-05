@@ -15,19 +15,29 @@
                 <el-form-item label="手机/邮箱：" label-width="87px">
                   <el-input v-model="form.phone" style="width: 130px" />
                 </el-form-item>
+				<el-form-item label="税点：" label-width="87px">
+				  <el-input v-model="form.phone" style="width: 130px" />
+				</el-form-item>
+				
               </div>
               </el-col>
               <el-col :span="12">
               <div class="section">
-                <el-form-item label="发票类型：" label-width="85px">
-                    <el-select v-model="form.invoiceType" placeholder="专用电子发票" style="width:130px">
+                <el-form-item label="发票名称：" label-width="85px">
+                  <!--  <el-select v-model="form.invoiceType" placeholder="专用电子发票" style="width:130px">
                       <el-option label="普通发票" value="normal" />
                       <el-option label="专用发票" value="special" />
-                    </el-select>
+                    </el-select> -->
+					<el-select v-model="form.invoiceType" placeholder="专用电子发票" style="width:130px">
+					  <el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label" :value="item.id"/>
+					</el-select>
                   </el-form-item>
                   <el-form-item label="备注：" label-width="85px">
                     <el-input v-model="form.email" style="width: 130px" />
                   </el-form-item>
+				  <el-form-item label="税额：" label-width="87px">
+				    <el-input v-model="form.phone" style="width: 130px" />
+				  </el-form-item>
               </div>
             </el-col>
           </el-row>
@@ -86,11 +96,11 @@
         <td style="vertical-align:top">
             <!-- 项目明细表格 左侧 -->
             <div class="section">
-              <el-table :data="items" border style="width: 100%" fit show-summary sum-text="合计" :summary-method="getSummaries">
+              <el-table :data="tableDataCNY" border style="width: 100%" fit show-summary sum-text="合计" :summary-method="getSummaries">
                 <el-table-column type="index" label="序号" width="60"></el-table-column>
                 <el-table-column prop="name" label="项目名称" width="160">
                   <template #default>
-                    <el-select v-model="items.name" placeholder="我要显示七个字" filterable remote>
+                    <el-select v-model="items.fee_type_id" placeholder="我要显示七个字" filterable remote>
                       <el-option v-for="opt in itemOptions" :key="opt" :label="opt" :value="opt"/>
                     </el-select>
                   </template>
@@ -106,8 +116,8 @@
                   </template>
                 </el-table-column>
                 <el-table-column label="金额" width="115">
-                  <template #default="{ row }">
-                    <el-input v-model="row.formattedValue" @input="handleInput"/>
+                  <template #default="{row}">
+                  	<el-input v-model="row.totalPrice" type="number"></el-input>
                   </template>
                 </el-table-column>
                 <el-table-column width="80">
@@ -139,11 +149,11 @@
         <td>美金发票</td>
         <td style="vertical-align:top">
             <div class="section">
-              <el-table :data="itemss" border style="width: 100%" show-summary sum-text="合计" :summary-method="getSummariesR">
+              <el-table :data="tableDataUSD" border style="width: 100%" show-summary sum-text="合计" :summary-method="getSummariesR">
                 <el-table-column type="index" label="序号" width="60"></el-table-column>
                 <el-table-column prop="name" label="项目名称" width="160">
                   <template #default>
-                    <el-select v-model="itemss.name" placeholder="我要显示七个字" filterable remote>
+                    <el-select v-model="itemss.fee_type_id" placeholder="我要显示七个字" filterable remote>
                       <el-option v-for="opt in itemOptions" :key="opt" :label="opt" :value="opt" />
                     </el-select>
                   </template>
@@ -159,8 +169,8 @@
                   </template>
                 </el-table-column>
                 <el-table-column label="金额" width="115">
-                  <template #default="{ row }">
-                    <el-input v-model="row.formattedValue" />
+                  <template #default="{row}">
+                  	<el-input v-model="row.totalPrice" type="number"></el-input>
                   </template>
                 </el-table-column>
                 <el-table-column  width="80">
@@ -193,14 +203,14 @@
           <td>人民币备注</td>
           <td>
               <div class="section">
-                <el-input v-model="textarea"  :rows="6" type="textarea" placeholder="人民币备注"/>
+                <el-input v-model="remarkCNY"  :rows="6" type="textarea" placeholder="人民币备注"/>
               </div>
           </td>
           <!-- 美元备注-->
           <td>美元备注</td>
           <td>
               <div class="section">
-                <el-input v-model="textarea"  :rows="6" type="textarea" placeholder="美元备注"/>
+                <el-input v-model="remarkUSD"  :rows="6" type="textarea" placeholder="美元备注"/>
               </div>
           </td>
         </tr>
@@ -236,8 +246,47 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { ref, computed } from 'vue'
+import {
+		httpPost,
+		httpGet,
+		httpPut,
+		httpDelete
+	} from '@/api/apiCommon';
+const remarkCNY= ref('')
+const tableDataCNY= ref([])
+const tableDataUSD= ref([])
+const invoiceFormObj= ref(null)  //备注
+const props  = defineProps({
+	invoiceForm: {
+	  type: [Object,Array],
+	  default: null
+	},
+	type: {
+		type: [Number,String],
+		default: 0,	
+	}
+})
+watch(props.type, (newVal) => {
+		if(props.type== 1){
+			invoiceFormObj.value= JSON.parse(JSON.stringify(props.invoiceForm))
+			remarkCNY.value= invoiceFormObj.value.remark
+			if(invoiceFormObj.value.orderBillItems.length> 0){
+				tableDataCNY.value= []
+				tableDataUSD.value= []
+				invoiceFormObj.value.orderBillItems.forEach(item =>{
+					if(item.currency== 'cny'){
+						item.totalPrice= item.quantity * item.price
+						tableDataCNY.value.push(item)
+					}else if(item.currency== 'usd'){
+						item.totalPrice= item.quantity * item.price
+						tableDataUSD.value.push(item)
+					}
+				})
+			}
+		}
+	}, { immediate: true })
 const form = ref({
   workNumber: '',
   phone: '',
@@ -353,6 +402,19 @@ const getSummariesR = (param) => {
 
   return sums;
 }
+// 发票名称
+const invoiceTypeList= ref([])
+function getInvoiceTypeList(){
+	httpGet(`/invoice-types`,{is_paginate: 0}).then(res => {
+		if(res.data.length> 0){
+			invoiceTypeList.value= res.data
+			invoiceTypeList.value.forEach(item =>{
+				item.label= `${item.type===0?'普':'专'}---${item.name}` 
+			})
+		}
+	});
+}
+getInvoiceTypeList()
 </script>
 
 <style scoped>

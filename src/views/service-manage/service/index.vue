@@ -1,6 +1,6 @@
 <template>
 
-	<div class="p-r" v-loading="loading">
+	<div class="p-r service" v-loading="loading">
 		<!-- 顶部搜索 -->
 		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
 
@@ -27,7 +27,7 @@
 		</table-list>
 
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false">
+		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false" style="z-index: 999">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
 					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
@@ -175,75 +175,106 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable v-show="billBool== true" style="width: 60%;top: 20px;z-index: 2100;max-height: 800px;font-size: 12px;overflow: hidden;border: 4px solid #ddd;" class="shadow-lg radius10">
+		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '1000px',top: '20px',zIndex: '1000',maxHeight: '800px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<div v-if="billBool== true"  class="w-100 h-100" style="overflow: scroll;width: 100%;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
+			<div  class="w-100 h-100" style="overflow: scroll;width: 1000px;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
 				<div class="d-flex w-100" style=" flex-shrink: 0;">
 					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="font-size: 12px;">
-						<div class="drag-handle">
+						<div class="custom-handle">
 							<div class="flex1">
 								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
 								<p class="font-32 font-w">Logistics & Services</p>
 							</div>
 							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
 						</div>
-						<div class="flex a-center flex-wrap pb-1 bB-0 w-100">
+						<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
 							
-							 <el-checkbox-group v-model="checkList" class="flex a-center flex-wrap py-1 w-100">
-								 <el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									 <div  class="flex ">
-									 	<p style="width: 100px;">委托人：</p>
-										<el-input v-model="formBill.delegation_header"></el-input>
-									 	<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
-									 </div>
-								 </el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									 <div  class="flex">
-									 	<p  style="width: 100px;">起运港：</p>
-										<el-input v-model="formBill.origin_port"></el-input>
-									 	<!-- <p class="color0">Ningbo</p> -->
-									 </div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
-										<p style="width: 100px;">提单号：</p>
-										<el-input v-model="formBill.bl_no"></el-input>
-										<!-- <p class="color0">COSU9503431040</p> -->
-									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
-										<p style="width: 100px;">合同号：</p>
-										<el-input v-model="formBill.contract_no"></el-input>
-										<!-- <p class="color0">25NS-2129</p> -->
-									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="pt-2">
-									<div class="flex">
-										<p style="width: 100px;">目的港：</p>
-										<el-input v-model="formBill.destination_port"></el-input>
-										<!-- <p class="color0">Liverpool</p> -->
-									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
-										<p style="width: 100px;">船名/航次：</p>
-										<el-input v-model="formBill.ship_name"></el-input>
-										<!-- <p class="color0">MONACO MAERSK/521W</p> -->
-									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
-										<p style="width: 100px;">工作编号：</p>
-										<el-input v-model="formBill.job_no"></el-input>
-										<!-- <p class="color0">HO8-ZH25176</p> -->
-									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
+							 <el-checkbox-group v-model="invoiceForm.checkList" class="flex a-center flex-wrap py-1 w-100">
+								 <div style="width: 30%;" class="flex mt-2 mr-1">
+									 <el-checkbox label="delegation_header">
+										 <div  class="flex ">
+											<p style="width: 80px;">委托人：</p>
+											<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
+										 </div>
+									 </el-checkbox>
+									 <!-- <el-input v-model="formBill.delegation_header"></el-input> -->
+									 <el-select v-model="formBill.delegation_header" placeholder="请选择委托人">
+									   <el-option v-for="item in seletData.WTTT" :key="item.id" :label="item.company_name" :value="item.id"/>
+									 </el-select>
+								 </div>
+								 <div style="width: 30%;" class="flex mt-2 mr-1">
+									 <el-checkbox label="origin_port">
+										 <div  class="flex">
+											<p  style="width: 80px;">起运港：</p>
+											<!-- <p class="color0">Ningbo</p> -->
+										 </div>
+									 </el-checkbox>
+									 <el-input v-model="formBill.origin_port"></el-input>
+								 </div>
+								<div style="width: 30%;" class="flex mt-2 mr-1">
+									 <el-checkbox label="bl_no">
+									 	<div class="flex">
+									 		<p style="width: 80px;">提单号：</p>
+									 		<!-- <p class="color0">COSU9503431040</p> -->
+									 	</div>
+									 </el-checkbox>
+									 <el-input v-model="formBill.bl_no"></el-input>
+								</div>
+								<div style="width: 30%;" class="flex mt-2 mr-1">
+									 <el-checkbox label="contract_no">
+									 	<div class="flex">
+									 		<p style="width: 80px;">合同号：</p>
+									 		<!-- <p class="color0">25NS-2129</p> -->
+									 	</div>
+									 </el-checkbox>
+									 <el-input v-model="formBill.contract_no"></el-input>
+								</div>
+								<div style="width: 30%;" class="flex mt-2 mr-1">
+									<el-checkbox label="destination_port">
+										<div class="flex">
+											<p style="width: 80px;">目的港：</p>
+											<!-- <p class="color0">Liverpool</p> -->
+										</div>
+									</el-checkbox>
+									<el-input v-model="formBill.destination_port"></el-input>
+								</div>
+								<div style="width: 30%;" class="flex mt-2 mr-1">
+									<el-checkbox label="ship_name">
+										<div class="flex">
+											<p style="width: 80px;">船名/航次：</p>
+											<!-- <p class="color0">MONACO MAERSK/521W</p> -->
+										</div>
+									</el-checkbox>
+									<el-input v-model="formBill.ship_name"></el-input>
+								</div>
+								<div style="width: 30%;" class="flex mt-2 mr-1">
+									<el-checkbox label="job_no">
+										<div class="flex">
+											<p style="width: 80px;">工作编号：</p>
+											<!-- <p class="color0">HO8-ZH25176</p> -->
+										</div>
+									</el-checkbox>
+									<el-input v-model="formBill.job_no"></el-input>
+								</div>
+								<!-- <div class="flex mt-2 mr-1" style="width: 30%;">
+									<el-checkbox label="sailing_at">
 										<p style="width: 100px;">开船日期：</p>
+									</el-checkbox>
+									<div>
 										<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
+										<!-- <el-date-picker
+										      v-model="formBill.sailing_at"
+										      type="date"
+										      placeholder="选择日期">
+										    </el-date-picker>
+									</div>
+								</div> -->
+								<div class="flex mt-2 mr-1" style="width: 30%;">
+									<el-checkbox label="sailing_at">
+										<p style="width: 80px;">开船日期：</p>
+									</el-checkbox>
+									<div>
 										<el-date-picker
 										style="width: 100%;"
 										      v-model="formBill.sailing_at"
@@ -251,20 +282,21 @@
 										      placeholder="选择日期">
 										    </el-date-picker>
 									</div>
-								</el-checkbox>
-								<el-checkbox label="复选框 A" style="width: 30%;" class="mt-2">
-									<div class="flex">
-										<p style="width: 100px;">到港日期：</p>
-										<!-- <el-input v-model="formBill.arrival_at"></el-input> -->
+								</div>
+								<div class="flex mt-2 mr-1" style="width: 30%;">
+									<el-checkbox label="arrival_at">
+										<p style="width: 80px;">到港日期：</p>
+									</el-checkbox>
+									<div>
+										<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
 										<el-date-picker
 										style="width: 100%;"
 										      v-model="formBill.arrival_at"
 										      type="date"
 										      placeholder="选择日期">
 										    </el-date-picker>
-										<!-- <p class="color0">07-Ju1-2025</p> -->
 									</div>
-								</el-checkbox>
+								</div>
 							</el-checkbox-group>
 						</div>
 						<div class="bB-0 py-2 w-100" style="font-size: 12px;">
@@ -274,7 +306,8 @@
 							    tooltip-effect="dark"
 							    style="width: 100%;text-align: center;"
 								:header-row-style="{backgroundColor:' #fff'}"
-							    @selection-change="handleSelectionChange">
+							   @selection-change="handleSelectionChangeItems"
+							   @select-all="handleSelectionChangeItemsAll">
 							    <el-table-column
 							      type="selection"
 							      width="55">
@@ -286,8 +319,8 @@
 							    <el-table-column
 							      label="费用明细"
 								  align="center" width="180">
-							      <template v-slot="{row}">
-									  <el-select v-model="row.fee_type_id" placeholder="请选择币种">
+							      <template v-slot="{row,$index}">
+									  <el-select v-model="row.fee_type_id" placeholder="请选择费用明细"  clearable filterable @change="changeCurrency($event,row,$index)">
 									    <el-option v-for="item in seletData.FYLX" :key="item.id" :label="item.name" :value="item.id"/>
 									  </el-select>
 								  </template>
@@ -299,7 +332,7 @@
 								  width="100">
 								  <template v-slot="{row}">
 									  <!-- <div>{{optionsComm['币种']}}</div> -->
-								  		<el-select v-model="row.currency" placeholder="请选择币种">
+								  		<el-select v-model="row.currency" placeholder="请选择币种" v-select-zindex="3000">
 										  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
 										</el-select>
 								  </template>
@@ -361,7 +394,8 @@
 							    tooltip-effect="dark"
 							    style="width: 100%;text-align: center;"
 								 :span-method="objectSpanMethod"
-							    @selection-change="handleSelectionChange">
+							    @selection-change="handleSelectionChangeContainers"
+								@select-all="handleSelectionChangeContainersAll">
 							    <el-table-column
 							      type="selection"
 							      width="55">
@@ -383,7 +417,10 @@
 								  align="center"
 								  width="100">
 								  <template v-slot="{row}">
-									  <el-input v-model="row.container_type"></el-input>
+									  <el-select v-model="row.container_type" placeholder="请选择柜型" clearable>
+									    <el-option v-for="item in seletData.XZLX" :key="item.id" :label="item.name" :value="item.id"/>
+									  </el-select>
+									  <!-- <el-input v-model="row.container_type"></el-input> -->
 								  </template>
 								</el-table-column>
 								<el-table-column
@@ -445,7 +482,7 @@
 									  <el-switch
 									    v-model="is_show_seal">
 									  </el-switch>
-									  <div class="mt-2">
+									  <div class="mt-2" v-if="is_show_seal">
 										 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
 									  </div>
 								  </div>
@@ -456,45 +493,54 @@
 										type="textarea"
 										:rows="5"
 										placeholder="请输入内容"
-										v-model="remarkBill">
-									  </el-input>
+										v-model="remarkBill"></el-input>
 								</div>
 							  </div>
 						</div>
 					</div>
 					<div style="width: 400px; flex-shrink: 0; " class="pl-2 pt-2">
-						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px">
+						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px">
 						  <el-form-item label="导出文件名">
-						    <el-input v-model="form.name" placeholder=""></el-input>
+						    <el-input v-model="formBillTemplates.wordName" placeholder=""></el-input>
 						  </el-form-item>
 						  <el-form-item>
 						    <el-button type="primary" @click="onSubmit">导出word</el-button>
 						    <el-button type="primary" @click="onSubmit">导出pdf</el-button>
+						    <el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
 						  </el-form-item>
 						</el-form>
-						<el-form :inline="true" :model="form" class="demo-form-inline" label-width="100px" >
+						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px" >
 						  <el-form-item label="模板名字">
-						    <el-input v-model="form.name" placeholder=""></el-input>
+						    <el-input v-model="formBillTemplates.name" placeholder=""></el-input>
 						  </el-form-item>
 						  <el-form-item>
-						    <el-button type="primary" @click="onSubmit">保存模板</el-button>
+						    <el-button type="primary" @click="addBillTemplates">新增模板</el-button>
+						    <el-button type="primary" @click="saveBillTemplates">保存模板</el-button>
 						  </el-form-item>
 						</el-form>
-						<div class="b-0 px-2 py-1 radius10" style="display: inline-block;">
-							<span class="pr-2">模板1</span>
-							<el-button class="icon-color-black" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+						<div v-if= "billType !== 0" style="max-height: 600px;overflow-y: auto;">
+							<div class="b-0 radius10 mr-1 mt-1" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',border: billTemplatesCurrent== index?'1px solid #409EFF': '1px solid #333',borderRadius: '5px'}">
+								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
+								<el-button class="icon-color-black" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+							</div>
 						</div>
 					</div>
 				</div>
 				<div class="py-2">
 					<div class="dialog-footer">
 						<el-button type="primary" @click="submitForm">生成图片</el-button>
-						<el-button type="primary" @click="submitFormBill">保 存</el-button>
+						<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
 						<el-button @click="cancelBill">取 消</el-button>
 					</div>
 				</div>
 			</div>
 		<!-- </el-dialog> -->
+		<!-- 单据详情 -->
+		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票" width="80%" :close-on-click-modal="false">
+			<!-- <el-card> -->
+				<InvoiceForm :invoiceForm="invoiceForm" :type="1"/>
+			<!-- </el-card> -->
+		</el-dialog>
 		</div>
 	</div>
 
@@ -515,6 +561,7 @@
 	import BoxInfo from "@/components/document/boxInfo";
 	import FileTable from "@/components/document/fileTable";
 	import BillForm from '@/components/document/BillForm.vue'
+	import InvoiceForm from '../../../components/InvoiceForm.vue'
 	import {
 		httpPost,
 		httpGet,
@@ -577,54 +624,84 @@
 	const billBool= ref(false)
 	const formBill= ref({})
 	const contentContainer= ref(null)
-	const orderBillItems= ref([{fee_type_id:'',currency:'',quantity:'',price:'',remark:''}])
+	const orderBillItems= ref([{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}])
 	const orderBillContainers= ref([])
 	const cost_share= ref('')
 	const customer_payment_info= ref('')
 	const company_receipt_info= ref('')
-	const is_show_seal= ref(1)
+	const is_show_seal= ref(true)
 	const remarkBill= ref('')
+	const formBillTemplates= ref({
+		name: '',
+		wordName: ''
+	})  //模板名称
+	const dialogFormVisibleInvoiceForm= ref(false)
 	function toBillPage(){
+		console.log(seletData.value.WTTT,'seletData.WTTT')
 		billBool.value= true
-		console.log(contentContainer.value,'contentContainer.value')
+		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
+		billDataList()
+	}
+	function saveBillDataShow(res,type){
 		if(contentContainer.value){
 			contentContainer.value.scrollTop = 0
 			contentContainer.value.scrollLeft = 0
 		}
-		console.log(editId.value,'editId')
 		formBill.value= {
-			order_id: editId.vakue,
-			delegation_header: proxy.$refs.commonForm.saveData.delegation_header,
-			job_no: proxy.$refs.commonForm.saveData.job_no,
-			contract_no: proxy.$refs.commonForm.saveData.contract_no,
-			bl_no: proxy.$refs.commonForm.saveData.bl_no,
-			origin_port: proxy.$refs.commonForm.saveData.origin_port,
-			destination_port: proxy.$refs.commonForm.saveData.destination_port,
-			ship_name: proxy.$refs.commonForm.saveData.ship_name,
-			ship_no: proxy.$refs.commonForm.saveData.ship_no,
-			sailing_at: proxy.$refs.commonForm.saveData.sailing_at,
-			arrival_at: proxy.$refs.commonForm.saveData.arrival_at
+			order_id: editId.value,
+			delegation_header: type===1?res["order_delegation_header.company_header_id"]:res.delegation_header,
+			job_no: res.job_no,
+			contract_no: res.contract_no,
+			bl_no: res.bl_no,
+			origin_port: res.origin_port,
+			destination_port: res.destination_port,
+			ship_name: res.ship_name,
+			ship_no: res.ship_no,
+			sailing_at: res.sailing_at,
+			arrival_at: res.arrival_at
 		}
-		
-		if(containers.value.length>0){
-			// const item= {no:'',container_type:'',driver:'',totalCNY:'',totalUSD:''}
-			// console.log(containers.value,'containers.value')
-			const containersItem= JSON.parse(JSON.stringify(containers.value))
-			// console.log(containersItem,'containersItem')
-			orderBillContainers.value.push(...containersItem.map(item => ({
-			  no: item.no?item.no: '',
-			  container_type: item.container_type?item.container_type: '',
-			  driver: item.driver?item.driver: '',
-			  totalCNY: 0,
-			  totalUSD: 0,
-			})))
-			console.log(orderBillContainers.value,'orderBillContainers.value')
-			// orderBillContainers.value= containersItem.map(item => ({no: item.no,container_type: item.container_type,driver: item.driver,totalCNY: '',totalUSD: ''}))
+		if(type== 1){
+			orderBillContainers.value= []
+			if(containers.value.length>0){
+				// const item= {no:'',container_type:'',driver:'',totalCNY:'',totalUSD:''}
+				console.log(containers.value,'containers.value')
+				const containersItem= JSON.parse(JSON.stringify(containers.value))
+				// console.log(containersItem,'containersItem')
+				orderBillContainers.value.push(...containersItem.map(item => ({
+				  no: item.no?item.no: '',
+				  container_type: item.container_type_id?item.container_type_id: '',
+				  driver: item.driver?item.driver: '',
+				  totalCNY: 0,
+				  totalUSD: 0,
+				})))
+				console.log(orderBillContainers.value,'orderBillContainers.value')
+				// orderBillContainers.value= containersItem.map(item => ({no: item.no,container_type: item.container_type,driver: item.driver,totalCNY: '',totalUSD: ''}))
+			}else{
+				orderBillContainers.value= [{no:'',container_type:'',driver:'',totalCNY:0,totalUSD:0}]
+			}
+			orderBillItems.value= [{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}]
+			cost_share.value= ''
+			customer_payment_info.value= ''
+			company_receipt_info.value= ''
+			remarkBill.value= ''
+			is_show_seal.value= true
 		}else{
-			orderBillContainers.value= [{no:'',container_type:'',driver:'',totalCNY:0,totalUSD:0}]
+			orderBillContainers.value= res.order_bill_containers.map(item =>({
+				no: item.no?item.no: '',
+				container_type: item.container_type?item.container_type: '',
+				driver: item.driver?item.driver: '',
+				totalCNY: 0,
+				totalUSD: 0,
+			}))
+			
+			orderBillItems.value= res.order_bill_items
+			cost_share.value= res.cost_share
+			customer_payment_info.value= res.customer_payment_info
+			company_receipt_info.value= res.company_receipt_info
+			remarkBill.value= res.is_show_seal
+			is_show_seal.value= res.is_show_seal=== 1?true: false
 		}
 		
-		console.log(proxy.$refs.commonForm.saveData,'formListNew.value[0].formData[0]')
 	}
 	function cancelBill(){
 		billBool.value= false
@@ -632,9 +709,9 @@
 	// 模板
 	
 	// const cost_share= ref('')
-	const  checkList= ref(['复选框']) 
+	const  checkList= ref([]) 
 	const tableData= ref([{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'},{name: 1,name1:'MSKU6947553'}])
-	const form= ref({name: '测试'})
+	// const form= ref({name: '测试'})
 	const value1= ref(true)
 	const textarea= ref('我司收款账户公司名称：宁波华奇国际物流有限公司税务登记号：91330212MAE09CKNXD开户行名称：浙江泰隆商业银行宁波鄞州支行（行号：313332070108）开户行账号：33030040201000049084  (RMB)33030040201000049092 (USD)33030040201000049100（欧元）')
 
@@ -894,6 +971,7 @@
 		{
 			label: '操作',
 			prop: 'actions',
+			width: '300',
 			actions: [{
 					label: '查看详情',
 					onClick: (row, index) => handleEdit(row, index)
@@ -907,8 +985,7 @@
 					onClick: (row, index) => handleBillList(row, index)
 				}
 			],
-			fixed: "right",
-			width: '190px'
+			fixed: "right"
 		}
 	]);
 	const tableConfig = ref({
@@ -927,15 +1004,7 @@
 			prop: 'actions',
 			actions: [{
 					label: '查看详情',
-					onClick: (row, index) => handleEdit(row, index)
-				},
-				{
-					label: '申请开票',
-					onClick: (row, index) => handleCopy(row, index)
-				},
-				{
-					label: '帐单列表',
-					onClick: (row, index) => handleBillList(row, index)
+					onClick: (row, index) => handleDetails(row, index)
 				}
 			],
 			fixed: "right",
@@ -1005,6 +1074,7 @@
 	function handleBillList(row){
 		console.log(row,'row')
 		billVisible.value = true;
+		editId.value= row.id
 		tableConfigBill.value.data= {order_id: row.id}
 		tableConfigBill.value.isQuery= true
 	}
@@ -1400,10 +1470,10 @@
 	
 	/** 删除模板 */
 	function handlePaySureDelete(item) {
-		proxy.$modal.confirm('是否确认删除此模板？').then(function() {
-			return delByIds(item.id);
+		proxy.$modal.confirm('确认删除此模板？').then(function() {
+			return httpDelete('/order-bill-templates/' + item.id);
 		}).then(() => {
-			getList();
+			billDataList();
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
@@ -1428,7 +1498,7 @@
 	// 费用明细新增
 	function handleAddOrderBill(index){
 			console.log(index)
-			const item= {fee_type_id:'',currency:'',quantity:'',price:'',remark:''}
+			const item= {fee_type_id:'',currency:'',quantity:1,price:'',remark:''}
 			orderBillItems.value.splice(index+1, 0, item)
 	}
 	function handleDeletePrderBill(index){
@@ -1456,7 +1526,7 @@
 	  let totalUSD = 0
 	  
 	  orderBillItems.value.forEach(item => {
-	    const quantity = Number(item.quantity) || 0
+	    const quantity = Number(item.quantity) || 1
 	    const price = Number(item.price) || 0
 	    
 	    if (item.currency === 'cny') {
@@ -1469,31 +1539,194 @@
 	  return { totalCNY, totalUSD }
 	})
 	watch(totals, (newTotals) => {
-	  orderBillContainers.value.forEach(container => {
-	    container.totalCNY = newTotals.totalCNY
-	    container.totalUSD = newTotals.totalUSD
-	  })
-	  console.log(orderBillContainers,'orderBillContainers1434')
-	  console.log(orderBillContainers,'orderBillContainers1434')
+		if(orderBillContainers.value && orderBillContainers.value.length> 0){
+			orderBillContainers.value.forEach(container => {
+			  container.totalCNY = newTotals.totalCNY
+			  container.totalUSD = newTotals.totalUSD
+			})
+		}
 	}, { immediate: true })
 	
+	// function checkData(){
+		
+	// }
 	
 	function submitFormBill(){
+		console.log(formBill.value,'formBill.value')
+		let order_bill_containers= orderBillContainers.value.map(item => ({
+			no: item.no?item.no: '',
+			container_type: item.container_type?item.container_type: '',
+			driver: item.driver?item.driver: '',
+		}))
 		const data= {
 			...formBill.value,
 			order_bill_items: JSON.stringify(orderBillItems.value),
-			order_bill_containers: JSON.stringify(orderBillContainers.value),
+			order_bill_containers: JSON.stringify(order_bill_containers),
 			cost_share: cost_share.value,
 			customer_payment_info: customer_payment_info.value,
 			company_receipt_info: company_receipt_info.value,
-			is_show_seal: is_show_seal.value,
+			is_show_seal: is_show_seal.value=== true?1: 0,
 			remark: remarkBill.value,
 		}
 		httpPost(`/order-bills`, data).then(res => {
-			dialogFormVisible.value = false;
-			proxy.$modal.msgSuccess("新增成功!");
-			proxy.$refs.tableList.getList();
+			billBool.value = false;
 		});
+	}
+	const billType=  ref(1)  //默认显示按钮
+	// 账单详情
+	function handleDetails(row){
+		httpGet(`/order-bills/${row.id}`).then(res => {
+			billBool.value = true;
+			billType.value= 0
+			editId.value = row.id;
+			setTimeout(function() {
+				saveBillDataShow(res,0)
+			}, 500)
+		});
+	}
+	// function saveBillDataShow(res,type){
+	// 	if(contentContainer.value){
+	// 		contentContainer.value.scrollTop = 0
+	// 		contentContainer.value.scrollLeft = 0
+	// 	}
+	// 	console.log(editId.value,'editId')
+	// 	formBill.value= {
+	// 		order_id: editId.value,
+	// 		delegation_header: res.delegation_header,
+	// 		job_no:  res.job_no,
+	// 		contract_no:  res.contract_no,
+	// 		bl_no:  res.bl_no,
+	// 		origin_port:  res.origin_port,
+	// 		destination_port:  res.destination_port,
+	// 		ship_name:  res.ship_name,
+	// 		ship_no:  res.ship_no,
+	// 		sailing_at:  res.sailing_at,
+	// 		arrival_at:  res.arrival_at
+	// 	}
+		
+		
+	// }
+	
+	// 新增模板
+	function addBillTemplates(){
+		saveBillDataShow()
+	}
+	// 保存模板
+	function saveBillTemplates(){
+		if(!formBillTemplates.value.name){
+			proxy.$modal.msgWarning("请输入模板名称");
+			return false
+		}
+		const data= {
+			name: formBillTemplates.value.name,
+			order_bill_items: JSON.stringify(orderBillItems.value),
+			cost_share: cost_share.value,
+			customer_payment_info: customer_payment_info.value,
+			company_receipt_info: company_receipt_info.value,
+		}
+		console.log(data,'data1611')
+		httpPost(`/order-bill-templates`, data).then(res => {
+			billDataList()
+			// billBool.value = false;
+		});
+	}
+	
+	const billTemplatesList= ref([])
+	const billTemplatesCurrent= ref(9999)
+	// 模板列表
+	function billDataList(){
+		httpGet(`/order-bill-templates`).then(res => {
+			billTemplatesList.value= res.data
+		});
+	}
+	// 选择模板
+	function selectTemplates(item,index){
+		if(billTemplatesCurrent.value == 9999 || billTemplatesCurrent.value!= index){
+			billTemplatesCurrent.value= index
+			orderBillItems.value= JSON.parse(JSON.stringify(item.order_bill_items))
+			company_receipt_info.value= item.company_receipt_info
+			cost_share.value= item.cost_share
+			customer_payment_info.value= item.customer_payment_info
+			
+		}
+		else{
+			billTemplatesCurrent.value= 9999
+			orderBillItems.value= [{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}]
+			company_receipt_info.value= ''
+			cost_share.value= ''
+			customer_payment_info.value= ''
+		}
+	}
+	const invoiceForm= ref({
+		orderBillItems: [],
+		orderBillContainers: [],
+		checkList: [],
+		remark: ''
+	})
+	const checkListName= ref([
+		{label: '委托人：',value:'delegation_header'},
+		{label: '起运港：',value:'origin_port'},
+		{label: '提单号：',value:'bl_no'},
+		{label: '合同号：',value:'contract_no'},
+		{label: '目的港：',value:'destination_port'},
+		{label: '船名/航次：',value:'ship_name'},
+		{label: '工作编号：',value:'job_no'},
+		{label: '开船日期：',value:'sailing_at'},
+		{label: '到港日期：',value:'arrival_at'},
+	])
+	function openInvoiceForm(){
+		console.log(seletData.value.WTTT,'seletData.value.WTTT')
+		// 处理 checkList 中的选中项
+		const selectedItems = checkListName.value
+		  .filter(item => invoiceForm.value.checkList.includes(item.value))
+		  .map(item => {
+			  if(item.value== 'delegation_header' && formBill.value.delegation_header){
+				  const delegation_header_name= seletData.value.WTTT.filter(itemIndex => (itemIndex.id== formBill.delegation_header))[0].company_name
+				  return `${item.label}${delegation_header_name}`
+			  }else{
+				  return `${item.label}${item.valueformBill[item.value]}`
+			  }
+		  })
+		  .join('\n');
+		
+		// 处理 orderBillContainers 中的信息
+		const containerInfo = invoiceForm.value.orderBillContainers
+		  .map(container => `${container.no} ${container.container_type} ${container.driver}`)
+		  .join('\n');
+		
+		// 组合所有信息到 remark
+		invoiceForm.value.remark = [selectedItems, containerInfo]
+		  .filter(item => item) // 过滤空字符串
+		  .join('\n');
+		dialogFormVisibleInvoiceForm.value= true
+		console.log(invoiceForm.value.remark,'invoiceForm.value.remark');
+	}
+	
+	// 箱号多选
+	function handleSelectionChangeContainers(e){
+		console.log(e,'ee')
+		invoiceForm.value.orderBillContainers= e
+	}
+	function handleSelectionChangeContainersAll(e){
+		console.log(e,'ee')
+		invoiceForm.value.orderBillContainers= e
+	}
+	// 费用明细多选
+	function handleSelectionChangeItems(e){
+		console.log(e,'ee')
+		invoiceForm.value.orderBillItems= e
+	}
+	function handleSelectionChangeItemsAll(e){
+		console.log(e,'ee')
+		invoiceForm.value.orderBillItems= e
+	}
+	// 获取对应币种
+	function changeCurrency(e,row,index){
+		console.log(e,'e')
+		console.log(seletData.value.FYLX,'seletData.value.FYLX')
+		if(e){
+			row.currency= seletData.value.FYLX.filter(item => item.id== e)[0].type
+		}
 	}
 </script>
 
@@ -1506,9 +1739,21 @@
 	  font-size: 20px;
 	  border: none
 	}
+	.service .el-overlay{
+		z-index: 1000 !important
+	}
+	.el-select-dropdown,
+	.el-popper,
+	.el-dropdown-menu,
+	.el-date-editor .el-picker-panel,
+	.el-cascader__dropdown,
+	.el-color-dropdown {
+	  z-index: 9999 !important;
+	}
 </style>
 <style scoped>
 	.dialog-footer{
 		text-align: right
 	}
+	
 </style>

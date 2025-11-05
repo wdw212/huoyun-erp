@@ -23,6 +23,11 @@
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="名称" align="center" prop="name" />
+			<el-table-column label="发票类型" align="center" >
+				<template v-slot="{row}">
+					<el-button v-if="row.type === 0 ||  row.type === 1" :type="row.type== 1?'danger':'success'">{{NAME_LIST.filter(item =>item.value == row.type)[0].label}}</el-button>
+				</template>
+			</el-table-column>
 			<el-table-column label="税点" align="center" prop="tax_rate" />
 			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="排序" align="center" prop="sort" />
@@ -47,7 +52,12 @@
 					</el-select> -->
 					<el-input v-model="form.name" placeholder="请输入" />
 				</el-form-item>
-
+				<el-form-item label="发票类型" prop="type">
+					<el-select v-model="form.type" placeholder="请选择发票类型">
+						<el-option v-for="item in NAME_LIST" :key="item.value" :label="item.label"
+							:value="item.value" />
+					</el-select>
+				</el-form-item>
 				<el-form-item label="税点">
 					<el-input v-model="form.tax_rate" placeholder="请输入" />
 				</el-form-item>
@@ -104,6 +114,11 @@
 				required: true,
 				message: "名称不能为空",
 				trigger: "blur"
+			}],
+			type: [{
+				required: true,
+				message: "发票类型不能为空",
+				trigger: "change"
 			}]
 		}
 	});
@@ -117,19 +132,11 @@
 	// 发票类型
 	const NAME_LIST = ref([{
 			label: '普通发票',
-			value: 'sender'
+			value: 0
 		},
 		{
-			label: '发票冲红',
-			value: 'receiver'
-		},
-		{
-			label: '专用发票6个点',
-			value: 'notifier'
-		},
-		{
-			label: '专用发票9个点',
-			value: 'notifier'
+			label: '专用发票',
+			value: 1
 		}
 	])
 	/** 查询列表 */
@@ -153,6 +160,7 @@
 		form.value = {
 			id: null,
 			name: null,
+			type: null,
 			tax_rate: null,
 			remark: null,
 			sort: 0

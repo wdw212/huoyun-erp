@@ -32,7 +32,8 @@ export default defineConfig(({ mode, command }) => {
         // https://cn.vitejs.dev/config/#server-proxy
         "/dev-api": {
           // target: "http://localhost:8083",
-          target: "https://erp-api.zcylovezhx.com/api",
+          // target: "https://erp-api.zcylovezhx.com/api",
+          target: "http://124.222.232.138:82/api",
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, ""),
         },

@@ -84,6 +84,7 @@ div{box-sizing: border-box;}
 .shadow {box-shadow: 0 0 5px rgba(114, 130, 138, 0.3)!important;}
 .shadow-sm {box-shadow: 0 2px 4px rgba(114, 130, 138, 0.2)!important;}
 .shadow-lg {box-shadow: 0 16px 48px rgba(114, 130, 138, 0.2)!important;}
+.shadow-lg0 {box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6)!important;}
 
 /* 字体 */
 .font-12{font-size: 12px;}
