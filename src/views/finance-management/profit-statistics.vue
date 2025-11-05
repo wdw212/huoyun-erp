@@ -6,11 +6,14 @@
 		:btnShow="false">
 			<template #fromCon>
 				<el-button type="primary" icon="Plus" @click="">添加月份利润计算</el-button>
+				<el-button style="color: red;">当月毛利润：0</el-button>
+				<el-button style="color: red;">去除当月：0</el-button>
+				<el-button style="color: red;">总毛利润：0</el-button>
 			</template>
 		</search-top>
 		
 		<!-- 表格 -->
-		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="false">
+		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="false" :number="true">
 			<template #header>
 				<el-col :span="1.5">
 					<el-button type="primary" plain icon="Plus" @click="">新增</el-button>

@@ -1,6 +1,6 @@
 <template>
 	
-	<div>
+	<div v-loading="loading">
 		<!-- 顶部搜索 -->
 		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
 		
@@ -119,6 +119,19 @@
 			</el-card>
 		</el-dialog>
 		
+		<!-- 开票管理 -->
+		<el-dialog v-model="invoiceShow" title="开票管理" width="90%" :close-on-click-modal="false">
+			<table-list :tableConfig="tableConfigInvoice" :tableColumn="tableColumnInvoice" 
+			:toolbar="false" :number="true" :multiple="false" ref="invoiceTable">
+				<template #headerLeft>
+					<el-col :span="1.5" style="padding-bottom: 10px;">
+						<el-button type="primary" plain icon="Plus" >新增</el-button>
+					</el-col>
+				</template>
+			</table-list>
+			<!-- <InvoiceForm></InvoiceForm> -->
+		</el-dialog>
+		
 	</div>
 	
 </template>
@@ -132,82 +145,77 @@
 	import FileTable from "@/components/document/fileTable";
 	import BillForm from '@/components/document/BillForm.vue'
 	import { httpPost, httpGet } from '@/api/apiCommon';
-	import { Close } from '@element-plus/icons-vue'
 	import { useTransition } from '@vueuse/core'
-	import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT } from '@/api/commonList';
+	import { keyStatus,commonParam } from '@/utils/common'
 	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn, amountFormFin } from '@/utils/documents';
+	import { ElButton } from 'element-plus'
+	import { tableColumnInvoice } from './finance'
+	import InvoiceForm from '@/components/InvoiceForm.vue'
 	const { proxy } = getCurrentInstance();
 	
 	const formListNew = ref([]);
 	const AccountsColumns = ref([]);
 	const PaymentColumns = ref([]);
-	
-	const YWY = ref([]);  //业务员
-	const CZY = ref([]);  //操作员
-	const YWLX = ref([]); //业务类型
-	const TT = ref([]); //抬头/公司名称
-	const CGS = ref([]); //船公司
-	const DZY = ref([]); //单证员
-	const SW = ref([]); //商务
-	const XHDW = ref([]); //销货单位
-	const MT = ref([]); //码头
+	const loading = ref(true);
+	const seletData = ref({});
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
-		statistic.value.forEach((item,index)=>{
-			const source = ref(0)
-			statistic.value[index].value = useTransition(source, {
-				duration: 1000,
+		keyStatus(formList.value, '操作单据', function(form, options) {
+			formListNew.value = form;
+			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
+			formListNew.value[5].formData[1].noShow = true;
+			loading.value = false;
+			seletData.value = options;
+			console.log('seletData.value', seletData.value)
+			AccountsColumn.value[0].form.options = seletData.value.YFTT;
+			// console.log('formListNew', formListNew, seletData.value)
+			
+			getStatistic();
+		})
+		
+		// // 应付款
+		// AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
+		// AccountsColumns.value.forEach((item,index)=>{
+		// 	if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
+		// 		AccountsColumns.value[index].form.disabled = true;
+		// 	}
+		// 	AccountsColumns.value[index].noShow = false;
+		// })
+		
+		// // 应收款
+		// PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
+		// PaymentColumns.value[PaymentColumns.value.length] = {
+		// 	label: '操作',
+		// 	prop: 'actions',
+		// 	actions: [{
+		// 		label: '删除',
+		// 		type: 'danger',
+		// 		onClick: (row, index) => paymentDelete(row, index)
+		// 	}],
+		// 	width: '70px'
+		// }
+	})
+	
+	//统计数据
+	function getStatistic(){
+		httpGet(`/orders/finance-statistics`).then(res => {
+			statistic.value.forEach((item,index)=>{
+				const source = ref(res[item.key])
+				statistic.value[index].value = useTransition(source, {
+					duration: 1000,
+				})
 			})
-			source.value = 102658.344 + index*1000000
-		})
-		YWY.value = await getYWY();
-		CZY.value = await getCZY();
-		YWLX.value = await getYWLX();
-		TT.value = await getTT();
-		CGS.value = await getCGS();
-		DZY.value = await getDZY();
-		SW.value = await getSW();
-		XHDW.value = await getXHDW();
-		MT.value = await getMT();
-		
-		queryParams.value[11].options = YWY.value;
-		queryParams.value[12].options = CZY.value;
-		
-		formListNew.value = JSON.parse(JSON.stringify(formList.value))
-		formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
-		formListNew.value[0].formData[0].formItem[4].options = YWY.value;
-		formListNew.value[0].formData[0].formItem[5].options = CZY.value;
-		formListNew.value[0].formData[0].formItem[6].options = DZY.value;
-		formListNew.value[0].formData[0].formItem[7].options = SW.value;
-		formListNew.value[0].formData[0].formItem[8].options = CGS.value;
-		formListNew.value[1].formData[0].formItem[0].options = XHDW.value;
-		formListNew.value[1].formData[0].formItem[1].options = TT.value;
-		formListNew.value[2].formData[0].formItem[10].options = MT.value;
-		formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
-		
-		// 应付款
-		AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
-		AccountsColumns.value.forEach((item,index)=>{
-			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
-				AccountsColumns.value[index].form.disabled = true;
-			}
-			AccountsColumns.value[index].noShow = false;
-		})
-		
-		// 应收款
-		PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
-		PaymentColumns.value[PaymentColumns.value.length] = {
-			label: '操作',
-			prop: 'actions',
-			actions: [{
-				label: '删除',
-				type: 'danger',
-				onClick: (row, index) => paymentDelete(row, index)
-			}],
-			width: '70px'
-		}
-		// console.log('formListNew', formListNew)
+		});
+	}
+	
+	//开票管理
+	const invoiceShow = ref(false);
+	const invoiceTable = ref(null);
+	const tableConfigInvoice = ref({
+		url: '/orders/finance-index',
+		requestMethod: httpGet,
+		isQuery: false
 	})
 	
 	const searchConfirm = (val) =>{
@@ -224,19 +232,52 @@
 		{label: '合作单位', prop: 'propcolumn'},
 		{label: '柜型', prop: 'container_type'},
 		{label: '开船日期', prop: 'sailing_at'},
-		{label: '提货', prop: 'is_delivery', formatter: (row)=> row.is_delivery === 1 ? '已提货' : '未提货'},
+		{
+			label: '提货',
+			prop: 'is_delivery',
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.is_delivery == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+					)
+				]
+			}
+		},
 		{label: '应付人民币', prop: 'payment_total_cny_amount'},
-		{label: '兑付情况', prop: 'payment_cny_cashed_status'},
+		{label: '兑付情况', formatter: (row)=> row.payment_cny_cashed_status === 1 ? '已兑付' : '未兑付'},
 		{label: '应付美金', prop: 'payment_total_usd_amount'},
-		{label: '兑付情况', prop: 'payment_usd_cashed_status'},
+		{label: '兑付情况', formatter: (row)=> row.payment_usd_cashed_status === 1 ? '已兑付' : '未兑付'},
 		{label: '应收人民币', prop: 'receipt_total_cny_amount'},
-		{label: '兑付情况', prop: 'receipt_cny_cashed_status'},
+		{label: '兑付情况', formatter: (row)=> row.receipt_total_cny_amount === 1 ? '已兑付' : '未兑付'},
 		{label: '应收美金', prop: 'receipt_total_usd_amount'},
+		{label: '兑付情况', formatter: (row)=> row.receipt_usd_cashed_status === 1 ? '已兑付' : '未兑付'},
 		{label: '利润归属月份', prop: 'receipt_usd_cashed_status'},
 		{label: '总利润', prop: 'total_profit'},
 		{label: '税后折扣', prop: 'after_tax_discount'},
-		{label: '兑付情况', prop: 'cashed_status'},
-		{label: '是否开票', prop: 'invoice_status', formatter: (row)=> row.invoice_status === 1 ? '已开票' : '未开票'},
+		{label: '兑付情况', formatter: (row)=> row.cashed_status === 1 ? '已兑付' : '未兑付'},
+		{label: '是否开票', prop: 'invoice_status',
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row.invoice_status == 2 ?'success' : (row.invoice_status == 1 ?'warning':'danger'),
+							size: 'small',
+							onClick: () => {},
+							style: {margin: '0px'},
+							key: row.id
+						},
+						() => (row.invoice_status == 2 ? '已开票' : (row.invoice_status == 1 ?'部分开票':'未开票'))
+					)
+				]
+			}
+		},
 		{ 
 			label: '操作',
 			prop: 'actions',
@@ -254,7 +295,9 @@
 			actions: [
 				{
 					label: '开票管理',
-					// onClick: (row) => handleEdit(row)
+					onClick: (row) => {
+						invoiceShow.value = true;
+					}
 				},
 			],
 			fixed: "right"

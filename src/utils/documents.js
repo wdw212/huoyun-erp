@@ -3,16 +3,16 @@ import { ElButton, ElInput, ElSelect } from 'element-plus'
 import { httpPost, httpGet } from '@/api/apiCommon';
 
 export const statistic = ref([
-	{ title: '应收人民币总和', value: 0, prefix: '￥' },
-	{ title: '应付人民币总和', value: 0, prefix: '￥' },
-	{ title: '毛利人民币总和', value: 0, prefix: '￥' },
-	{ title: '特殊费用总和', value: 0, prefix: '￥' },
-	{ title: '未安排总和', value: 0, prefix: '￥' },
-	{ title: '应收美金总和', value: 0, prefix: '$' },
-	{ title: '应付美金总和', value: 0, prefix: '$' },
-	{ title: '毛利美金总和', value: 0, prefix: '$' },
-	{ title: '已安排总和', value: 0, prefix: '￥' },
-	{ title: '毛利利润总和', value: 0, prefix: '￥' }
+	{ title: '应收人民币总和', value: 0, prefix: '￥', key: 'receipt_total_cny_amount' },
+	{ title: '应付人民币总和', value: 0, prefix: '￥', key: 'payment_total_cny_amount' },
+	{ title: '毛利人民币总和', value: 0, prefix: '￥', key: 'total_cny_gross_profit' },
+	{ title: '特殊费用总和', value: 0, prefix: '￥', key: 'total_special_amount' },
+	{ title: '未安排总和', value: 0, prefix: '￥', key: 'uncashed_amount' },
+	{ title: '应收美金总和', value: 0, prefix: '$', key: 'receipt_total_usd_amount' },
+	{ title: '应付美金总和', value: 0, prefix: '$', key: 'payment_total_usd_amount' },
+	{ title: '毛利美金总和', value: 0, prefix: '$', key: 'total_usd_gross_profit' },
+	{ title: '已安排总和', value: 0, prefix: '￥', key: 'cashed_amount' },
+	{ title: '毛利利润总和', value: 0, prefix: '￥', key: 'total_gross_profit' }
 ])
 
 export const queryParamsBusiness = ref([
