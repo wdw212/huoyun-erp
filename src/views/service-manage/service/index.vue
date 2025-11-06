@@ -175,12 +175,42 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '1000px',top: '20px',zIndex: '1000',maxHeight: '800px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
+		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '800px',top: '20px',zIndex: '1000',maxHeight: '800px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<div  class="w-100 h-100" style="overflow: scroll;width: 1000px;height: 800px;background: #fff;padding: 0 20px" ref="contentContainer">
-				<div class="d-flex w-100" style=" flex-shrink: 0;">
-					<div class="pt-2 flex-1 bR-0 pr-2 w-100" style="font-size: 12px;">
+			<div  class="w-100 h-100" style="width: 800px;height: 800px;background: #fff;padding: 0 20px; overflow-y: auto;" ref="contentContainer">
+				<div class="w-100">
+					<el-tabs v-model="tabName">
+					  <el-tab-pane label="账单功能" name="1">
+					<div class="pl-2 pt-2">
+						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px">
+						  <el-form-item label="导出文件名">
+						    <el-input v-model="formBillTemplates.wordName" placeholder=""></el-input>
+						  </el-form-item>
+						  <el-form-item>
+						    <el-button type="primary" @click="onSubmit">导出word</el-button>
+						    <el-button type="primary" @click="onSubmit">导出pdf</el-button>
+						  </el-form-item>
+						</el-form>
+						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px" >
+						  <el-form-item label="模板名字">
+						    <el-input v-model="formBillTemplates.name" placeholder=""></el-input>
+						  </el-form-item>
+						  <el-form-item>
+						    <el-button type="primary" @click="addBillTemplates">新增模板</el-button>
+						    <el-button type="primary" @click="saveBillTemplates">保存模板</el-button>
+						  </el-form-item>
+						</el-form>
+						<div v-if= "billType !== 0" style="max-height: 200px;overflow-y: auto;">
+							<div class="b-0 radius10 mr-1 mt-1" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',border: billTemplatesCurrent== index?'1px solid #409EFF': '1px solid #333',borderRadius: '5px',color: billTemplatesCurrent== index?'#fff':'#333',background: billTemplatesCurrent== index?'#409EFF': '#fff'}">
+								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
+								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+							</div>
+						</div>
+					</div>
+					</el-tab-pane>
+					<el-tab-pane label="基本信息" name="2">
+					<div class="pt-2 flex-1 pr-2 w-100" style="font-size: 12px;">
 						<div class="custom-handle">
 							<div class="flex1">
 								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
@@ -304,7 +334,7 @@
 							    ref="multipleTable"
 							    :data="orderBillItems"
 							    tooltip-effect="dark"
-							    style="width: 100%;text-align: center;"
+							    style="width: 800px;text-align: center;"
 								:header-row-style="{backgroundColor:' #fff'}"
 							   @selection-change="handleSelectionChangeItems"
 							   @select-all="handleSelectionChangeItemsAll">
@@ -369,7 +399,7 @@
 								<el-table-column
 								  label="备注"
 								  align="center"
-								  width="180">
+								  width="160">
 								  <template v-slot="{row}">
 									  <el-input v-model="row.remark"></el-input>
 								  </template>
@@ -498,40 +528,16 @@
 							  </div>
 						</div>
 					</div>
-					<div style="width: 400px; flex-shrink: 0; " class="pl-2 pt-2">
-						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px">
-						  <el-form-item label="导出文件名">
-						    <el-input v-model="formBillTemplates.wordName" placeholder=""></el-input>
-						  </el-form-item>
-						  <el-form-item>
-						    <el-button type="primary" @click="onSubmit">导出word</el-button>
-						    <el-button type="primary" @click="onSubmit">导出pdf</el-button>
-						    <el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
-						  </el-form-item>
-						</el-form>
-						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px" >
-						  <el-form-item label="模板名字">
-						    <el-input v-model="formBillTemplates.name" placeholder=""></el-input>
-						  </el-form-item>
-						  <el-form-item>
-						    <el-button type="primary" @click="addBillTemplates">新增模板</el-button>
-						    <el-button type="primary" @click="saveBillTemplates">保存模板</el-button>
-						  </el-form-item>
-						</el-form>
-						<div v-if= "billType !== 0" style="max-height: 600px;overflow-y: auto;">
-							<div class="b-0 radius10 mr-1 mt-1" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',border: billTemplatesCurrent== index?'1px solid #409EFF': '1px solid #333',borderRadius: '5px'}">
-								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
-								<el-button class="icon-color-black" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
-							</div>
+					<div class="py-2">
+						<div class="dialog-footer">
+							<el-button type="primary" @click="submitForm">生成图片</el-button>
+							<el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
+							<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
+							<el-button @click="cancelBill">取 消</el-button>
 						</div>
 					</div>
-				</div>
-				<div class="py-2">
-					<div class="dialog-footer">
-						<el-button type="primary" @click="submitForm">生成图片</el-button>
-						<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
-						<el-button @click="cancelBill">取 消</el-button>
-					</div>
+					</el-tab-pane>
+					</el-tabs>
 				</div>
 			</div>
 		<!-- </el-dialog> -->
@@ -606,7 +612,8 @@
 	const {
 		proxy
 	} = getCurrentInstance();
-
+	
+	const tabName= ref('2')
 	const dialogFormVisible = ref(false);
 	const billVisible = ref(false)
 	const editId = ref('');
@@ -1609,7 +1616,7 @@
 	
 	// 新增模板
 	function addBillTemplates(){
-		saveBillDataShow()
+		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 	}
 	// 保存模板
 	function saveBillTemplates(){
