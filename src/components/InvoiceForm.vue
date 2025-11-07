@@ -63,75 +63,75 @@
 			</el-row>
 			<!-- 大表格定义边框4*4-->
 			<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
-				<table border class="wrapper">
-					<tbody>
-						<tr>
-							<td style="width: 40px">购买方信息</td>
+				<div border class="wrapper">
+					<div class="flex flex-column">
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">购买方信息</div>
 							<!-- 购买方信息 -->
-							<td>
+							<div class="flex-1 pt-1" style="box-sizing: border-box;">
 								<div class="section">
-									<el-form-item label="名称：" class="society">
-										<el-select v-model="buyer.name" style="width: 350px" placeholder="请选择">
+									<el-form-item label="名称：" class="society" style="width: 90%;">
+										<el-select v-model="buyer.name" placeholder="请选择">
 											<el-option v-for="item in buyerOptions" :key="item.value" :label="item.label"
 												:value="item.value" place />
 										</el-select>
 									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society">
-										<el-input v-model="buyer.taxNumber" style="width: 350px" />
+									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+										<el-input v-model="buyer.taxNumber" />
 									</el-form-item>
 								</div>
-							</td>
-							<td style="width: 40px">销售方信息</td>
-							<td>
+							</div>
+							<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;" class="vertical-text flex0">销售方信息</div>
+							<div class="flex-1">
 								<!-- 销售方信息 -->
-								<div class="section">
-									<el-form-item label="名称：" class="society">
-										<el-select v-model="seller.name" style="width: 350px" placeholder="请选择">
+								<div class="section pt-1">
+									<el-form-item label="名称：" class="society" style="width: 90%;">
+										<el-select v-model="seller.name" placeholder="请选择">
 											<el-option v-for="item in sellerOptions" :key="item.value" :label="item.label"
 												:value="item.value" place />
 										</el-select>
 									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society">
-										<el-input v-model="seller.taxNumber" style="width: 350px" />
+									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+										<el-input v-model="seller.taxNumber"/>
 									</el-form-item>
 								</div>
-							</td>
-						</tr>
-						<tr>
-							<td>人民币发票</td>
-							<td style="vertical-align:top">
+							</div>
+						</div>
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div>
+							<div style="vertical-align:top; width: 0" class="flex-1">
 								<!-- 项目明细表格 左侧 -->
-								<div class="section">
-									<el-table :data="tableDataCNY" border style="width: 100%" fit show-summary sum-text="合计"
+								<div class="w-100 section">
+									<el-table :data="tableDataCNY" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
 										:summary-method="getSummaries">
-										<el-table-column type="index" label="序号" width="60"></el-table-column>
-										<el-table-column prop="name" label="项目名称" width="160">
-											<template #default>
-												<el-select v-model="items.fee_type_id" placeholder="我要显示七个字" filterable
+										<el-table-column type="index" width="50" align="center"></el-table-column>
+										<el-table-column prop="name" label="项目名称" width="" align="center">
+											<template #default="{row}">
+												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
 													remote>
 													<el-option v-for="opt in itemOptions" :key="opt" :label="opt"
 														:value="opt" />
 												</el-select>
 											</template>
 										</el-table-column>
-										<el-table-column label="单位" width="75">
+										<el-table-column label="单位" width="60" align="center">
 											<template #default="{ row }">
 												<el-input v-model="row.unit" />
 											</template>
 										</el-table-column>
-										<el-table-column label="数量" width="75">
+										<el-table-column label="数量" width="60" align="center">
 											<template #default="{ row }">
 												<el-input v-model="row.quantity" />
 											</template>
 										</el-table-column>
-										<el-table-column label="金额" width="115">
+										<el-table-column label="金额" width="60" align="center">
 											<template #default="{row}">
 												<el-input v-model="row.totalPrice" type="number"></el-input>
 											</template>
 										</el-table-column>
-										<el-table-column width="80">
+										<el-table-column width="80" align="center">
 											<template #header>
-												<el-button type="primary" @click="addRow"
+												<el-button type="primary" size="mini" @click="addRow"
 													:disabled="items.length == 8 ? true : false">增行</el-button>
 											</template>
 											<template v-if="items.length>0" #default="{ $index }">
@@ -139,11 +139,11 @@
 											</template>
 										</el-table-column>
 									</el-table>
-									<el-row>
-										<el-col :span="16" :offset="11">
+									<div>
+										<div>
 											<div class="total-btns">
 												<!-- <div class="total">合计：</div> -->
-												<div class="flex gap-4 items-center">
+												<div class="flex j-end w-100 pr-2">
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="人民币发票号：">
 														<el-input v-model="rmbType" style="width: 180px"
@@ -152,42 +152,42 @@
 												</div>
 											</div>
 				
-										</el-col>
-									</el-row>
+										</div>
+									</div>
 								</div>
-							</td>
+							</div>
 							<!-- 项目明细表格 右侧 -->
-							<td>美金发票</td>
-							<td style="vertical-align:top">
-								<div class="section">
+							<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美金发票</div>
+							<div style="vertical-align:top; width: 0" class="flex-1">
+								<div class="section w-100 ">
 									<el-table :data="tableDataUSD" border style="width: 100%" show-summary sum-text="合计"
 										:summary-method="getSummariesR">
-										<el-table-column type="index" label="序号" width="60"></el-table-column>
-										<el-table-column prop="name" label="项目名称" width="160">
-											<template #default>
-												<el-select v-model="itemss.fee_type_id" placeholder="我要显示七个字" filterable
+										<el-table-column type="index" width="50" align="center"></el-table-column>
+										<el-table-column prop="name" label="项目名称" width="" align="center">
+											<template #default="{row}">
+												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
 													remote>
 													<el-option v-for="opt in itemOptions" :key="opt" :label="opt"
 														:value="opt" />
 												</el-select>
 											</template>
 										</el-table-column>
-										<el-table-column label="单位" width="75">
+										<el-table-column label="单位" width="60" align="center">
 											<template #default="{ row }">
 												<el-input v-model="row.unit" />
 											</template>
 										</el-table-column>
-										<el-table-column label="数量" width="75">
+										<el-table-column label="数量" width="60" align="center">
 											<template #default="{ row }">
 												<el-input v-model="row.quantity" />
 											</template>
 										</el-table-column>
-										<el-table-column label="金额" width="115">
+										<el-table-column label="金额" width="60" align="center">
 											<template #default="{row}">
 												<el-input v-model="row.totalPrice" type="number"></el-input>
 											</template>
 										</el-table-column>
-										<el-table-column width="80">
+										<el-table-column width="70" align="center">
 											<template #header>
 												<el-button type="primary" @click="addRoww">增行</el-button>
 											</template>
@@ -196,11 +196,11 @@
 											</template>
 										</el-table-column>
 									</el-table>
-									<el-row>
-										<el-col :span="16" :offset="11">
+									<div>
+										<div :span="10" :offset="11">
 											<div class="total-btns">
 												<!-- <div class="total">合计：</div> -->
-												<div class="flex gap-4 items-center">
+												<div class="flex j-end w-100 pr-2">
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="美金发票号：">
 														<el-input v-model="dollarType" style="width: 180px"
@@ -208,34 +208,34 @@
 													</el-form-item>
 												</div>
 											</div>
-										</el-col>
-									</el-row>
+										</div>
+									</div>
 								</div>
-							</td>
-						</tr>
-						<tr>
+							</div>
+						</div>
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
 							<!-- 人民币备注-->
-							<td>人民币备注</td>
-							<td>
-								<div class="section">
+							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币备注</div>
+							<div class="flex-1">
+								<div class="section mt-1 mx-1">
 									<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" />
 								</div>
-							</td>
+							</div>
 							<!-- 美元备注-->
-							<td>美元备注</td>
-							<td>
-								<div class="section">
+							<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美元备注</div>
+							<div class="flex-1">
+								<div class="section mt-1 mx-1">
 									<el-input v-model="remarkUSD" :rows="6" type="textarea" placeholder="美元备注" />
 								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 			<!-- 模板信息-->
 			<el-row>
 				<el-col :span="12">
-					<div class="section flex">
+					<div class="section d-flex">
 						<el-form-item label="模板名称：">
 							<el-input v-model="form.email" style="width: 150px" />
 						</el-form-item>
@@ -373,19 +373,19 @@
 	// })
 
 	const addRow = () => {
-		if (items.value.length < 8) {
-			items.value.push({
-				name: '',
+		if (tableDataCNY.value.length < 8) {
+			tableDataCNY.value.push({
+				fee_type_id: '',
 				unit: '',
 				quantity: null,
-				formattedValue: 0
+				totalPrice: 0,
 			})
 		}
 	}
 	const addRoww = () => {
-		if (itemss.value.length < 8) {
-			itemss.value.push({
-				name: '',
+		if (tableDataUSD.value.length < 8) {
+			tableDataUSD.value.push({
+				fee_type_id: '',
 				unit: '',
 				quantity: null,
 				formattedValue: 0
@@ -393,10 +393,10 @@
 		}
 	}
 	const delRow = (index) => {
-		items.value.splice(index, 1)
+		tableDataCNY.value.splice(index, 1)
 	}
 	const delRoww = (index) => {
-		itemss.value.splice(index, 1)
+		tableDataUSD.value.splice(index, 1)
 	}
 	/*小数点后两位*/
 	const rawValue = ref('');
@@ -561,7 +561,7 @@
 		text-align: right;
 		padding: 10px;
 		font-weight: bold;
-		width: 100px;
+		/* width: 100px; */
 	}
 
 	.total-btns {
@@ -584,5 +584,10 @@
 
 	.items-center {
 		align-items: center;
+	}
+</style>
+<style>
+	.wrapper .el-table .cell{
+		padding: 0 2px  !important;
 	}
 </style>

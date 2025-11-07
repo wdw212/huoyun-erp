@@ -399,3 +399,10 @@ div{box-sizing: border-box;}
 
 
 .line-y{height: 50%;background-color: #e1e1e1;width: 1px;margin: auto;}
+
+.vertical-text {
+writing-mode: vertical-rl; /* 从右到左垂直排列 */
+text-align: center; /* 文本居中 */
+/* letter-spacing: 5px; /* 调整字间距 */ 
+/* color: #333; */
+}

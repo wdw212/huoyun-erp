@@ -1,4 +1,4 @@
-// v-draggable.js - 使用拖拽手柄版本
+// v-draggable.js - 修复版本
 export default {
   mounted(el, binding, vnode) {
     const options = binding.value || {};
@@ -8,7 +8,6 @@ export default {
     if (options.handle) {
       handle = el.querySelector(options.handle);
     } else {
-      // 如果没有指定手柄，创建一个默认的
       handle = document.createElement('div');
       handle.className = 'drag-handle';
       handle.style.cssText = `
@@ -26,17 +25,19 @@ export default {
       el._createdHandle = handle;
     }
     
-    // 存储拖拽相关数据
+    // 存储拖拽相关数据和位置
     el._draggable = {
       isDragging: false,
       startX: 0,
       startY: 0,
       initialX: 0,
-      initialY: 0
+      initialY: 0,
+      currentX: 0,
+      currentY: 0,
+      hasMoved: false // 标记是否已经移动过
     };
 
     const onMouseDown = (e) => {
-      // 如果不是左键点击，不处理
       if (e.button !== 0) return;
       
       const dragData = el._draggable;
@@ -52,7 +53,6 @@ export default {
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
       
-      // 添加拖拽样式
       handle.style.cursor = 'grabbing';
       el.style.userSelect = 'none';
       el.style.zIndex = '2171';
@@ -65,10 +65,14 @@ export default {
       const deltaX = e.clientX - dragData.startX;
       const deltaY = e.clientY - dragData.startY;
       
-      // 更新元素位置
+      // 更新元素位置并保存当前位置
+      dragData.currentX = dragData.initialX + deltaX;
+      dragData.currentY = dragData.initialY + deltaY;
+      dragData.hasMoved = true;
+      
       el.style.position = 'fixed';
-      el.style.left = (dragData.initialX + deltaX) + 'px';
-      el.style.top = (dragData.initialY + deltaY) + 'px';
+      el.style.left = dragData.currentX + 'px';
+      el.style.top = dragData.currentY + 'px';
     };
 
     const onMouseUp = (e) => {
@@ -78,12 +82,10 @@ export default {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       
-      // 恢复样式
       handle.style.cursor = 'grab';
       el.style.userSelect = '';
     };
 
-    // 绑定事件到手柄
     handle.addEventListener('mousedown', onMouseDown);
     
     // 存储事件处理函数以便清理
@@ -91,12 +93,21 @@ export default {
     el._onMouseMove = onMouseMove;
     el._onMouseUp = onMouseUp;
 
-    // 设置初始光标样式
     handle.style.cursor = 'grab';
   },
 
+  updated(el, binding, vnode) {
+    // 在组件更新后恢复位置
+    const dragData = el._draggable;
+    if (dragData && dragData.hasMoved && !dragData.isDragging) {
+      // 确保元素保持固定定位和最后的位置
+      el.style.position = 'fixed';
+      el.style.left = dragData.currentX + 'px';
+      el.style.top = dragData.currentY + 'px';
+    }
+  },
+
   unmounted(el, binding, vnode) {
-    // 清理事件监听器
     if (el._onMouseDown) {
       const handle = el._dragHandle || el.querySelector('.drag-handle');
       if (handle) {
@@ -104,16 +115,13 @@ export default {
       }
     }
     
-    // 清理文档级别的事件监听器
     document.removeEventListener('mousemove', el._onMouseMove);
     document.removeEventListener('mouseup', el._onMouseUp);
     
-    // 移除创建的手柄
     if (el._createdHandle) {
       el.removeChild(el._createdHandle);
     }
     
-    // 清理存储的数据
     delete el._draggable;
     delete el._dragHandle;
     delete el._onMouseDown;

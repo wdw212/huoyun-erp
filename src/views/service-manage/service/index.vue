@@ -175,369 +175,381 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '800px',top: '20px',zIndex: '1000',maxHeight: '800px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
+		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '1000px',top: '10px',zIndex: '1000',height: '600px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
-			<div  class="w-100 h-100" style="width: 800px;height: 800px;background: #fff;padding: 0 20px; overflow-y: auto;" ref="contentContainer">
-				<div class="w-100">
-					<el-tabs v-model="tabName">
-					  <el-tab-pane label="账单功能" name="1">
-					<div class="pl-2 pt-2">
-						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px">
-						  <el-form-item label="导出文件名">
-						    <el-input v-model="formBillTemplates.wordName" placeholder=""></el-input>
-						  </el-form-item>
-						  <el-form-item>
-						    <el-button type="primary" @click="onSubmit">导出word</el-button>
-						    <el-button type="primary" @click="onSubmit">导出pdf</el-button>
-						  </el-form-item>
-						</el-form>
-						<el-form :inline="true" :model="formBillTemplates" class="demo-form-inline" label-width="100px" >
-						  <el-form-item label="模板名字">
-						    <el-input v-model="formBillTemplates.name" placeholder=""></el-input>
-						  </el-form-item>
-						  <el-form-item>
-						    <el-button type="primary" @click="addBillTemplates">新增模板</el-button>
-						    <el-button type="primary" @click="saveBillTemplates">保存模板</el-button>
-						  </el-form-item>
-						</el-form>
-						<div v-if= "billType !== 0" style="max-height: 200px;overflow-y: auto;">
-							<div class="b-0 radius10 mr-1 mt-1" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',border: billTemplatesCurrent== index?'1px solid #409EFF': '1px solid #333',borderRadius: '5px',color: billTemplatesCurrent== index?'#fff':'#333',background: billTemplatesCurrent== index?'#409EFF': '#fff'}">
-								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
-								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
-							</div>
-						</div>
+			<div  class="w-100 h-100 bill-dialog flex flex-column" style="background: #fff;padding: 0 5px" ref="contentContainer">
+				<div class="py-1 w-100" style="height: 50px;">
+					<div class="dialog-footer">
+						<el-button type="primary" @click="submitForm">生成图片</el-button>
+						<el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
+						<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
+						<el-button @click="cancelBill">取 消</el-button>
 					</div>
-					</el-tab-pane>
-					<el-tab-pane label="基本信息" name="2">
-					<div class="pt-2 flex-1 pr-2 w-100" style="font-size: 12px;">
-						<div class="custom-handle">
+				</div>
+				<div class="d-flex w-100 flex-1" style="height: 550px;">
+					<div class="pt-1 flex-1 bR-0 pr-1 w-100 flex flex-column " style="font-size: 12px;">
+						<div class="custom-handle  w-100">
 							<div class="flex1">
 								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
 								<p class="font-32 font-w">Logistics & Services</p>
 							</div>
 							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
 						</div>
-						<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
-							
-							 <el-checkbox-group v-model="invoiceForm.checkList" class="flex a-center flex-wrap py-1 w-100">
-								 <div style="width: 30%;" class="flex mt-2 mr-1">
-									 <el-checkbox label="delegation_header">
-										 <div  class="flex ">
-											<p style="width: 80px;">委托人：</p>
-											<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
-										 </div>
-									 </el-checkbox>
-									 <!-- <el-input v-model="formBill.delegation_header"></el-input> -->
-									 <el-select v-model="formBill.delegation_header" placeholder="请选择委托人">
-									   <el-option v-for="item in seletData.WTTT" :key="item.id" :label="item.company_name" :value="item.id"/>
-									 </el-select>
-								 </div>
-								 <div style="width: 30%;" class="flex mt-2 mr-1">
-									 <el-checkbox label="origin_port">
-										 <div  class="flex">
-											<p  style="width: 80px;">起运港：</p>
-											<!-- <p class="color0">Ningbo</p> -->
-										 </div>
-									 </el-checkbox>
-									 <el-input v-model="formBill.origin_port"></el-input>
-								 </div>
-								<div style="width: 30%;" class="flex mt-2 mr-1">
-									 <el-checkbox label="bl_no">
-									 	<div class="flex">
-									 		<p style="width: 80px;">提单号：</p>
-									 		<!-- <p class="color0">COSU9503431040</p> -->
-									 	</div>
-									 </el-checkbox>
-									 <el-input v-model="formBill.bl_no"></el-input>
-								</div>
-								<div style="width: 30%;" class="flex mt-2 mr-1">
-									 <el-checkbox label="contract_no">
-									 	<div class="flex">
-									 		<p style="width: 80px;">合同号：</p>
-									 		<!-- <p class="color0">25NS-2129</p> -->
-									 	</div>
-									 </el-checkbox>
-									 <el-input v-model="formBill.contract_no"></el-input>
-								</div>
-								<div style="width: 30%;" class="flex mt-2 mr-1">
-									<el-checkbox label="destination_port">
-										<div class="flex">
-											<p style="width: 80px;">目的港：</p>
-											<!-- <p class="color0">Liverpool</p> -->
-										</div>
-									</el-checkbox>
-									<el-input v-model="formBill.destination_port"></el-input>
-								</div>
-								<div style="width: 30%;" class="flex mt-2 mr-1">
-									<el-checkbox label="ship_name">
-										<div class="flex">
-											<p style="width: 80px;">船名/航次：</p>
-											<!-- <p class="color0">MONACO MAERSK/521W</p> -->
-										</div>
-									</el-checkbox>
-									<el-input v-model="formBill.ship_name"></el-input>
-								</div>
-								<div style="width: 30%;" class="flex mt-2 mr-1">
-									<el-checkbox label="job_no">
-										<div class="flex">
-											<p style="width: 80px;">工作编号：</p>
-											<!-- <p class="color0">HO8-ZH25176</p> -->
-										</div>
-									</el-checkbox>
-									<el-input v-model="formBill.job_no"></el-input>
-								</div>
-								<!-- <div class="flex mt-2 mr-1" style="width: 30%;">
-									<el-checkbox label="sailing_at">
-										<p style="width: 100px;">开船日期：</p>
-									</el-checkbox>
-									<div>
-										<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
-										<!-- <el-date-picker
-										      v-model="formBill.sailing_at"
-										      type="date"
-										      placeholder="选择日期">
-										    </el-date-picker>
+						<div class="flex-1"  style="overflow-y: auto;">
+							<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
+								
+								 <el-checkbox-group v-model="invoiceForm.checkList" class="flex a-center flex-wrap py-1 w-100">
+									 <div style="width: 32%;" class="flex mt-2 mr-1">
+										 <el-checkbox label="delegation_header">
+											 <div  class="flex ">
+												<p style="width: 70px;">委托人：</p>
+												<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
+											 </div>
+										 </el-checkbox>
+										 <!-- <el-input v-model="formBill.delegation_header"></el-input> -->
+										 <el-select v-model="formBill.delegation_header" placeholder="请选择委托人">
+										   <el-option v-for="item in seletData.WTTT" :key="item.id" :label="item.company_name" :value="item.id"/>
+										 </el-select>
+									 </div>
+									 <div style="width: 32%;" class="flex mt-2 mr-1">
+										 <el-checkbox label="origin_port">
+											 <div  class="flex">
+												<p  style="width: 70px;">起运港：</p>
+												<!-- <p class="color0">Ningbo</p> -->
+											 </div>
+										 </el-checkbox>
+										 <el-input v-model="formBill.origin_port"></el-input>
+									 </div>
+									<div style="width: 32%;" class="flex mt-2 mr-1">
+										 <el-checkbox label="bl_no">
+											<div class="flex">
+												<p style="width: 70px;">提单号：</p>
+												<!-- <p class="color0">COSU9503431040</p> -->
+											</div>
+										 </el-checkbox>
+										 <el-input v-model="formBill.bl_no"></el-input>
 									</div>
-								</div> -->
-								<div class="flex mt-2 mr-1" style="width: 30%;">
-									<el-checkbox label="sailing_at">
-										<p style="width: 80px;">开船日期：</p>
-									</el-checkbox>
-									<div>
-										<el-date-picker
-										style="width: 100%;"
-										      v-model="formBill.sailing_at"
-										      type="date"
-										      placeholder="选择日期">
-										    </el-date-picker>
+									<div style="width: 32%;" class="flex mt-2 mr-1">
+										 <el-checkbox label="contract_no">
+											<div class="flex">
+												<p style="width: 70px;">合同号：</p>
+												<!-- <p class="color0">25NS-2129</p> -->
+											</div>
+										 </el-checkbox>
+										 <el-input v-model="formBill.contract_no"></el-input>
 									</div>
-								</div>
-								<div class="flex mt-2 mr-1" style="width: 30%;">
-									<el-checkbox label="arrival_at">
-										<p style="width: 80px;">到港日期：</p>
-									</el-checkbox>
-									<div>
-										<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
-										<el-date-picker
-										style="width: 100%;"
-										      v-model="formBill.arrival_at"
-										      type="date"
-										      placeholder="选择日期">
-										    </el-date-picker>
+									<div style="width: 32%;" class="flex mt-2 mr-1">
+										<el-checkbox label="destination_port">
+											<div class="flex">
+												<p style="width: 70px;">目的港：</p>
+												<!-- <p class="color0">Liverpool</p> -->
+											</div>
+										</el-checkbox>
+										<el-input v-model="formBill.destination_port"></el-input>
 									</div>
-								</div>
-							</el-checkbox-group>
-						</div>
-						<div class="bB-0 py-2 w-100" style="font-size: 12px;">
-							<el-table
-							    ref="multipleTable"
-							    :data="orderBillItems"
-							    tooltip-effect="dark"
-							    style="width: 800px;text-align: center;"
-								:header-row-style="{backgroundColor:' #fff'}"
-							   @selection-change="handleSelectionChangeItems"
-							   @select-all="handleSelectionChangeItemsAll">
-							    <el-table-column
-							      type="selection"
-							      width="55">
-							    </el-table-column>
-								<!-- <el-table-column
-								      type="index"
-								      width="50">
-								    </el-table-column> -->
-							    <el-table-column
-							      label="费用明细"
-								  align="center" width="180">
-							      <template v-slot="{row,$index}">
-									  <el-select v-model="row.fee_type_id" placeholder="请选择费用明细"  clearable filterable @change="changeCurrency($event,row,$index)">
-									    <el-option v-for="item in seletData.FYLX" :key="item.id" :label="item.name" :value="item.id"/>
-									  </el-select>
-								  </template>
-							    </el-table-column>
-							    <el-table-column
-							      prop="name"
-							      label="币种"
-								  align="center"
-								  width="100">
-								  <template v-slot="{row}">
-									  <!-- <div>{{optionsComm['币种']}}</div> -->
-								  		<el-select v-model="row.currency" placeholder="请选择币种" v-select-zindex="3000">
-										  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
-										</el-select>
-								  </template>
-							    </el-table-column>
-								<!-- <el-table-column
-								  label="单位"
-								  align="center">
-								  <template v-slot="{row}">
-									  <el-input v-model="row.name"></el-input>
-								  </template>
-								</el-table-column> -->
-								<el-table-column
-								  label="数量"
-								  align="center">
-								  <template v-slot="{row}">
-									  <el-input v-model="row.quantity" type="number"></el-input>
-								  </template>
-								</el-table-column>
-								<el-table-column
-								  label="单价"
-								  align="center">
-								  <template v-slot="{row}">
-									  <el-input v-model="row.price" type="number"></el-input>
-								  </template>
-								</el-table-column>
-							    <el-table-column
-							      prop="address"
-							      label="总计"
-								  align="center">
-								  <template v-slot="{row}">
-								  		<p>{{row.quantity * row.price}}</p>
-								  </template>
-							    </el-table-column>
-								<el-table-column
-								  label="备注"
-								  align="center"
-								  width="160">
-								  <template v-slot="{row}">
-									  <el-input v-model="row.remark"></el-input>
-								  </template>
-								</el-table-column>
-								<el-table-column label="操作" align="center" width="180">
-								  <template v-slot="{row,$index}">
-									<el-button
-									  size="mini" @click="handleAddOrderBill($index)">增加</el-button>
-									<el-button
-									 v-if="orderBillItems.length> 1"
-									  size="mini"
-									  type="danger"
-									  @click="handleDeletePrderBill($index)">删除</el-button>
-								  </template>
-								</el-table-column>
-							  </el-table>
-						</div>
-						<div class="pb-2">
-							<el-table
-							    ref="multipleTable"
-							    :data="orderBillContainers"
-							    tooltip-effect="dark"
-							    style="width: 100%;text-align: center;"
-								 :span-method="objectSpanMethod"
-							    @selection-change="handleSelectionChangeContainers"
-								@select-all="handleSelectionChangeContainersAll">
-							    <el-table-column
-							      type="selection"
-							      width="55">
-							    </el-table-column>
-								<el-table-column
-								      type="index"
-								      width="50">
-								    </el-table-column>
-							    <el-table-column
-							      label="箱号"
-								  prop="no"
-								  align="center">
-								  <template v-slot="{row}">
-								  		 <el-input v-model="row.no"></el-input>
-								  </template>
-								  </el-table-column>
-								<el-table-column
-								  label="柜型"
-								  align="center"
-								  width="100">
-								  <template v-slot="{row}">
-									  <el-select v-model="row.container_type" placeholder="请选择柜型" clearable>
-									    <el-option v-for="item in seletData.XZLX" :key="item.id" :label="item.name" :value="item.id"/>
-									  </el-select>
-									  <!-- <el-input v-model="row.container_type"></el-input> -->
-								  </template>
-								</el-table-column>
-								<el-table-column
-								  label="司机信息"
-								  align="center">
-								  <template v-slot="{row}">
-									  <el-input v-model="row.driver"></el-input>
-								  </template>
-								</el-table-column>
-								<el-table-column label="操作" align="center">
-								  <template v-slot="{row,$index}">
-									<el-button
-									  size="mini" @click="handleAddOrderContainers($index)">增加</el-button>
-									<el-button
-									v-if="orderBillContainers.length> 1"
-									  size="mini"
-									  type="danger"
-									  @click="handleDeleteContainers($index)">删除</el-button>
-								  </template>
-								</el-table-column>
-								<el-table-column
-								  label="总计"
-								  align="center">
-								  <template v-slot="{row}">
-									  <p>CNY：{{row.totalCNY}}</p>
-									  <p>USD：{{row.totalUSD}}</p>
-								  </template>
-								</el-table-column>
-							  </el-table>
-							  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
-							  <div class="flex">
-								  <div class="w-70">
-									  <div class="pt-2 w-100">
-										  <el-input
-											type="textarea"
-											:rows="4"
-											placeholder="请输入内容"
-											v-model="cost_share">
-										  </el-input>
-									  </div>
-									  <div class="pt-2 w-100">
-										  <el-input
-											type="textarea"
-											:rows="4"
-											placeholder="请输入内容"
-											v-model="customer_payment_info">
-										  </el-input>
-									  </div>
-									  <div class="pt-2 w-100">
-										  <el-input
-											type="textarea"
-											:rows="4"
-											placeholder="请输入内容"
-											v-model="company_receipt_info">
-										  </el-input>
-									  </div>
+									<div style="width: 32%;" class="flex mt-2 mr-1">
+										<el-checkbox label="ship_name">
+											<div class="flex">
+												<p style="width: 70px;">船名/航次：</p>
+												<!-- <p class="color0">MONACO MAERSK/521W</p> -->
+											</div>
+										</el-checkbox>
+										<el-input v-model="formBill.ship_name" style="width: 60%;"></el-input>
+										<el-input v-model="formBill.ship_no" style="width: 40%;"></el-input>
+									</div>
+									<div style="width: 32%;" class="flex mt-2 mr-1">
+										<el-checkbox label="job_no">
+											<div class="flex">
+												<p style="width: 70px;">工作编号：</p>
+												<!-- <p class="color0">HO8-ZH25176</p> -->
+											</div>
+										</el-checkbox>
+										<el-input v-model="formBill.job_no"></el-input>
+									</div>
+									<!-- <div class="flex mt-2 mr-1" style="width: 30%;">
+										<el-checkbox label="sailing_at">
+											<p style="width: 100px;">开船日期：</p>
+										</el-checkbox>
+										<div>
+											<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
+											<!-- <el-date-picker
+												  v-model="formBill.sailing_at"
+												  type="date"
+												  placeholder="选择日期">
+												</el-date-picker>
+										</div>
+									</div> -->
+									<div class="flex mt-2 mr-1" style="width: 32%;">
+										<el-checkbox label="sailing_at">
+											<p style="width: 70px;">开船日期：</p>
+										</el-checkbox>
+										<div>
+											<el-date-picker
+											style="width: 100%;"
+												  v-model="formBill.sailing_at"
+												  type="date"
+												  placeholder="选择日期">
+												</el-date-picker>
+										</div>
+									</div>
+									<div class="flex mt-2 mr-1" style="width: 32%;">
+										<el-checkbox label="arrival_at">
+											<p style="width: 70px;">到港日期：</p>
+										</el-checkbox>
+										<div>
+											<!-- <el-input v-model="formBill.sailing_at"></el-input> -->
+											<el-date-picker
+											style="width: 100%;"
+												  v-model="formBill.arrival_at"
+												  type="date"
+												  placeholder="选择日期">
+												</el-date-picker>
+										</div>
+									</div>
+								</el-checkbox-group>
+							</div>
+							<div class="bB-0 py-1 w-100" style="font-size: 12px;">
+								<el-table
+									ref="multipleTable"
+									:data="orderBillItems"
+									tooltip-effect="dark"
+									style="text-align: center;"
+									:header-row-style="{backgroundColor:' #fff'}"
+								   @selection-change="handleSelectionChangeItems"
+								   @select-all="handleSelectionChangeItemsAll">
+									<el-table-column
+									  type="selection"
+									  width="30">
+									</el-table-column>
+									<!-- <el-table-column
+										  type="index"
+										  width="50">
+										</el-table-column> -->
+									<el-table-column
+									  label="费用明细"
+									  align="center">
+									  <template v-slot="{row,$index}">
+										  <el-select v-model="row.fee_type_id" placeholder="请选择费用明细"  clearable filterable @change="changeCurrency($event,row,$index)">
+											<el-option v-for="item in seletData.FYLX" :key="item.id" :label="item.name" :value="item.id"/>
+										  </el-select>
+									  </template>
+									</el-table-column>
+									<el-table-column
+									  label="备注"
+									  align="center"
+									  width="120">
+									  <template v-slot="{row}">
+										  <el-input v-model="row.remark"></el-input>
+									  </template>
+									</el-table-column>
+									<el-table-column
+									  prop="name"
+									  label="币种"
+									  align="center"
+									  width="100">
+									  <template v-slot="{row}">
+										  <!-- <div>{{optionsComm['币种']}}</div> -->
+											<el-select v-model="row.currency" placeholder="请选择币种" v-select-zindex="3000">
+											  <el-option v-for="item in optionsComm['币种']" :key="item.value" :label="item.label" :value="item.value"/>
+											</el-select>
+									  </template>
+									</el-table-column>
+									<!-- <el-table-column
+									  label="单位"
+									  align="center">
+									  <template v-slot="{row}">
+										  <el-input v-model="row.name"></el-input>
+									  </template>
+									</el-table-column> -->
+									<el-table-column
+									  label="数量"
+									  align="center"
+									  width="70">
+									  <template v-slot="{row}">
+										  <el-input v-model="row.quantity" type="number" class="custom-input"></el-input>
+									  </template>
+									</el-table-column>
+									<el-table-column
+									  label="单价"
+									  align="center"
+									  width="80">
+									  <template v-slot="{row}">
+										  <el-input v-model="row.price" type="number" class="custom-input"></el-input>
+									  </template>
+									</el-table-column>
+									<el-table-column
+									  prop="address"
+									  label="小计"
+									  align="center"
+									  width="90">
+									  <template v-slot="{row}">
+											<p>{{row.quantity * row.price}}</p>
+									  </template>
+									</el-table-column>
+									<el-table-column label="操作" align="center" width="120">
+									  <template v-slot="{row,$index}">
+										<el-button
+										  size="mini" @click="handleAddOrderBill($index)">增</el-button>
+										<el-button
+										 v-if="orderBillItems.length> 1"
+										  size="mini"
+										  type="danger"
+										  @click="handleDeletePrderBill($index)">删</el-button>
+									  </template>
+									</el-table-column>
+								  </el-table>
+							</div>
+							<div class="pb-2">
+								<div class="d-flex j-end font-14 mb-1" style="margin-right: 120px;">
+								  <div>
+									  总计：
 								  </div>
-								  <div class="pl-2">
-									  <el-switch
-									    v-model="is_show_seal">
-									  </el-switch>
-									  <div class="mt-2" v-if="is_show_seal">
-										 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
-									  </div>
+								  <div class="font-w font-16 d-flex flex-column">
+									  <p class="flex-1 flex">CNY：<p class="flex-1" style="text-align: center;">{{totals?totals.totalCNY: 0}}</p></p>
+									  <p class="flex-1 flex">USD：<p class="flex-1"  style="text-align: center;">{{totals?totals.totalUSD: 0}}</p></p>
 								  </div>
 								</div>
-								<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
-								  <div class="w-60">
-									  <el-input
-										type="textarea"
-										:rows="5"
-										placeholder="请输入内容"
-										v-model="remarkBill"></el-input>
-								</div>
-							  </div>
+								<el-table
+									ref="multipleTable"
+									:data="orderBillContainers"
+									tooltip-effect="dark"
+									 :span-method="objectSpanMethod"
+									@selection-change="handleSelectionChangeContainers"
+									@select-all="handleSelectionChangeContainersAll">
+									<el-table-column
+									  type="selection"
+									  width="30">
+									</el-table-column>
+									<el-table-column
+										  type="index"
+										  width="10">
+										</el-table-column>
+									<el-table-column
+									  label="箱号"
+									  prop="no"
+									  align="center"
+									  width="140">
+									  <template v-slot="{row}">
+											 <el-input v-model="row.no"></el-input>
+									  </template>
+									  </el-table-column>
+									<el-table-column
+									  label="柜型"
+									  align="center"
+									  width="90">
+									  <template v-slot="{row}">
+										  <el-select v-model="row.container_type" placeholder="请选择柜型" clearable>
+											<el-option v-for="item in seletData.XZLX" :key="item.id" :label="item.name" :value="item.id"/>
+										  </el-select>
+										  <!-- <el-input v-model="row.container_type"></el-input> -->
+									  </template>
+									</el-table-column>
+									<el-table-column
+									  label="司机信息"
+									  align="center"
+									  width="230">
+									  <template v-slot="{row}">
+										  <el-input v-model="row.driver"></el-input>
+									  </template>
+									</el-table-column>
+									<el-table-column label="操作" align="center" width="120">
+									  <template v-slot="{row,$index}">
+										<el-button
+										  size="mini" @click="handleAddOrderContainers($index)">增</el-button>
+										<el-button
+										v-if="orderBillContainers.length> 1"
+										  size="mini"
+										  type="danger"
+										  @click="handleDeleteContainers($index)">删</el-button>
+									  </template>
+									</el-table-column>
+								  </el-table>
+								  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
+								  <div class="flex">
+									  <div class="w-70">
+										  <div class="pt-2 w-100">
+											  <el-input
+												type="textarea"
+												:rows="4"
+												placeholder="请输入内容"
+												v-model="cost_share">
+											  </el-input>
+										  </div>
+										  <div class="pt-2 w-100">
+											  <el-input
+												type="textarea"
+												:rows="4"
+												placeholder="请输入内容"
+												v-model="customer_payment_info">
+											  </el-input>
+										  </div>
+										  <div class="pt-2 w-100">
+											  <el-input
+												type="textarea"
+												:rows="4"
+												placeholder="请输入内容"
+												v-model="company_receipt_info">
+											  </el-input>
+										  </div>
+									  </div>
+									  <div class="pl-2">
+										  <el-switch
+											v-model="is_show_seal">
+										  </el-switch>
+										  <div class="mt-2" v-if="is_show_seal">
+											 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
+										  </div>
+									  </div>
+									</div>
+									<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
+									  <div class="w-60">
+										  <el-input
+											type="textarea"
+											:rows="5"
+											placeholder="请输入内容"
+											v-model="remarkBill"></el-input>
+									</div>
+								  </div>
+							</div>
 						</div>
 					</div>
-					<div class="py-2">
-						<div class="dialog-footer">
-							<el-button type="primary" @click="submitForm">生成图片</el-button>
-							<el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
-							<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
-							<el-button @click="cancelBill">取 消</el-button>
+					<div style="width: 200px;padding-left: 5px;" class="pt-2 font-12 bill-right flex flex-column">
+						<div class="w-100">
+							<el-form :inline="true" :model="formBillTemplates" label-width="60px">
+							  <el-form-item label="导出文件名">
+								<el-input v-model="formBillTemplates.wordName" placeholder=""></el-input>
+							  </el-form-item>
+							  <el-form-item>
+								  <div>
+									  <el-button type="primary" @click="onSubmit" class="mb-1 mr-1">导出word</el-button>
+								  </div>
+								  <div>
+									  <el-button type="primary" @click="onSubmit" class="mb-1">导出pdf</el-button>
+								  </div>
+							  </el-form-item>
+							</el-form>
+							<el-form :inline="true" :model="formBillTemplates" label-width="60px" >
+							  <el-form-item label="模板名字">
+								<el-input v-model="formBillTemplates.name" placeholder=""></el-input>
+							  </el-form-item>
+							  <el-form-item>
+								  <div>
+									  <el-button type="primary" @click="addBillTemplates" class="mb-1 mr-1">新增模板</el-button>
+								  </div>
+								  <div>
+									  <el-button type="primary" @click="saveBillTemplates" class="mb-1">保存模板</el-button>
+								  </div>
+							  </el-form-item>
+							</el-form>
+						</div>
+						<div v-if= "billType !== 0" class="flex-1 pb-2" style="overflow-y: auto;">
+							<div :class="['b-0','radius10','mr-1','mt-1',billTemplatesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
+								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
+								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+							</div>
 						</div>
 					</div>
-					</el-tab-pane>
-					</el-tabs>
 				</div>
 			</div>
 		<!-- </el-dialog> -->
@@ -662,6 +674,7 @@
 			bl_no: res.bl_no,
 			origin_port: res.origin_port,
 			destination_port: res.destination_port,
+			ship_no: res.ship_no,
 			ship_name: res.ship_name,
 			ship_no: res.ship_no,
 			sailing_at: res.sailing_at,
@@ -1537,12 +1550,12 @@
 	    const price = Number(item.price) || 0
 	    
 	    if (item.currency === 'cny') {
-	      totalCNY += quantity * price
+	      totalCNY += (quantity * price.toFixed(2))
 	    } else if (item.currency === 'usd') {
-	      totalUSD += quantity * price
+	      totalUSD += (quantity * price.toFixed(2))
 	    }
 	  })
-	  
+	  console.log(totalCNY,totalUSD,'item.quantity')
 	  return { totalCNY, totalUSD }
 	})
 	watch(totals, (newTotals) => {
@@ -1757,10 +1770,40 @@
 	.el-color-dropdown {
 	  z-index: 9999 !important;
 	}
+	
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+	}
+	
+	input[type="number"] {
+	-moz-appearance: textfield;
+	}
+	.bill-dialog .el-table .cell{
+		padding: 0 2px  !important;
+	}
+	.bill-dialog .el-form-item__label{
+		font-size: 12px;
+	}
+	.bill-dialog .bill-right .el-form--inline .el-form-item{
+		margin-right: 0px !important;
+		margin-bottom: 5px;
+	}
 </style>
 <style scoped>
 	.dialog-footer{
 		text-align: right
+	}
+	.colorBlue{
+		background-color: #409EFF;
+		color:#fff;
+		border: 1px solid #409EFF
+	}
+	.colorBlack{
+		background-color: #fff;
+		color:#333;
+		border: 1px solid #333
 	}
 	
 </style>
