@@ -23,7 +23,11 @@
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column type="selection" width="55" align="center" />
 			<el-table-column label="项目名称" align="center" prop="name" />
-			<el-table-column label="币种" align="center" prop="type" />
+			<el-table-column label="币种" align="center" prop="type" >
+			<template #default="scope">
+					{{ MONEY_LIST.find(item => item.value === scope.row.type).label }}
+				</template>
+			</el-table-column>
 			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="排序" align="center" prop="sort" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">

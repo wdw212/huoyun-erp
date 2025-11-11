@@ -10,14 +10,14 @@
 						<el-col :span="12" style="flex: 0 0 44%;">
 							<div class="section mb30">
 								<el-form-item label="工作编号：" label-width="87px">
-									<el-input v-model="form.workNumber" style="width: 130px"
-										placeholder="HQ4-WHJ25002" />
+									<el-input v-model="form.job_no" style="width: 130px"
+										placeholder="HQ4-WHJ25002"  disabled/>
 								</el-form-item>
 								<el-form-item label="手机/邮箱：" label-width="87px">
-									<el-input v-model="form.phone" style="width: 130px" />
+									<el-input v-model="form.email" style="width: 130px" />
 								</el-form-item>
 								<el-form-item label="税点：" label-width="87px">
-									<el-input v-model="form.phone" style="width: 130px" />
+									<el-input v-model="form.tax_rate" style="width: 130px" disabled/>
 								</el-form-item>
 
 							</div>
@@ -25,38 +25,34 @@
 						<el-col :span="12">
 							<div class="section">
 								<el-form-item label="发票名称：" label-width="85px">
-									<!--  <el-select v-model="form.invoiceType" placeholder="专用电子发票" style="width:130px">
-                      <el-option label="普通发票" value="normal" />
-                      <el-option label="专用发票" value="special" />
-                    </el-select> -->
-									<el-select v-model="form.invoiceType" placeholder="专用电子发票" style="width:130px">
+									<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)">
 										<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
 											:value="item.id" />
 									</el-select>
 								</el-form-item>
 								<el-form-item label="备注：" label-width="85px">
-									<el-input v-model="form.email" style="width: 130px" />
+									<el-input v-model="form.remark" style="width: 100%" />
 								</el-form-item>
 								<el-form-item label="税额：" label-width="87px">
-									<el-input v-model="form.phone" style="width: 130px" />
+									<el-input v-model="calculations.tax_amount" style="width: 100%" disabled/>
 								</el-form-item>
 							</div>
 						</el-col>
 					</el-row>
 				</el-col>
-				<el-col :span="6">
-					<div class="logo"><img src="../assets/logo.jpg"></div>
+				<el-col :span="4">
+					<div class="logo"><img src="../assets/invoice_logo.png"></div>
 				</el-col>
 				<!-- 开票日期 -->
 				<el-col :span="7">
 					<div class="section mb30">
 						<el-form-item label="单子完结">
-							<el-switch v-model="value1" class="mb-2" inline-prompt @change="handleSwitch" />
-							<el-input v-model="form.number" style="width: 150px; margin-left: 20px"
-								:disabled="form.isDisabled" />
+							<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
+							<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
+								:disabled="form.is_finish" />
 						</el-form-item>
 						<el-form-item label="开票日期：">
-							<el-input v-model="form.email" style="width: 210px" />
+							<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
 						</el-form-item>
 					</div>
 				</el-col>
@@ -71,13 +67,13 @@
 							<div class="flex-1 pt-1" style="box-sizing: border-box;">
 								<div class="section">
 									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="buyer.name" placeholder="请选择">
-											<el-option v-for="item in buyerOptions" :key="item.value" :label="item.label"
-												:value="item.value" place />
+										<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
+											<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
+												:value="item.id" place />
 										</el-select>
 									</el-form-item>
 									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<el-input v-model="buyer.taxNumber" />
+										<el-input v-model="form.purchase_usc_code" disabled/>
 									</el-form-item>
 								</div>
 							</div>
@@ -86,13 +82,13 @@
 								<!-- 销售方信息 -->
 								<div class="section pt-1">
 									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="seller.name" placeholder="请选择">
+										<el-select v-model="form.sale_entity_id" placeholder="请选择">
 											<el-option v-for="item in sellerOptions" :key="item.value" :label="item.label"
 												:value="item.value" place />
 										</el-select>
 									</el-form-item>
 									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<el-input v-model="seller.taxNumber"/>
+										<el-input v-model="form.sale_usc_code"/>
 									</el-form-item>
 								</div>
 							</div>
@@ -108,9 +104,9 @@
 										<el-table-column prop="name" label="项目名称" width="" align="center">
 											<template #default="{row}">
 												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
-													remote>
-													<el-option v-for="opt in itemOptions" :key="opt" :label="opt"
-														:value="opt" />
+													remote @change="changeFeeTypeCNY()">
+													<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+														:value="opt.id" />
 												</el-select>
 											</template>
 										</el-table-column>
@@ -126,15 +122,15 @@
 										</el-table-column>
 										<el-table-column label="金额" width="60" align="center">
 											<template #default="{row}">
-												<el-input v-model="row.totalPrice" type="number"></el-input>
+												<el-input v-model="row.amount" type="number"></el-input>
 											</template>
 										</el-table-column>
 										<el-table-column width="80" align="center">
 											<template #header>
 												<el-button type="primary" size="mini" @click="addRow"
-													:disabled="items.length == 8 ? true : false">增行</el-button>
+													:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
 											</template>
-											<template v-if="items.length>0" #default="{ $index }">
+											<template v-if="tableDataCNY.length>1" #default="{ $index }">
 												<el-button type="text" @click="delRow($index)" class="del">删除</el-button>
 											</template>
 										</el-table-column>
@@ -166,9 +162,9 @@
 										<el-table-column prop="name" label="项目名称" width="" align="center">
 											<template #default="{row}">
 												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
-													remote>
-													<el-option v-for="opt in itemOptions" :key="opt" :label="opt"
-														:value="opt" />
+													remote @change="changeFeeTypeUSD()">
+													<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
+														:value="opt.id" />
 												</el-select>
 											</template>
 										</el-table-column>
@@ -184,14 +180,14 @@
 										</el-table-column>
 										<el-table-column label="金额" width="60" align="center">
 											<template #default="{row}">
-												<el-input v-model="row.totalPrice" type="number"></el-input>
+												<el-input v-model="row.amount" type="number"></el-input>
 											</template>
 										</el-table-column>
 										<el-table-column width="70" align="center">
 											<template #header>
-												<el-button type="primary" @click="addRoww">增行</el-button>
+												<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false">增行</el-button>
 											</template>
-											<template v-if="itemss.length>0" #default="{ $index }">
+											<template v-if="tableDataUSD.length>1" #default="{ $index }">
 												<el-button type="text" @click="delRoww($index)" class="del">删除</el-button>
 											</template>
 										</el-table-column>
@@ -263,9 +259,11 @@
 </template>
 
 <script setup>
+	import {timeto } from '@/utils/index';
 	import {
 		ref,
-		computed
+		computed,
+		reactive 
 	} from 'vue'
 	import {
 		httpPost,
@@ -273,7 +271,9 @@
 		httpPut,
 		httpDelete
 	} from '@/api/apiCommon';
+import { find } from 'lodash';
 	const remarkCNY = ref('')
+	const remarkUSD = ref('')
 	const tableDataCNY = ref([])
 	const tableDataUSD = ref([])
 	const invoiceFormObj = ref(null) //备注
@@ -291,15 +291,16 @@
 		if (props.type == 1) {
 			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
 			remarkCNY.value = invoiceFormObj.value.remark
+			remarkUSD.value = invoiceFormObj.value.remark
 			if (invoiceFormObj.value.orderBillItems.length > 0) {
 				tableDataCNY.value = []
 				tableDataUSD.value = []
 				invoiceFormObj.value.orderBillItems.forEach(item => {
 					if (item.currency == 'cny') {
-						item.totalPrice = item.quantity * item.price
+						item.amount = item.quantity * item.price
 						tableDataCNY.value.push(item)
 					} else if (item.currency == 'usd') {
-						item.totalPrice = item.quantity * item.price
+						item.amount = item.quantity * item.price
 						tableDataUSD.value.push(item)
 					}
 				})
@@ -308,14 +309,40 @@
 	}, {
 		immediate: true
 	})
+	// 表单数据，不包含计算字段
 	const form = ref({
-		workNumber: '',
-		phone: '',
-		invoiceType: '',
-		email: '',
-		dollarType: '',
-		rmbType: '',
-		isDisabled: true,
+	    job_no: '',
+	    invoice_type_id: '',
+	    email: '',
+	    remark: '',
+	    tax_rate: '',
+	    commission: '',
+	    is_finish: true,
+	    purchase_entity_id: '',
+	    purchase_usc_code: '',
+	    sale_entity_id: '',
+	    sale_usc_code: '',
+	    cny_remark: '',
+	    usd_remark: '',
+	    invoice_date: timeto(new Date().getTime(), 'ymd', '-'),
+	    tax_amount: 0
+	})
+	
+	// 计算税额
+	// 所有计算字段单独定义
+	const calculations = reactive({
+			tax_amount: computed(() => {
+			  const sum = tableDataCNY.value.reduce((acc, item) => 
+			    acc + Number(item.amount || 0), 0
+			  )
+			  const taxRate = Number(form.value.tax_rate) || 0
+			  const result = sum * taxRate
+			  console.log(sum,'result')
+			  console.log(result,'result')
+			  return Number(result.toFixed(2))
+			})
+	  
+	  // 可以添加其他计算字段
 	})
 
 	const buyer = ref({
@@ -378,7 +405,7 @@
 				fee_type_id: '',
 				unit: '',
 				quantity: null,
-				totalPrice: 0,
+				amount: 0,
 			})
 		}
 	}
@@ -394,9 +421,12 @@
 	}
 	const delRow = (index) => {
 		tableDataCNY.value.splice(index, 1)
+		remarkCNY.value= changeFeeType(tableDataCNY.value,FEE_TYPES_LIST_CNY.value)
+		
 	}
 	const delRoww = (index) => {
 		tableDataUSD.value.splice(index, 1)
+		remarkUSD.value= changeFeeType(tableDataUSD.value,FEE_TYPES_LIST_USD.value)
 	}
 	/*小数点后两位*/
 	const rawValue = ref('');
@@ -430,7 +460,7 @@
 		});
 
 		// 计算第五列（索引为4）的总和
-		const sumValue = data.reduce((acc, item) => acc + Number(item.formattedValue), 0).toFixed(2);
+		const sumValue = data.reduce((acc, item) => acc + Number(item.amount), 0).toFixed(2);
 		sums[4] = `${sumValue}`; // 第五列显示汇总值
 
 		return sums;
@@ -473,6 +503,94 @@
 		});
 	}
 	getInvoiceTypeList()
+	const FEE_TYPES_LIST_CNY=ref([])
+	const FEE_TYPES_LIST_USD=ref([])
+	// 项目名称RMB/USD
+	function getfeeTypesList(type) {
+		httpGet(`/fee-types`, {
+			is_paginate: 0,
+			type: type
+		}).then(res => {
+			console.log(res,'res509')
+			if(type=== 'cny'){
+				FEE_TYPES_LIST_CNY.value= res.data
+			}else if(type=== 'usd'){
+				FEE_TYPES_LIST_USD.value= res.data
+			}
+		});
+	}
+	getfeeTypesList('cny')
+	getfeeTypesList('usd')
+	
+	const COMPANY_HEADERS_LIST= ref([])
+	// 委托抬头--购买方单位
+	function getCompanyHeadersList() {
+		httpGet(`/company-headers`, {
+			is_paginate: 0,
+			company_type: 0
+		}).then(res => {
+			COMPANY_HEADERS_LIST.value= res.data
+		});
+	}
+	getCompanyHeadersList()
+	
+	
+	// 获取税点税额
+	function changeInvoiceType(e){
+		console.log(form.value,'form.value')
+		let itemObj= invoiceTypeList.value.find(item =>item.id=== e)
+		form.value.tax_rate= itemObj?.tax_rate
+		// form.value.tax_amount= itemObj?.tax_number
+	}
+	// 获取购买方信用代码
+	function changePurchaseUscCode(e){
+		console.log(e,'ee')
+		let itemObj= COMPANY_HEADERS_LIST.value.find(item =>item.id=== e)
+		console.log(itemObj,'itemObj')
+		form.value.purchase_usc_code= itemObj?.tax_number
+	}
+	// 提交
+	function changeFeeTypeCNY(){
+		remarkCNY.value= changeFeeType(tableDataCNY.value,FEE_TYPES_LIST_CNY.value)
+		// const remarks= tableDataCNY.value
+		//   .map(item => {
+		// 	const matched = FEE_TYPES_LIST_CNY.value.find(item1 => item1.id === item.fee_type_id);
+		// 	// 检查 remark 是否存在且不为空
+		// 	return matched && matched.remark != null && String(matched.remark).trim() !== '' 
+		// 	  ? String(matched.remark) 
+		// 	  : null;
+		//   })
+		//   .filter(remark => remark !== null)
+		//   .join('\n');
+		// if(props.type== 1 && invoiceFormObj.value.remark){
+			
+		// 	remarkCNY.value= invoiceFormObj.value.remark +'\n'+ remarks
+		// }else{
+		// 	remarkCNY.value= invoiceFormObj.value.remark +'\n'+ remarks
+		// }
+	}
+	function changeFeeTypeUSD(){
+		remarkUSD.value= changeFeeType(tableDataUSD.value,FEE_TYPES_LIST_USD.value)
+	}
+	function changeFeeType(Currencys,list){
+		let remarkValue= ''
+		const remarks= Currencys
+			  .map(item => {
+				const matched = list.find(item1 => item1.id === item.fee_type_id);
+				// 检查 remark 是否存在且不为空
+				return matched && matched.remark != null && String(matched.remark).trim() !== '' 
+				  ? String(matched.remark) 
+				  : null;
+			  })
+			  .filter(remark => remark !== null)
+			  .join('\n');
+			if(props.type== 1 && invoiceFormObj.value.remark){
+				remarkValue= invoiceFormObj.value.remark +'\n'+ remarks
+			}else{
+				remarkValue=  remarks
+			}
+			return remarkValue
+	}
 </script>
 
 <style scoped>
@@ -500,10 +618,10 @@
 	}
 
 	.logo {
-		position: absolute;
-		left: 42%;
-		top: -7px;
-		z-index: -1;
+		/* position: absolute; */
+		/* left: 42%; */
+		/* top: -7px; */
+		z-index: 1;
 	}
 
 	.mb30 {
@@ -511,7 +629,7 @@
 	}
 
 	.logo img {
-		max-width: 300px;
+		max-width: 240px;
 	}
 
 	.flex {
