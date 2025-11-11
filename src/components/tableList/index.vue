@@ -16,6 +16,9 @@
 		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange"
 			:row-key="rowKey" :max-height="height" :border="border" :size="size"
 			:row-class-name="(row,rowIndex)=>tableRowClassName(row,rowIndex)"
+			:cell-class-name="(row,column,rowIndex,columnIndex)=>cellClassName(row,column,rowIndex,columnIndex)" 
+			:show-summary="showSummary"
+			@row-click="rowClick" @cell-click="cellClick"
 			style="font-size: 12px;">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
@@ -126,6 +129,10 @@
 			type: Boolean,
 			default: false
 		},
+		showSummary: {
+			type: Boolean,
+			default: false
+		},
 	})
 
 	const tableRowClassName = ({row, rowIndex}) => {
@@ -134,6 +141,20 @@
 		}
 		return '';
 	};
+	const cellClassName = ({row,column,rowIndex,columnIndex}) => {
+		if(props.tableConfig.cellClassName){
+			return props.tableConfig.cellClassName(row,column,rowIndex,columnIndex)
+		}
+		return '';
+	};
+	
+	function rowClick(row, column){
+		emit('rowClick', {row, column});
+	}
+	
+	function cellClick(row, column){
+		emit('cellClick', {row, column});
+	}
 
 	onMounted(() => {
 		// console.log('tableColumn', props.tableColumn);
@@ -361,4 +382,5 @@
 	.el-table .success-row {
 		background-color: #9ce290;
 	}
+	.el-table .disabled-cell{background-color: #f5f5f5;}
 </style>

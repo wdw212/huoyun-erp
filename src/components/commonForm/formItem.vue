@@ -15,7 +15,7 @@
 				</template>
 				<template v-if="newItem.type=='textarea'">
 					<el-input v-model="saveData" type="textarea"
-					:resize="vv.resize||'vertical'"
+					:resize="newItem.resize||'vertical'"
 					:style="newItem.style" :rows="4"
 					:placeholder="newItem.placeholder||'请输入'"
 					@input="changeValue" :disabled="newItem.disabled"/>
