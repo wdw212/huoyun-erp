@@ -16,7 +16,7 @@
 		<el-table v-loading="loading" :data="state.tableData" @selection-change="handleSelectionChange"
 			:row-key="rowKey" :max-height="height" :border="border" :size="size"
 			:row-class-name="(row,rowIndex)=>tableRowClassName(row,rowIndex)"
-			:cell-class-name="(row,column,rowIndex,columnIndex)=>cellClassName(row,column,rowIndex,columnIndex)" 
+			:cell-class-name="(val)=>cellClassName(val)" 
 			:show-summary="showSummary"
 			@row-click="rowClick" @cell-click="cellClick"
 			style="font-size: 12px;">

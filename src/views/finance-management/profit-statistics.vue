@@ -76,19 +76,23 @@
 	// 月利润计算
 	const monthProfit = ref('凌亚');
 	const monthShow = ref(false);
+	const disMonth = ref(['ID','名字','毛利润','小计','净利润']);
 	const tableConfigMonth = ref({
 		url: '/orders',
 		requestMethod: httpGet,
 		isQuery: true,
 		cellClassName: (row,column,rowIndex,columnIndex) => {
-			if(['ID','名字','毛利润','小计','净利润'].indexOf(column.label)>-1){
+			if(disMonth.value.indexOf(column.label)>-1){
 				return 'disabled-cell'
 			}
 			return '';
 		}
 	})
 	function cellClick(val){
-		console.log('cellClick', val.column.label)
+		// console.log('cellClick', val.column.label)
+		if(disMonth.value.indexOf(val.column.label)>-1){
+			return;
+		}
 		formInfo.value.title = val.column.label;
 		if(val.column.label=='备注'){
 			formInfo.value.formData[0].hide = true;
