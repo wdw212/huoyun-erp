@@ -50,25 +50,58 @@
 				<el-form-item label="开户账号" prop="bank_account">
 					<el-input v-model="form.bank_account" placeholder="请输入开户账号" />
 				</el-form-item>
+				<el-form-item label="备注">
+					<el-input v-model="form.remark" placeholder="请输入" type="textarea" rows="4" />
+				</el-form-item>
 				<el-form-item label="LOGO">
-					<div v-if="form.logo" class="flex">
+					<!-- <div v-if="form.logo" class="flex">
 						   <img  :src="form.logo.url+'?' +Math.random()" class="avatar">
 						   <p class="font-32 px-2 hand" @click="form.logo= null;">×</p>
+					</div> -->
+					<div class="avatar" v-if="form.logo">
+						<!-- <img :src="file.url"  /> -->
+						<el-image
+						  style="width:100px; height: 100px;"
+						  :src="form.logo.url+'?' +Math.random()"
+						  :zoom-rate="1.2"
+						  :max-scale="7"
+						  :min-scale="0.2"
+						  fit="cover"
+						/>
+						<div class="close" @click="form.logo= null;">
+							<el-icon color="#fff"><Close /></el-icon>
+						</div>
 					</div>
 					<el-upload
 					  v-else
 					  ref="uploadRef"
 					  class="avatar-uploader"
 					   :show-file-list="false"
-					  :action="baseUrl + '/uploads/file'"
+					   :action="baseUrl + '/uploads/file'"
 					   :on-success="handleUploadSuccess">
-					  <el-button type="primary">点击上传</el-button>
+					   <div class="avatar-uploader">
+					   	<el-icon color="#8c939d"><Plus /></el-icon>
+					   </div>
+					  <!-- <el-button type="primary">点击上传</el-button> -->
 					</el-upload>
 				</el-form-item>
 				<el-form-item label="财务公章">
-					<div v-if="form.financial_seal" class="flex">
+					<!-- <div v-if="form.financial_seal" class="flex">
 						   <img :src="form.financial_seal.url+'?' +Math.random()" class="avatar">
 						   <p class="font-32 px-2 hand" @click="form.financial_seal= null;">×</p>
+					</div> -->
+					<div class="avatar" v-if="form.financial_seal">
+						<el-image
+						  style="width:100px; height: 100px;"
+						  :src="form.financial_seal.url+'?' +Math.random()"
+						  :zoom-rate="1.2"
+						  :max-scale="7"
+						  :min-scale="0.2"
+						  fit="cover"
+						/>
+						<div class="close" @click="form.financial_seal= null;">
+							<el-icon color="#fff"><Close /></el-icon>
+						</div>
 					</div>
 					<el-upload
 					  v-else
@@ -77,7 +110,10 @@
 					   :show-file-list="false"
 					  :action="baseUrl + '/uploads/file'"
 					   :on-success="handleUploadSuccessFinancialSeal">
-					  <el-button type="primary">点击上传</el-button>
+					   <div class="avatar-uploader">
+					   	<el-icon color="#8c939d"><Plus /></el-icon>
+					   </div>
+					  <!-- <el-button type="primary">点击上传</el-button> -->
 					</el-upload>
 				</el-form-item>
 			</el-form>
@@ -260,8 +296,32 @@
 </script>
  <style scope>
  	.avatar {
- 	    width: 300px;
+ 	    width: 100px;
  	   height: auto;
+	   position: relative;	
 		/* object-fit: cover; */
  	  }
+	  .avatar-uploader{
+	  	width: 100px;
+	  	height: 100px;
+	  	border: 1px dashed var(--el-border-color);
+	  	border-radius: 6px;
+	  	cursor: pointer;
+	  	position: relative;
+	  	/* overflow: hidden; */
+	  	transition: var(--el-transition-duration-fast);
+	  	display: flex;
+	  	align-items: center;
+	  	justify-content: center;
+	  }	
+	  .close{
+	  	width: 20px;
+	  	height: 20px;
+	  	border-radius: 50%;
+	  	position: absolute;
+	  	top: -10px;
+	  	right: -10px;
+	  	background-color: rgba(0,0,0,0.3);
+	  	display: flex;align-items: center;justify-content: center;
+	  }
  </style>

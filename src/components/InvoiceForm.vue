@@ -82,13 +82,13 @@
 								<!-- 销售方信息 -->
 								<div class="section pt-1">
 									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="form.sale_entity_id" placeholder="请选择">
-											<el-option v-for="item in sellerOptions" :key="item.value" :label="item.label"
-												:value="item.value" place />
+										<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
+											<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
+												:value="item.id" place />
 										</el-select>
 									</el-form-item>
 									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<el-input v-model="form.sale_usc_code"/>
+										<el-input v-model="form.sale_usc_code" disabled/>
 									</el-form-item>
 								</div>
 							</div>
@@ -142,7 +142,7 @@
 												<div class="flex j-end w-100 pr-2">
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="人民币发票号：">
-														<el-input v-model="rmbType" style="width: 180px"
+														<el-input v-model="form.cny_invoice_no" style="width: 180px"
 															placeholder="25932000000029068754" />
 													</el-form-item>
 												</div>
@@ -199,7 +199,7 @@
 												<div class="flex j-end w-100 pr-2">
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="美金发票号：">
-														<el-input v-model="dollarType" style="width: 180px"
+														<el-input v-model="form.usd_invoice_no" style="width: 180px"
 															placeholder="25932000000029068754" />
 													</el-form-item>
 												</div>
@@ -233,15 +233,16 @@
 				<el-col :span="12">
 					<div class="section d-flex">
 						<el-form-item label="模板名称：">
-							<el-input v-model="form.email" style="width: 150px" />
+							<el-input v-model="templatesName" style="width: 150px" />
 						</el-form-item>
-						<el-button type="primary" class="ml20">保存模板</el-button>
-						<el-button>删除模板</el-button>
+						<el-button type="primary" class="ml20" @click="saveInvoicesTemplates">保存模板</el-button>
+						<!-- <el-button>删除模板</el-button> -->
 					</div>
-					<div class="mt10">
-						<el-button type="primary" class="ml20">模板名称一</el-button>
-						<el-button type="primary">模板名称二</el-button>
-						<el-button type="primary">模板名称三</el-button>
+					<div class="flex-1 pb-2" style="overflow-y: auto;max-height: 100px;">
+						<div :class="['b-0','radius10','mr-1','mt-1',invoicesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in invoiceTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
+							<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
+							<el-button class="icon-color-black" :style="{background: invoicesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
+						</div>
 					</div>
 				</el-col>
 				<el-col :span="12">
@@ -249,7 +250,7 @@
 					<div class="action-btns">
 						<el-button type="primary">人民币发票预览</el-button>
 						<el-button>美元发票预览</el-button>
-						<el-button type="success">保存</el-button>
+						<el-button type="success" @click="submit">保存</el-button>
 						<el-button>业务单据</el-button>
 					</div>
 				</el-col>
@@ -260,10 +261,12 @@
 
 <script setup>
 	import {timeto } from '@/utils/index';
+	import userStore from "@/store/modules/user";
 	import {
 		ref,
 		computed,
-		reactive 
+		reactive ,
+		onMounted
 	} from 'vue'
 	import {
 		httpPost,
@@ -271,12 +274,29 @@
 		httpPut,
 		httpDelete
 	} from '@/api/apiCommon';
+	import {
+		getXHDW
+	} from '@/api/commonList';
+	const {
+		proxy
+	} = getCurrentInstance();
 import { find } from 'lodash';
+const Emit= defineEmits(['close'])
+	// 添加加载状态
+	const isSellerOptionsLoaded = ref(false)
+	const templatesName= ref('')
 	const remarkCNY = ref('')
 	const remarkUSD = ref('')
-	const tableDataCNY = ref([])
-	const tableDataUSD = ref([])
+	const tableDataCNY = ref([{fee_type_id: '',unit: '',quantity: null,amount: 0}])
+	const tableDataUSD = ref([{fee_type_id: '',unit: '',quantity: null,amount: 0}])
 	const invoiceFormObj = ref(null) //备注
+	// 模板
+	const invoiceTemplatesList = ref([])
+	const invoicesCurrent = ref(9999)
+	const rolesListYW= ['SUPER_ADMIN','BUSINESS']
+	const rolesListCW= ['SUPER_ADMIN','FINANCE']
+	const disabledYWEdit= ref(false) 
+	const disabledCWEdit= ref(false) 
 	const props = defineProps({
 		invoiceForm: {
 			type: [Object, Array],
@@ -287,30 +307,10 @@ import { find } from 'lodash';
 			default: 0,
 		}
 	})
-	watch(props.type, (newVal) => {
-		if (props.type == 1) {
-			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
-			remarkCNY.value = invoiceFormObj.value.remark
-			remarkUSD.value = invoiceFormObj.value.remark
-			if (invoiceFormObj.value.orderBillItems.length > 0) {
-				tableDataCNY.value = []
-				tableDataUSD.value = []
-				invoiceFormObj.value.orderBillItems.forEach(item => {
-					if (item.currency == 'cny') {
-						item.amount = item.quantity * item.price
-						tableDataCNY.value.push(item)
-					} else if (item.currency == 'usd') {
-						item.amount = item.quantity * item.price
-						tableDataUSD.value.push(item)
-					}
-				})
-			}
-		}
-	}, {
-		immediate: true
-	})
+	const sellerOptions = ref([])
 	// 表单数据，不包含计算字段
 	const form = ref({
+		order_id: '',
 	    job_no: '',
 	    invoice_type_id: '',
 	    email: '',
@@ -325,8 +325,56 @@ import { find } from 'lodash';
 	    cny_remark: '',
 	    usd_remark: '',
 	    invoice_date: timeto(new Date().getTime(), 'ymd', '-'),
-	    tax_amount: 0
+	    tax_amount: 0,
+		cny_invoice_no: '',
+		usd_invoice_no: ''
 	})
+	onMounted(async () => {
+	    try {
+			// console.log(userStore().roles,'setKeyInfo')
+	        sellerOptions.value = await getXHDW()
+	        isSellerOptionsLoaded.value = true
+	    } catch (error) {
+	        console.error('错误提示：', error)
+	    }
+	})
+	watch([() => props.type, isSellerOptionsLoaded], ([newType, loaded]) => {
+		if(loaded){
+			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
+			form.value.order_id= invoiceFormObj.value.order_id
+			form.value.sale_entity_id= invoiceFormObj.value.seller_id
+			console.log(form.value,'form.value')
+			changeSaleUscCode(form.value.sale_entity_id)
+			showDefaultData(newType)
+		}
+		
+	}, {
+		immediate: true
+	})
+	// 默认的选择
+	function showDefaultData(type){
+		if (type == 1) {
+			remarkCNY.value = invoiceFormObj.value.remark?invoiceFormObj.value.remark: ''
+			remarkUSD.value = invoiceFormObj.value.remark? invoiceFormObj.value.remark: ''
+			console.log(form.value.sale_entity_id,'form.value.sale_entity_id')
+			if (invoiceFormObj.value.orderBillItems.length > 0) {
+				tableDataCNY.value = []
+				tableDataUSD.value = []
+				invoiceFormObj.value.orderBillItems.forEach(item => {
+					if (item.currency == 'cny') {
+						item.amount = item.quantity * item.price
+						tableDataCNY.value.push(item)
+					} else if (item.currency == 'usd') {
+						item.amount = item.quantity * item.price
+						tableDataUSD.value.push(item)
+					}
+				})
+			}else{
+				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+			}
+		}
+	}
 	
 	// 计算税额
 	// 所有计算字段单独定义
@@ -376,15 +424,6 @@ import { find } from 'lodash';
 		}
 	};
 	const buyerOptions = [{
-			label: '单位1',
-			value: 'unit1'
-		},
-		{
-			label: '单位2',
-			value: 'unit2'
-		}
-	]
-	const sellerOptions = [{
 			label: '单位1',
 			value: 'unit1'
 		},
@@ -549,6 +588,12 @@ import { find } from 'lodash';
 		console.log(itemObj,'itemObj')
 		form.value.purchase_usc_code= itemObj?.tax_number
 	}
+	// 获取购买方信息
+	function changeSaleUscCode(e){
+		let itemObj= sellerOptions.value.find(item =>item.id== 2)
+		console.log(itemObj,'itemObj')
+		form.value.sale_usc_code= itemObj?.tax_number
+	}
 	// 提交
 	function changeFeeTypeCNY(){
 		remarkCNY.value= changeFeeType(tableDataCNY.value,FEE_TYPES_LIST_CNY.value)
@@ -591,6 +636,143 @@ import { find } from 'lodash';
 			}
 			return remarkValue
 	}
+	function saveBillDataShow(){
+		form.value.order_id= ''
+		form.value.job_no= ''
+		form.value.invoice_type_id= ''
+		form.value.email= ''
+		form.value.remark= ''
+		form.value.tax_rate= ''
+		form.value.commission= ''
+		form.value.is_finish= true
+		form.value.purchase_entity_id= ''
+		form.value.purchase_usc_code= ''
+		form.value.sale_entity_id= ''
+		form.value.sale_usc_code= ''
+		form.value.cny_remark= ''
+		form.value.usd_remark= ''
+		form.value.invoice_date= ''
+		form.value.cny_invoice_no= ''
+		form.value.usd_invoice_no= ''
+		tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+		tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+		remarkCNY.value= ''
+		remarkUSD.value= ''
+		invoiceFormObj.value= null
+		// calculations.value.tax_amount= 0
+	}
+	// 保存
+	function submit(){
+		const data= {
+			...form.value,
+			cny_invoice_items: JSON.stringify(tableDataCNY.value),
+			usd_invoice_items: JSON.stringify(tableDataUSD.value),
+			cny_remark: remarkCNY.value,
+			usd_remark: remarkUSD.value,
+			is_finish: form.value.is_finish== true? 1: 0
+		}
+		httpPost(`/invoices`, data).then(res => {
+			console.log(res,'res111')
+			proxy.$modal.msgSuccess("保存成功!");
+			saveBillDataShow()
+			Emit('close')
+		});
+	}
+	// 保存模板
+	function saveInvoicesTemplates(){
+		if(!templatesName.value){
+			proxy.$modal.msgWarning("请输入模板名称");
+			return false
+		}
+		const data= {
+			name: templatesName.value,
+			email: form.value.email,
+			remark: form.value.remark,
+			cny_remark: remarkCNY.value,
+			usd_remark: remarkUSD.value,
+			cny_invoice_items: JSON.stringify(tableDataCNY.value),
+			usd_invoice_items: JSON.stringify(tableDataUSD.value),
+			purchase_entity_id: form.value.purchase_entity_id,
+			purchase_usc_code: form.value.purchase_usc_code,
+		}
+		if(invoicesCurrent.value !== 9999){
+			httpPut(`/invoice-templates/${invoiceTemplatesList.value[invoicesCurrent.value].id}`, data).then(res => {
+				proxy.$modal.msgSuccess("修改成功!");
+				invoiceDataList()
+			});
+		}else{
+			httpPost(`/invoice-templates`, data).then(res => {
+				proxy.$modal.msgSuccess("保存成功!");
+				invoiceDataList()
+				// billBool.value = false;
+			});
+		}
+		
+	}
+	// 模板列表
+	function invoiceDataList(){
+		httpGet(`/invoice-templates`).then(res => {
+			invoiceTemplatesList.value= res.data
+		});
+	}
+	invoiceDataList()
+	// 选择模板
+	function selectTemplates(item,index){
+		if(invoicesCurrent.value == 9999 || invoicesCurrent.value!= index){
+			templatesName.value= item.name
+			invoicesCurrent.value= index
+			form.value.email= item.email
+			form.value.remark= item.remark
+			form.value.purchase_entity_id= item.purchase_entity_id
+			form.value.purchase_usc_code= item.purchase_usc_code
+			remarkCNY.value= item.cny_remark
+			remarkUSD.value= item.usd_remark
+			tableDataCNY.value= item.cny_invoice_items
+			tableDataUSD.value= item.usd_invoice_items
+		}
+		else{
+			invoicesCurrent.value= 9999
+			templatesName.value= ''
+			form.value.email= ''
+			form.value.remark= ''
+			form.value.purchase_entity_id= ''
+			form.value.purchase_usc_code= ''
+			if(props.type== 1){
+				showDefaultData(props.type)
+			}else{
+				remarkCNY.value= ''
+				remarkUSD.value= ''
+				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+			}
+		}
+	}
+	
+	/** 删除模板 */
+	function handlePaySureDelete(item,index) {
+		proxy.$modal.confirm('确认删除此模板？').then(function() {
+			return httpDelete('/invoice-templates/' + item.id);
+		}).then(() => {
+			invoiceDataList();
+			if(invoicesCurrent.value=== index){
+				invoicesCurrent.value= 9999
+				templatesName.value= ''
+				form.value.email= ''
+				form.value.remark= ''
+				form.value.purchase_entity_id= ''
+				form.value.purchase_usc_code= ''
+				if(props.type== 1){
+					showDefaultData(props.type)
+				}else{
+					remarkCNY.value= ''
+					remarkUSD.value= ''
+					tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+					tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				}
+			}
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
 </script>
 
 <style scoped>
@@ -598,6 +780,7 @@ import { find } from 'lodash';
 		max-width: 1280px;
 		margin: 0 auto;
 		position: relative;
+		z-index: 9999
 	}
 
 	:deep .el-form-item__label {
@@ -702,6 +885,16 @@ import { find } from 'lodash';
 
 	.items-center {
 		align-items: center;
+	}
+	.colorBlue{
+		background-color: #409EFF;
+		color:#fff;
+		border: 1px solid #409EFF
+	}
+	.colorBlack{
+		background-color: #fff;
+		color:#333;
+		border: 1px solid #333
 	}
 </style>
 <style>

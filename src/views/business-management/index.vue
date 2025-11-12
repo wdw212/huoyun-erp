@@ -36,7 +36,7 @@
 					</template>
 					<template #remarkList="{formList,saveData}">
 						<el-row :gutter="20">
-							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
+							<el-col class="p-r mb-1" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
 								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
 								@click="saveData.booking_info.splice(index, 1)"><Close /></el-icon>
 								<el-input v-model="saveData.booking_info[index]" :rows="4" type="textarea" placeholder="请输入" style="width: 100%" resize="none"/>

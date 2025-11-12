@@ -38,7 +38,7 @@
 					</template>
 					<template #remarkList="{formList,saveData}">
 						<el-row :gutter="20">
-							<el-col class="p-r" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
+							<el-col class="p-r mb-1" v-for="(item,index) in saveData.booking_info" :key="index" :span="6">
 								<el-icon class="p-a r_0 t_0 z-1000" style="margin: 5px 15px;"
 									@click="saveData.booking_info.splice(index, 1)">
 									<Close />
@@ -534,9 +534,9 @@
 								<el-input v-model="formBillTemplates.name" placeholder=""></el-input>
 							  </el-form-item>
 							  <el-form-item>
-								  <div>
+								 <!-- <div>
 									  <el-button type="primary" @click="addBillTemplates" class="mb-1 mr-1">新增模板</el-button>
-								  </div>
+								  </div> -->
 								  <div>
 									  <el-button type="primary" @click="saveBillTemplates" class="mb-1">保存模板</el-button>
 								  </div>
@@ -546,20 +546,20 @@
 						<div v-if= "billType !== 0" class="flex-1 pb-2" style="overflow-y: auto;">
 							<div :class="['b-0','radius10','mr-1','mt-1',billTemplatesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
 								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
-								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item)"></el-button>
+								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		<!-- </el-dialog> -->
+		</div>
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票" width="80%" :close-on-click-modal="false">
+		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票" width="80%" :close-on-click-modal="false" style="z-index: 3000;">
 			<!-- <el-card> -->
-				<InvoiceForm :invoiceForm="invoiceForm" :type="1"/>
+				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm"/>
 			<!-- </el-card> -->
 		</el-dialog>
-		</div>
 	</div>
 
 </template>
@@ -636,6 +636,17 @@
 	const paySureList1s = ref([]);
 	const loading = ref(true);
 	const seletData = ref({});
+	
+	const invoiceForm= ref({
+		order_id: '',
+		job_no: '',
+		seller_id: '',
+		orderBillItems: [],
+		orderBillContainers: [],
+		checkList: [],
+		remark: ''
+	})
+	const invoiceType=ref(0)  //0  默认展示  1  带参数战术
 
 	const containers = ref([]); //箱子信息
 	const order_files = ref([]); //文件信息
@@ -656,7 +667,7 @@
 	})  //模板名称
 	const dialogFormVisibleInvoiceForm= ref(false)
 	function toBillPage(){
-		console.log(seletData.value.WTTT,'seletData.WTTT')
+		console.log(proxy.$refs.commonForm.saveData,'seletData.WTTT')
 		billBool.value= true
 		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 		billDataList()
@@ -725,6 +736,7 @@
 	}
 	function cancelBill(){
 		billBool.value= false
+		dialogFormVisibleInvoiceForm.value= false
 	}
 	// 模板
 	
@@ -998,7 +1010,7 @@
 				},
 				{
 					label: '申请开票',
-					onClick: (row, index) => handleCopy(row, index)
+					onClick: (row, index) => handleApply(row, index)
 				},
 				{
 					label: '帐单列表',
@@ -1078,6 +1090,33 @@
 				saveDataShow(res, 1);
 			}, 500)
 		});
+	}
+    // 申请开票
+	const handleApply = async (row) => {
+	  try {
+	    
+	    const res = await httpGet(`/orders/${row.id}`)
+	    
+	    // 使用 Object.assign 确保响应式更新
+	    invoiceForm.value = Object.assign({}, invoiceForm.value, {
+	      order_id: row.id,
+	      job_no: res.job_no,
+	      seller_id: res.order_delegation_header.seller_id
+	    })
+	    
+	    invoiceType.value = 0
+	    editId.value = row.id
+	    
+	    // 使用 nextTick 确保DOM更新
+	    await nextTick()
+		console.log(invoiceForm.value,'invoiceForm.value')
+	    dialogFormVisibleInvoiceForm.value = true
+	    
+	  } catch (error) {
+	    console.error('获取订单数据失败:', error)
+	    // 即使失败也显示对话框进行测试
+	    dialogFormVisibleInvoiceForm.value = true
+	  }
 	}
 	//单据复制
 	function handleCopy(row) {
@@ -1489,11 +1528,19 @@
 	}
 	
 	/** 删除模板 */
-	function handlePaySureDelete(item) {
+	function handlePaySureDelete(item,index) {
 		proxy.$modal.confirm('确认删除此模板？').then(function() {
 			return httpDelete('/order-bill-templates/' + item.id);
 		}).then(() => {
 			billDataList();
+			if(billTemplatesCurrent.value=== index){
+				billTemplatesCurrent.value= 9999
+				formBillTemplates.name= ''
+				orderBillItems.value= [{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}]
+				company_receipt_info.value= ''
+				cost_share.value= ''
+				customer_payment_info.value= ''
+			}
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
@@ -1523,9 +1570,10 @@
 	}
 	function handleDeletePrderBill(index){
 			if(orderBillItems.value.length> 0){
-				proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
-					orderBillItems.value.splice(index, 1);
-				})
+				orderBillItems.value.splice(index, 1);
+				// proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+					
+				// })
 			}
 	}
 	
@@ -1535,9 +1583,9 @@
 	}
 	function handleDeleteContainers(index){
 			if(orderBillContainers.value.length> 0){
-				proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
-					orderBillContainers.value.splice(index, 1);
-				})
+				orderBillContainers.value.splice(index, 1);
+				// proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+				// })
 			}
 	}
 	// 计算总金额的计算属性
@@ -1645,10 +1693,19 @@
 			company_receipt_info: company_receipt_info.value,
 		}
 		console.log(data,'data1611')
-		httpPost(`/order-bill-templates`, data).then(res => {
-			billDataList()
-			// billBool.value = false;
-		});
+		if(billTemplatesCurrent.value !== 9999){
+			httpPut(`/order-bill-templates/${billTemplatesList.value[billTemplatesCurrent.value].id}`, data).then(res => {
+				proxy.$modal.msgSuccess("修改成功!");
+				billDataList()
+			});
+		}else{
+			httpPost(`/order-bill-templates`, data).then(res => {
+				proxy.$modal.msgSuccess("保存成功!");
+				billDataList()
+				// billBool.value = false;
+			});
+		}
+		
 	}
 	
 	const billTemplatesList= ref([])
@@ -1663,6 +1720,7 @@
 	function selectTemplates(item,index){
 		if(billTemplatesCurrent.value == 9999 || billTemplatesCurrent.value!= index){
 			billTemplatesCurrent.value= index
+			formBillTemplates.value.name= item.name
 			orderBillItems.value= JSON.parse(JSON.stringify(item.order_bill_items))
 			company_receipt_info.value= item.company_receipt_info
 			cost_share.value= item.cost_share
@@ -1671,18 +1729,13 @@
 		}
 		else{
 			billTemplatesCurrent.value= 9999
+			formBillTemplates.name= ''
 			orderBillItems.value= [{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}]
 			company_receipt_info.value= ''
 			cost_share.value= ''
 			customer_payment_info.value= ''
 		}
 	}
-	const invoiceForm= ref({
-		orderBillItems: [],
-		orderBillContainers: [],
-		checkList: [],
-		remark: ''
-	})
 	const checkListName= ref([
 		{label: '委托人：',value:'delegation_header'},
 		{label: '起运港：',value:'origin_port'},
@@ -1718,6 +1771,10 @@
 		invoiceForm.value.remark = [selectedItems, containerInfo]
 		  .filter(item => item) // 过滤空字符串
 		  .join('\n');
+		invoiceForm.value.order_id= editId
+		invoiceForm.value.job_no= proxy.$refs.commonForm.saveData.job_no
+		invoiceForm.value.seller_id= proxy.$refs.commonForm.saveData["order_delegation_header.seller_id"]
+		invoiceType.value= 1
 		dialogFormVisibleInvoiceForm.value= true
 		console.log(invoiceForm.value.remark,'invoiceForm.value.remark');
 	}
@@ -1747,6 +1804,17 @@
 		if(e){
 			row.currency= seletData.value.FYLX.filter(item => item.id== e)[0].type
 		}
+	}
+	
+	const closeInvoiceForm = () =>{
+		dialogFormVisibleInvoiceForm.value= false
+		invoiceForm.value.order_id= ''
+		invoiceForm.value.job_no= ''
+		invoiceForm.value.seller_id= ''
+		invoiceForm.value.orderBillItems= []
+		invoiceForm.value.orderBillContainers= []
+		invoiceForm.value.checkList= []
+		invoiceForm.value.remark= ''
 	}
 </script>
 

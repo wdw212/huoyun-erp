@@ -66,46 +66,46 @@
 	const containers = ref([]); //箱子信息
 	
 	onMounted(async ()=>{
-		// console.log('onMounted', queryParams);
-		statistic.value.forEach((item,index)=>{
-			const source = ref(0)
-			statistic.value[index].value = useTransition(source, {
-				duration: 1000,
-			})
-			source.value = 102658.344 + index*1000000
-		})
-		YWY.value = await getYWY();
-		CZY.value = await getCZY();
-		YWLX.value = await getYWLX();
-		TT.value = await getTT();
-		XHDW.value = await getXHDW();
-		queryParamsBusiness.value[3].options = CZY.value;
-		queryParamsBusiness.value[4].options = YWY.value;
-		queryParamsBusiness.value[9].options = XHDW.value;
-		console.log(queryParamsBusiness.value[3],'queryParams.value[3]')
-		// formListNew.value = JSON.parse(JSON.stringify(formList.value))
-		// formListNew.value[0].formData[2].noShow = false;
-		// formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
-		// formListNew.value[0].formData[0].formItem[4].options = YWY.value;
+		// // console.log('onMounted', queryParams);
+		// statistic.value.forEach((item,index)=>{
+		// 	const source = ref(0)
+		// 	statistic.value[index].value = useTransition(source, {
+		// 		duration: 1000,
+		// 	})
+		// 	source.value = 102658.344 + index*1000000
+		// })
+		// YWY.value = await getYWY();
+		// CZY.value = await getCZY();
+		// YWLX.value = await getYWLX();
+		// TT.value = await getTT();
+		// XHDW.value = await getXHDW();
+		// queryParamsBusiness.value[3].options = CZY.value;
+		// queryParamsBusiness.value[4].options = YWY.value;
+		// queryParamsBusiness.value[9].options = XHDW.value;
+		// console.log(queryParamsBusiness.value[3],'queryParams.value[3]')
+		// // formListNew.value = JSON.parse(JSON.stringify(formList.value))
+		// // formListNew.value[0].formData[2].noShow = false;
+		// // formListNew.value[0].formData[0].formItem[0].options = YWLX.value;
+		// // formListNew.value[0].formData[0].formItem[4].options = YWY.value;
 		
-		keyStatus(formList.value, '申请开票', function(form, options){
-			formListNew.value = form;
-			// formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
-			formListNew.value[5].formData[1].noShow = true;
-			loading.value = false;
-			seletData.value = options;
-			// console.log('formListNew', formListNew, seletData.value)
-		})
+		// keyStatus(formList.value, '申请开票', function(form, options){
+		// 	formListNew.value = form;
+		// 	// formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormDoc.value));
+		// 	formListNew.value[5].formData[1].noShow = true;
+		// 	loading.value = false;
+		// 	seletData.value = options;
+		// 	// console.log('formListNew', formListNew, seletData.value)
+		// })
 	})
 	
 	const searchConfirm = (val) =>{
 		console.log('searchConfirm', val)
 		val.start_sailing_date= val.start_sailing_dates?.[0] ?? ''
 		val.end_sailing_date= val.start_sailing_dates?.[1] ?? ''
-		httpGet('/orders/commerce-index',val).then(res =>{
-			console.log(res,'res')
-			tableConfig.value= res.data?.length>0?res.data: []
-		})
+		// httpGet('/invoice-templates',val).then(res =>{
+		// 	console.log(res,'res')
+		// 	tableConfig.value= res.data?.length>0?res.data: []
+		// })
 	}
 	
 	
@@ -144,16 +144,9 @@
 		}
 	]);
 	const tableConfig = ref({
-		url: '/orders',
+		url: '/invoices',
 		requestMethod: httpGet,
-		isQuery: false,
-		tableRowClassName: (row, rowIndex) => {
-			console.log('列表类名', row.id, rowIndex)
-			if(row.is_delivery===2){
-				return 'danger-row'
-			}
-			return '';
-		}
+		isQuery: true
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
