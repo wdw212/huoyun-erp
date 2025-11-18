@@ -28,7 +28,11 @@
 					<el-button v-if="row.type === 0 ||  row.type === 1" :type="row.type== 1?'danger':'success'">{{NAME_LIST.filter(item =>item.value == row.type)[0].label}}</el-button>
 				</template>
 			</el-table-column>
-			<el-table-column label="税点" align="center" prop="tax_rate" />
+			<el-table-column label="税点" align="center" prop="tax_rate" >
+				<template v-slot="{row}">
+					{{row.tax_rate?row.tax_rate * 100 + '%': ''}}
+				</template>
+			</el-table-column>
 			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="排序" align="center" prop="sort" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -58,7 +62,7 @@
 							:value="item.value" />
 					</el-select>
 				</el-form-item>
-				<el-form-item label="税点">
+				<el-form-item label="税点(%)">
 					<el-input v-model="form.tax_rate" placeholder="请输入" />
 				</el-form-item>
 
@@ -200,6 +204,7 @@
 		const _id = row.id || ids.value
 		getData(_id).then(response => {
 			form.value = response;
+			form.value.tax_rate= form.value.tax_rate?form.value.tax_rate * 100: ''
 			open.value = true;
 			title.value = "修改";
 		});
@@ -209,6 +214,8 @@
 	function submitForm() {
 		proxy.$refs["formRef"].validate(valid => {
 			if (valid) {
+				let params= JSON.parse(JSON.stringify(form.value))
+				params.tax_rate= form.value.tax_rate?form.value.tax_rate/100: ''
 				if (form.value.id != null) {
 					updateData(form.value).then(response => {
 						proxy.$modal.msgSuccess("修改成功");

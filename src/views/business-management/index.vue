@@ -335,7 +335,7 @@
 		}
 	]);
 	const tableConfig = ref({
-		url: '/orders',
+		url: '/orders/commerce-index',
 		requestMethod: httpGet,
 		isQuery: true,
 		// tableRowClassName: (row, rowIndex) => {

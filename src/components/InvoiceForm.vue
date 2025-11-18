@@ -17,7 +17,7 @@
 									<el-input v-model="form.email" style="width: 130px" />
 								</el-form-item>
 								<el-form-item label="税点：" label-width="87px">
-									<el-input v-model="form.tax_rate" style="width: 130px" disabled/>
+									<el-input v-model="percentageValue" style="width: 130px" disabled/>
 								</el-form-item>
 
 							</div>
@@ -248,7 +248,7 @@
 				<el-col :span="12">
 					<!-- 操作按钮 -->
 					<div class="action-btns">
-						<el-button type="primary">人民币发票预览</el-button>
+						<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
 						<el-button>美元发票预览</el-button>
 						<el-button type="success" @click="submit">保存</el-button>
 						<el-button>业务单据</el-button>
@@ -256,17 +256,127 @@
 				</el-col>
 			</el-row>
 		</el-form>
+		<div id="cost-confirmation-content_invoice" style="width: 80%; padding: 20px; position: fixed;z-index: -1;top: -2000px;left: -1000px">
+			<div class="p-r">
+				<div class="flex j-center">
+					<div style="width: 600px;">
+						<img class="w-100" v-if="invoiceLogoType== 0" src="../assets/pu_invoice_logo.png">
+						<img class="w-100" v-else src="../assets/zhuan_invoice_logo.png">
+					</div>
+				</div>
+				<div class="p-a font-16" style="top: 30%;right: 20px;">
+					<div class="mb-2"><span class="color-800">发票号码：</span>{{exportiInvoiceNo}}</div>
+					<div><span class="color-800">开票日期：</span>{{form.invoice_date}}</div>
+				</div>
+			</div>
+			<!-- 大表格定义边框4*4-->
+			<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
+				<div border class="wrapper">
+					<div class="flex flex-column">
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+							<div style="width: 40px;border-right: 1px solid #800;height: 100%;padding-top: 12px;" class="font-14 d-flex flex-column j-center a-center color-800">购<br />买<br />方<br />信<br />息</div>
+							<!-- 购买方信息 -->
+							<div class="flex-1 pt-1" style="box-sizing: border-box;">
+								<div class="section">
+									<el-form-item label="名称：" class="society" style="width: 90%;">
+										<p>{{form.purchase_entity_id?COMPANY_HEADERS_LIST.filter(itemIndex => (itemIndex.id== form.purchase_entity_id))[0]?.company_name: ''}}</p>
+										<!-- <el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
+											<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
+												:value="item.id" place />
+										</el-select> -->
+									</el-form-item>
+									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+										<p>{{form.purchase_usc_code}}</p>
+										<!-- <el-input v-model="form.purchase_usc_code" disabled/> -->
+									</el-form-item>
+								</div>
+							</div>
+							<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;padding-top: 10px;text-align: center;" class="font-14 color-800">销<br />售<br />方<br />信<br />息</div>
+							<div class="flex-1">
+								<!-- 销售方信息 -->
+								<div class="section pt-1">
+									<el-form-item label="名称：" class="society" style="width: 90%;">
+										<p>{{form.sale_entity_id?sellerOptions.filter(itemIndex => (itemIndex.id== form.sale_entity_id))[0]?.name: ''}}</p>
+										<!-- <el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
+											<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
+												:value="item.id" place />
+										</el-select> -->
+									</el-form-item>
+									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+										<p>{{form.sale_usc_code}}</p>
+									</el-form-item>
+								</div>
+							</div>
+						</div>
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+							<!-- <div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div> -->
+							<div style="vertical-align:top; width: 0" class="flex-1">
+								<!-- 项目明细表格 左侧 -->
+								<div class="w-100 section exportImg">
+									<el-table :data="tableData" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
+										:summary-method="getSummariesToTal">
+										<el-table-column type="index" width="50" align="center"></el-table-column>
+										<el-table-column prop="name" label="项目名称" width="" align="center">
+											<template #default="{row}">
+												<p>{{row.fee_type_id?FEE_TYPES_LIST_CNY.filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
+												<!-- <el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+													remote @change="changeFeeTypeCNY()">
+													<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+														:value="opt.id" />
+												</el-select> -->
+											</template>
+										</el-table-column>
+										<el-table-column label="规格型号" width="60" align="center"></el-table-column>
+										<el-table-column label="单位" width="150" align="center" prop="unit"></el-table-column>
+										<el-table-column label="数量" width="100" align="center" prop="quantity"></el-table-column>
+										<el-table-column label="单价" width="60" align="center"></el-table-column>
+										<el-table-column label="金额" width="200" align="center" prop="no_tax_amount"></el-table-column>
+										<el-table-column label="税率/征收率" width="150" align="center" prop="tax_rate"></el-table-column>
+										<el-table-column label="税额" width="200" align="center" prop="tax_amount"></el-table-column>
+									</el-table>
+								</div>
+							</div>
+						</div>
+						<div class="d-flex w-100 font-16" style="border-bottom: 1px solid #800;height: ;">
+							<!-- 人民币备注-->
+							<div style="width: 200px;border-right: 1px solid #800;" class="flex0 py-2 color-800 ">价税合计(大写)</div>
+							<div class="flex-1 flex2">
+								<div class="section mt-1 mx-1">
+								
+									<p>{{exportTotal}}</p>
+									<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
+								</div>
+								<p><span class="color-800 font-12">（小写）</span>￥{{exportTotalNum}}</p>
+							</div>
+						</div>
+						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+							<!-- 人民币备注-->
+							<div style="width: 40px;border-right: 1px solid #800;text-align: center;" class="py-2 color-800 font-14">备<br />注</div>
+							<div class="flex-1">
+								<div class="section mt-1 mx-1">
+									<p v-html="exportRemark"></p>
+									<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script setup>
 	import {timeto } from '@/utils/index';
+	import { NumberToChinese, convertNumber, convertToMoney } from '@/utils/number-to-chinese.js';
+	import html2canvas from "html2canvas";
 	import userStore from "@/store/modules/user";
 	import {
 		ref,
 		computed,
 		reactive ,
-		onMounted
+		onMounted,
+		nextTick
 	} from 'vue'
 	import {
 		httpPost,
@@ -378,6 +488,8 @@ const Emit= defineEmits(['close'])
 	
 	// 计算税额
 	// 所有计算字段单独定义
+	// 不含税金额*（1+税率）=总金额
+	// 税额=总金额-不含税金额
 	const calculations = reactive({
 			tax_amount: computed(() => {
 			  const sum = tableDataCNY.value.reduce((acc, item) => 
@@ -590,7 +702,7 @@ const Emit= defineEmits(['close'])
 	}
 	// 获取购买方信息
 	function changeSaleUscCode(e){
-		let itemObj= sellerOptions.value.find(item =>item.id== 2)
+		let itemObj= sellerOptions.value.find(item =>item.id== e)
 		console.log(itemObj,'itemObj')
 		form.value.sale_usc_code= itemObj?.tax_number
 	}
@@ -773,6 +885,120 @@ const Emit= defineEmits(['close'])
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
+	
+	const percentageValue = computed(() => {
+	  if (form.value.tax_rate === null || form.value.tax_rate === undefined) {
+	    return ''
+	  }
+	  return `${(form.value.tax_rate * 100).toFixed(2)}%`
+	})
+	
+	const tableData= ref([])
+	const exportTotal= ref('') //总金额  汉字
+	const exportTotalNum= ref('')  //总金额 数字
+	const exportRemark= ref('') //备注
+	const exportiInvoiceNo= ref('')  //发票号
+	const invoiceLogoType= ref(0)  //发票logo  //0 普  1专
+	
+	// 合计最后一行，在第四列和第六列显示数值，其他为空
+	const getSummariesToTal = (param) => {
+		const {
+			columns,
+			data
+		} = param;
+		const sums = [];
+	
+		// 初始化所有列汇总值为空
+		columns.forEach((column, index) => {
+			if (index === 0) {
+				sums[index] = '合计';
+			} else {
+				sums[index] = '';
+			}
+		});
+	
+		// 计算第四列（索引为3）的总和
+		const sumFourthColumn = data.reduce((acc, item) => {
+			// 根据您的数据结构调整字段名，这里假设字段名为 amount
+			return acc + Number(item.no_tax_amount || 0);
+		}, 0).toFixed(2);
+		sums[6] = `${sumFourthColumn}`;
+	
+		// 计算第六列（索引为5）的总和
+		const sumSixthColumn = data.reduce((acc, item) => {
+			// 根据您的数据结构调整字段名，这里假设字段名为 tax_amount
+			return acc + Number(item.tax_amount || 0);
+		}, 0).toFixed(2);
+		sums[8] = `${sumSixthColumn}`;
+	
+		return sums;
+	}
+	// 不含税金额=金额/（1+税率）
+	// 税额=金额- 不含税金额
+	// 不含税金额*(1+税率)=总金额
+	// function exportImg(type){  //type 1 人民币  2美金
+	// 	if(type== 1){
+	// 		tableData.value= tableDataCNY.value
+	// 		exportRemark.value= remarkCNY.value.replace(/\n/g, '<br>')
+	// 		exportiInvoiceNo.value= form.value.cny_invoice_no
+	// 	}else{
+	// 		tableData.value= tableDataUSD.value
+	// 		exportRemark.value= remarkUSD.value.replace(/\n/g, '<br>')
+	// 		exportiInvoiceNo.value= form.value.usd_invoice_no
+	// 	}
+	// 	tableData.value.forEach(item =>{
+	// 		item.tax_rate= percentageValue.value?percentageValue.value: '免税'
+	// 		item.no_tax_amount= parseFloat(item.amount/(1+(form.value.tax_rate? Number(form.value.tax_rate): 0))).toFixed(2) 
+	// 		item.tax_amount= item.amount - item.no_tax_amount
+	// 	})
+	// 	const converter = new NumberToChinese({ mode: 'money', capital: true });
+	// 	exportTotalNum.value= tableData.value.reduce((sum, item) => Number(sum) + Number(item.amount) , 0)
+	// 	exportTotal.value= converter.convert(exportTotalNum.value)
+	// }
+	
+	const exportImg = async (type) => {
+	  try {
+		  if(!form.value.invoice_type_id){
+			  proxy.$modal.msgWarning("请选择发票类型");
+			  return false
+		  }
+		invoiceLogoType.value=  invoiceTypeList.value.filter(itemIndex => (itemIndex.id== form.value.invoice_type_id))[0]?.type //0 普  1专
+		console.log(invoiceLogoType.value,'invoiceLogoType.value')
+		if(type== 1){
+			tableData.value= tableDataCNY.value
+			exportRemark.value= remarkCNY.value.replace(/\n/g, '<br>')
+			exportiInvoiceNo.value= form.value.cny_invoice_no
+		}else{
+			tableData.value= tableDataUSD.value
+			exportRemark.value= remarkUSD.value.replace(/\n/g, '<br>')
+			exportiInvoiceNo.value= form.value.usd_invoice_no
+		}
+		tableData.value.forEach(item =>{
+			item.tax_rate= form.value.tax_rate!= 0?percentageValue.value: '免税'
+			item.no_tax_amount= parseFloat(item.amount/(1+(form.value.tax_rate? Number(form.value.tax_rate): 0))).toFixed(2) 
+			item.tax_amount= item.amount - item.no_tax_amount
+		})
+		const converter = new NumberToChinese({ mode: 'money', capital: true });
+		exportTotalNum.value= tableData.value.reduce((sum, item) => Number(sum) + Number(item.amount) , 0)
+		exportTotal.value= converter.convert(exportTotalNum.value)  
+		await nextTick()
+		const element = document.getElementById('cost-confirmation-content_invoice')
+	    
+	    const canvas = await html2canvas(element, {
+	      scale: 2,
+	      useCORS: true,
+	      backgroundColor: '#ffffff'
+	    })
+	    
+	    const imageData = canvas.toDataURL('image/png')
+	    const link = document.createElement('a')
+	    link.href = imageData
+	    link.download = `预览_${new Date().toLocaleDateString()}.png`
+	    link.click()
+	  } catch (error) {
+	    console.error('导出图片失败:', error)
+	  }
+	}
 </script>
 
 <style scoped>
@@ -896,9 +1122,16 @@ const Emit= defineEmits(['close'])
 		color:#333;
 		border: 1px solid #333
 	}
+	.color-800{
+		color: #800
+	}
+	
 </style>
 <style>
 	.wrapper .el-table .cell{
 		padding: 0 2px  !important;
+	}
+	.exportImg .el-table__header .cell,.exportImg .el-table__footer .cell{
+		color: #800 !important
 	}
 </style>

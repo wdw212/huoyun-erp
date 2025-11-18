@@ -30,7 +30,7 @@
 		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false" style="z-index: 999">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
-					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange">
+					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange" :btnShow="false">
 					<!-- 订舱信息及备注 -->
 					<template #remarkBtn="{formList,saveData}">
 						<span style="font-weight: bold;padding-right: 10px;color: #606266;">订舱信息及备注</span>
@@ -171,6 +171,7 @@
 			</template>
 		</el-dialog>
 		<el-dialog v-model="billVisible" title="账单列表" width="80%" :close-on-click-modal="false">
+			<el-button type="primary" @click="handleAddBill()"> 新增 </el-button>
 			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" class="px-2" ref="tableListBill" :number="true" :multiple="false">
 				<template #headerRight></template>
 			</table-list>
@@ -181,9 +182,9 @@
 			<div  class="w-100 h-100 bill-dialog flex flex-column" style="background: #fff;padding: 0 5px" ref="contentContainer">
 				<div class="py-1 w-100" style="height: 50px;">
 					<div class="dialog-footer">
-						<el-button type="primary" @click="submitForm">生成图片</el-button>
+						<el-button type="primary" @click="exportToImage">生成图片</el-button>
 						<el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
-						<el-button v-if= "billType !== 0" type="primary" @click="submitFormBill">保 存</el-button>
+						<el-button type="primary" @click="submitFormBill">保 存</el-button>
 						<el-button @click="cancelBill">取 消</el-button>
 					</div>
 				</div>
@@ -191,7 +192,7 @@
 					<div class="pt-1 flex-1 bR-0 pr-1 w-100 flex flex-column " style="font-size: 12px;">
 						<div class="custom-handle  w-100">
 							<div class="flex1">
-								<img src="../../../assets/pay_sure_logo.png" alt="" style="width: 260px;height: 40px;"/>
+								<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
 								<p class="font-32 font-w">Logistics & Services</p>
 							</div>
 							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
@@ -207,10 +208,10 @@
 												<!-- <p class="color0">宁被皓定进出口有限公司+小杨</p> -->
 											 </div>
 										 </el-checkbox>
-										 <!-- <el-input v-model="formBill.delegation_header"></el-input> -->
-										 <el-select v-model="formBill.delegation_header" placeholder="请选择委托人">
+										 <el-input v-model="formBill.delegation_header"></el-input>
+										<!-- <el-select v-model="formBill.delegation_header" placeholder="请选择委托人" filterable clearable>
 										   <el-option v-for="item in seletData.WTTT" :key="item.id" :label="item.company_name" :value="item.id"/>
-										 </el-select>
+										 </el-select> -->
 									 </div>
 									 <div style="width: 32%;" class="flex mt-2 mr-1">
 										 <el-checkbox label="origin_port">
@@ -410,61 +411,70 @@
 									  <p class="flex-1 flex">USD：<p class="flex-1"  style="text-align: center;">{{totals?totals.totalUSD: 0}}</p></p>
 								  </div>
 								</div>
-								<el-table
-									ref="multipleTable"
-									:data="orderBillContainers"
-									tooltip-effect="dark"
-									 :span-method="objectSpanMethod"
-									@selection-change="handleSelectionChangeContainers"
-									@select-all="handleSelectionChangeContainersAll">
-									<el-table-column
-									  type="selection"
-									  width="30">
-									</el-table-column>
-									<el-table-column
-										  type="index"
-										  width="10">
+								<div class="flex pr-4">
+									<el-table
+										class="flex-1"
+										ref="multipleTable"
+										:data="orderBillContainers"
+										tooltip-effect="dark"
+										 :span-method="objectSpanMethod"
+										@selection-change="handleSelectionChangeContainers"
+										@select-all="handleSelectionChangeContainersAll">
+										<el-table-column
+										  type="selection"
+										  width="30">
 										</el-table-column>
-									<el-table-column
-									  label="箱号"
-									  prop="no"
-									  align="center"
-									  width="140">
-									  <template v-slot="{row}">
-											 <el-input v-model="row.no"></el-input>
-									  </template>
-									  </el-table-column>
-									<el-table-column
-									  label="柜型"
-									  align="center"
-									  width="90">
-									  <template v-slot="{row}">
-										  <el-select v-model="row.container_type" placeholder="请选择柜型" clearable>
-											<el-option v-for="item in seletData.XZLX" :key="item.id" :label="item.name" :value="item.id"/>
-										  </el-select>
-										  <!-- <el-input v-model="row.container_type"></el-input> -->
-									  </template>
-									</el-table-column>
-									<el-table-column
-									  label="司机信息"
-									  align="center"
-									  width="230">
-									  <template v-slot="{row}">
-										  <el-input v-model="row.driver"></el-input>
-									  </template>
-									</el-table-column>
-									<el-table-column label="操作" align="center" width="120">
-									  <template v-slot="{row,$index}">
-										<el-button
-										  size="mini" @click="handleAddOrderContainers($index)">增</el-button>
-										<el-button
-										v-if="orderBillContainers.length> 1"
-										  size="mini"
-										  type="danger"
-										  @click="handleDeleteContainers($index)">删</el-button>
-									  </template>
-									</el-table-column>
-								  </el-table>
+										<el-table-column
+											  type="index"
+											  width="10">
+											</el-table-column>
+										<el-table-column
+										  label="箱号"
+										  prop="no"
+										  align="center"
+										  width="140">
+										  <template v-slot="{row}">
+												 <el-input v-model="row.no"></el-input>
+										  </template>
+										  </el-table-column>
+										<el-table-column
+										  label="柜型"
+										  align="center"
+										  width="90">
+										  <template v-slot="{row}">
+											  <el-select v-model="row.container_type" placeholder="请选择柜型" clearable>
+												<el-option v-for="item in seletData.XZLX" :key="item.id" :label="item.name" :value="item.id"/>
+											  </el-select>
+											  <!-- <el-input v-model="row.container_type"></el-input> -->
+										  </template>
+										</el-table-column>
+										<el-table-column
+										  label="司机信息"
+										  align="center"
+										  width="230">
+										  <template v-slot="{row}">
+											  <el-input v-model="row.driver"></el-input>
+										  </template>
+										</el-table-column>
+										<el-table-column label="操作" align="center" width="120">
+										  <template v-slot="{row,$index}">
+											<el-button
+											  size="mini" @click="handleAddOrderContainers($index)">增</el-button>
+											<el-button
+											v-if="orderBillContainers.length> 1"
+											  size="mini"
+											  type="danger"
+											  @click="handleDeleteContainers($index)">删</el-button>
+										  </template>
+										</el-table-column>
+									  </el-table>
+									  <div>
+										  <el-switch
+										  	v-model="is_show_containers">
+										  </el-switch>
+									  </div>
+								</div>
+								
 								  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
 								  <div class="flex">
 									  <div class="w-70">
@@ -498,7 +508,7 @@
 											v-model="is_show_seal">
 										  </el-switch>
 										  <div class="mt-2" v-if="is_show_seal">
-											 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
+											 <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" /> 
 										  </div>
 									  </div>
 									</div>
@@ -522,10 +532,10 @@
 							  </el-form-item>
 							  <el-form-item>
 								  <div>
-									  <el-button type="primary" @click="onSubmit" class="mb-1 mr-1">导出word</el-button>
+									  <el-button type="primary" @click="downLoadWord" class="mb-1 mr-1">导出word</el-button>
 								  </div>
 								  <div>
-									  <el-button type="primary" @click="onSubmit" class="mb-1">导出pdf</el-button>
+									  <el-button type="primary" @click="exportToPdf" class="mb-1">导出pdf</el-button>
 								  </div>
 							  </el-form-item>
 							</el-form>
@@ -560,6 +570,190 @@
 				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm"/>
 			<!-- </el-card> -->
 		</el-dialog>
+		<div id="cost-confirmation-content" style="width: 800px;padding: 40px;position: fixed;z-index: -1;top: -2000px;left: -1000px">
+			<div class="">
+				<div class=" w-100">
+					<div class="flex1">
+						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
+						<p class="font-32 font-w">Logistics & Services</p>
+					</div>
+					<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
+				</div>
+				<div class="flex-1"  style="overflow-y: auto;">
+					<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
+						
+						 <div class="flex a-center flex-wrap py-1 w-100">
+							 <div style="width: 32%;" class="flex mt-2 mr-1">
+								 <p style="width: 70px;">委托人：</p>
+								 <p>{{formBill.delegation_header}}</p>
+							 </div>
+							 <div style="width: 32%;" class="flex mt-2 mr-1">
+								 <p  style="width: 70px;">起运港：</p>
+								 <p>{{formBill.origin_port}}</p>
+							 </div>
+							<div style="width: 32%;" class="flex mt-2 mr-1">
+								<p style="width: 70px;">提单号：</p>
+								<p>{{formBill.bl_no}}</p>
+							</div>
+							<div style="width: 32%;" class="flex mt-2 mr-1">
+								<p style="width: 70px;">合同号：</p>
+								<p>{{formBill.contract_no}}</p>
+							</div>
+							<div style="width: 32%;" class="flex mt-2 mr-1">
+								<p style="width: 70px;">目的港：</p>
+								<p>{{formBill.destination_port}}</p>
+							</div>
+							<div style="width: 32%;" class="flex mt-2 mr-1">
+								<p style="width: 70px;">船名/航次：</p>
+								<p>{{formBill.ship_name}}</p>
+								<p>{{formBill.ship_no}}</p>
+							</div>
+							<div style="width: 32%;" class="flex mt-2 mr-1">
+								<p style="width: 70px;">工作编号：</p>
+								<p>{{formBill.job_no}}</p>
+							</div>
+							<div class="flex mt-2 mr-1" style="width: 32%;">
+								<p style="width: 70px;">开船日期：</p>
+								<p>{{formBill.sailing_at}}</p>
+							</div>
+							<div class="flex mt-2 mr-1" style="width: 32%;">
+								<p style="width: 70px;">到港日期：</p>
+								<p>{{formBill.arrival_at}}</p>
+							</div>
+						</div>
+					</div>
+					<div class="bB-0 py-1 w-100" style="font-size: 12px;">
+						<el-table
+							ref="multipleTable"
+							:data="orderBillItems"
+							tooltip-effect="dark"
+							style="text-align: center;"
+							:header-row-style="{backgroundColor:' #fff'}"
+						   @selection-change="handleSelectionChangeItems"
+						   @select-all="handleSelectionChangeItemsAll">
+							<el-table-column
+							  label="费用明细"
+							  align="center">
+							  <template v-slot="{row,$index}">
+								  <p>{{row.fee_type_id?seletData.FYLX.filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
+							  </template>
+							</el-table-column>
+							<el-table-column
+							  label="备注"
+							  align="center"
+							  prop="remark"
+							  width="120"></el-table-column>
+							<el-table-column
+							  prop="name"
+							  label="币种"
+							  align="center"
+							  width="100">
+							  <template v-slot="{row}">
+								  <p>{{row.currency?optionsComm['币种'].filter(itemIndex => (itemIndex.value== row.currency))[0]?.label: ''}}</p>
+							  </template>
+							</el-table-column>
+							<!-- <el-table-column
+							  label="单位"
+							  align="center">
+							  <template v-slot="{row}">
+								  <el-input v-model="row.name"></el-input>
+							  </template>
+							</el-table-column> -->
+							<el-table-column
+							  label="数量"
+							  align="center"
+							  prop="quantity"
+							  width="70"></el-table-column>
+							<el-table-column
+							  label="单价"
+							  align="center"
+							  prop="price"
+							  width="80"></el-table-column>
+							<el-table-column
+							  prop="address"
+							  label="小计"
+							  align="center"
+							  width="90">
+							  <template v-slot="{row}">
+									<p>{{row.quantity * row.price}}</p>
+							  </template>
+							</el-table-column>
+						</el-table>
+					</div>
+					<div class="pb-2">
+						<div class="d-flex j-end font-14 mb-1" style="margin-right: 120px;">
+						  <div>
+							  总计：
+						  </div>
+						  <div class="font-w font-16 d-flex flex-column">
+							  <p class="flex-1 flex">CNY：<p class="flex-1" style="text-align: center;">{{totals?totals.totalCNY: 0}}</p></p>
+							  <p class="flex-1 flex">USD：<p class="flex-1"  style="text-align: center;">{{totals?totals.totalUSD: 0}}</p></p>
+						  </div>
+						</div>
+						<div class="flex pr-4" v-if="is_show_containers">
+							<el-table
+								class="flex-1"
+								ref="multipleTable"
+								:data="orderBillContainers"
+								tooltip-effect="dark"
+								 :span-method="objectSpanMethod"
+								@selection-change="handleSelectionChangeContainers"
+								@select-all="handleSelectionChangeContainersAll">
+								<el-table-column
+									  type="index"
+									  width="10">
+									</el-table-column>
+								<el-table-column
+								  label="箱号"
+								  prop="no"
+								  align="center"
+								  width="140"></el-table-column>
+								<el-table-column
+								  label="柜型"
+								  align="center"
+								  width="90">
+								  <template v-slot="{row}">
+									  <p>{{row.container_type?seletData.XZLX.filter(itemIndex => (itemIndex.id== row.container_type))[0]?.name: ''}}</p>
+									  <!-- <el-input v-model="row.container_type"></el-input> -->
+								  </template>
+								</el-table-column>
+								<el-table-column
+								  label="司机信息"
+								  align="center"
+								  prop="driver"
+								  width="230"></el-table-column>
+							</el-table>
+						</div>
+						
+						  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
+						  <div class="flex">
+							  <div class="w-70">
+								  <div class="pt-2 w-100">
+									  <p>{{cost_share}}</p>
+								  </div>
+								  <div class="pt-2 w-100">
+									  <p>{{customer_payment_info}}</p>
+								  </div>
+								  <div class="pt-2 w-100">
+									  <p>{{company_receipt_info}}</p>
+								  </div>
+							  </div>
+							  <div class="pl-2">
+								 <!-- <el-switch
+									v-model="is_show_seal">
+								  </el-switch> -->
+								  <div class="mt-2" v-if="is_show_seal">
+									 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
+								  </div>
+							  </div>
+							</div>
+							<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
+								<p>{{remarkBill}}</p>
+						  </div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 </template>
@@ -572,6 +766,11 @@
 		getCurrentInstance,
 		computed
 	} from "vue";
+	import html2canvas from "html2canvas";
+	import {
+		exportWordImage
+	} from "@/utils/exportFile";
+	import {jsPDF} from 'jspdf';
 	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
@@ -653,6 +852,7 @@
 	const paySureVisible = ref(false); //文件信息
 	const billBool= ref(false)
 	const formBill= ref({})
+	const seller_id_bill= ref('')
 	const contentContainer= ref(null)
 	const orderBillItems= ref([{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}])
 	const orderBillContainers= ref([])
@@ -660,26 +860,41 @@
 	const customer_payment_info= ref('')
 	const company_receipt_info= ref('')
 	const is_show_seal= ref(true)
+	const showContent= ref(true)
+	const is_show_containers= ref(true)
 	const remarkBill= ref('')
 	const formBillTemplates= ref({
 		name: '',
 		wordName: ''
 	})  //模板名称
-	const dialogFormVisibleInvoiceForm= ref(false)
+	const dialogFormVisibleInvoiceForm= ref(false)  //申请开票弹框
+	const saveDataBillAdd= ref(null)  //制作账单时的详情
+	// 制作账单
+	function handleAddBill(){
+		billBool.value= true
+		saveBillDataShow(saveDataBillAdd.value,2)
+		billDataList()
+	}
+	// 制作账单
 	function toBillPage(){
 		console.log(proxy.$refs.commonForm.saveData,'seletData.WTTT')
 		billBool.value= true
 		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 		billDataList()
 	}
-	function saveBillDataShow(res,type){
+	function saveBillDataShow(res,type){ //type 0 详情  1 单据详情进入页面  2 新增进入页面
 		if(contentContainer.value){
 			contentContainer.value.scrollTop = 0
 			contentContainer.value.scrollLeft = 0
 		}
+		console.log(res,'res')
+		console.log(type,'type')
+		const delegation_header_id= type== 1 || type== 2? res["order_delegation_header.company_header_id"]:''
+		const delegation_header= type== 1 || type== 2? seletData.value.WTTT.filter(itemIndex => (itemIndex.id== delegation_header_id))[0]?.company_name: res.delegation_header
 		formBill.value= {
+			id: type== 0?res.id: null,
 			order_id: editId.value,
-			delegation_header: type===1?res["order_delegation_header.company_header_id"]:res.delegation_header,
+			delegation_header: delegation_header,
 			job_no: res.job_no,
 			contract_no: res.contract_no,
 			bl_no: res.bl_no,
@@ -691,12 +906,19 @@
 			sailing_at: res.sailing_at,
 			arrival_at: res.arrival_at
 		}
-		if(type== 1){
+		seller_id_bill.value= type== 0 || type== 2?saveDataBillAdd.value.order_delegation_header.seller_id :res["order_delegation_header.seller_id"]
+		console.log(res,'res')
+		httpGet(`/sellers/${seller_id_bill.value}`).then(res => {
+			console.log(res,'res908')
+			formBill.value.pay_sure_logo= res.logo?res.logo.url:'../../../assets/pay_sure_logo.png'
+			formBill.value.show_seal= res.financial_seal?res.financial_seal.url:''
+		});
+		if(type== 1 || type== 2){
 			orderBillContainers.value= []
-			if(containers.value.length>0){
+			if((type== 1 && containers.value.length>0) || (type== 2 && res.containers.length>0)){
 				// const item= {no:'',container_type:'',driver:'',totalCNY:'',totalUSD:''}
-				console.log(containers.value,'containers.value')
-				const containersItem= JSON.parse(JSON.stringify(containers.value))
+				console.log(res,'containers.value')
+				const containersItem= type== 1?JSON.parse(JSON.stringify(containers.value)):JSON.parse(JSON.stringify(res.containers))
 				// console.log(containersItem,'containersItem')
 				orderBillContainers.value.push(...containersItem.map(item => ({
 				  no: item.no?item.no: '',
@@ -714,8 +936,9 @@
 			cost_share.value= ''
 			customer_payment_info.value= ''
 			company_receipt_info.value= ''
-			remarkBill.value= ''
+			remarkBill.value= res["order_delegation_header.seller_id"]?seletData.value.XHDW.filter(itemIndex => (itemIndex.id== res["order_delegation_header.seller_id"]))[0]?.remark:''
 			is_show_seal.value= true
+			
 		}else{
 			orderBillContainers.value= res.order_bill_containers.map(item =>({
 				no: item.no?item.no: '',
@@ -735,8 +958,17 @@
 		
 	}
 	function cancelBill(){
-		billBool.value= false
+		// formBill.value= null
+		remarkBill.value= null
+		formBillTemplates.value.name= null
+		cost_share.value= null
+		customer_payment_info.value= null
+		company_receipt_info.value= null
+		is_show_seal.value= true
+		billTemplatesCurrent.value= 9999
 		dialogFormVisibleInvoiceForm.value= false
+		billBool.value= false
+		seller_id_bill.value.value= ''
 	}
 	// 模板
 	
@@ -1028,16 +1260,49 @@
 	
 	// 账单列表
 	const tableColumnBill = ref([{
+			label: '委托人',
+			prop: 'delegation_header_name',
+			formatter: (row) => {
+				var delegation_header_name = row.delegation_header?seletData.value.WTTT.filter(itemIndex => (itemIndex.id== row.delegation_header))[0]?.company_name:'无'
+				return delegation_header_name
+			}
+		},{
 			label: '工作编号',
 			prop: 'job_no',
 			formatter: (row) => row.job_no || '无'
+		},
+		{
+			label: '合同号',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '人民币金额',
+			prop: 'cny_amount',
+			formatter: (row) => row.cny_amount || '无'
+		},{
+			label: '美金金额',
+			prop: 'usd_amount',
+			formatter: (row) => row.usd_amount || '无'
+		},{
+			label: '备注',
+			prop: 'remark',
+			formatter: (row) => row.remark || '无'
+		},{
+			label: '保存时间',
+			prop: 'created_at',
+			formatter: (row) => row.created_at || '无'
 		},{
 			label: '操作',
 			prop: 'actions',
 			actions: [{
 					label: '查看详情',
 					onClick: (row, index) => handleDetails(row, index)
-				}
+				},
+				{
+						label: '删除',
+						type: 'danger',
+						onClick: (row, index) => handleDeleteBill(row, index)
+					}
 			],
 			fixed: "right",
 			width: '190px'
@@ -1135,7 +1400,12 @@
 		billVisible.value = true;
 		editId.value= row.id
 		tableConfigBill.value.data= {order_id: row.id}
-		tableConfigBill.value.isQuery= true
+		httpGet(`/orders/${row.id}`).then(res => {
+			tableConfigBill.value.isQuery= true
+			setTimeout(function() {
+				saveDataBillAdd.value= res
+			}, 500)
+		});
 	}
 
 	function resetInfo() {
@@ -1190,6 +1460,7 @@
 		// proxy.$refs.billForm.updateBill(billInfo.value, true) //装箱单
 
 		proxy.$refs.commonForm.changeSave(data);
+		
 		if ((type == 2 && payment_status.value == 0) || type == 1) {
 			var order_payments = res.order_payments;
 			if (type == 2 && payment_status.value == 0) {
@@ -1239,7 +1510,17 @@
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
-
+	
+	// 删除账单
+	function handleDeleteBill(row, index){
+		const _ids = row.id || deleteIds.value;
+		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+			return httpDelete('/order-bills/' + _ids);
+		}).then(() => {
+			proxy.$refs.tableListBill.getList();
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
 	// 委托抬头-一代联系人
 	const router = useRouter();
 
@@ -1620,7 +1901,7 @@
 	// }
 	
 	function submitFormBill(){
-		console.log(formBill.value,'formBill.value')
+		console.log(orderBillItems.value,'orderBillItems.value')
 		let order_bill_containers= orderBillContainers.value.map(item => ({
 			no: item.no?item.no: '',
 			container_type: item.container_type?item.container_type: '',
@@ -1636,9 +1917,18 @@
 			is_show_seal: is_show_seal.value=== true?1: 0,
 			remark: remarkBill.value,
 		}
-		httpPost(`/order-bills`, data).then(res => {
-			billBool.value = false;
-		});
+		if(formBill.value.id){
+			httpPut(`/order-bills/${formBill.value.id}`, data).then(res => {
+				// billBool.value = false;
+				cancelBill()
+			});
+		}else{
+			httpPost(`/order-bills`, data).then(res => {
+				// billBool.value = false;
+				cancelBill()
+			});
+		}
+		
 	}
 	const billType=  ref(1)  //默认显示按钮
 	// 账单详情
@@ -1646,7 +1936,7 @@
 		httpGet(`/order-bills/${row.id}`).then(res => {
 			billBool.value = true;
 			billType.value= 0
-			editId.value = row.id;
+			// editId.value = row.id;
 			setTimeout(function() {
 				saveBillDataShow(res,0)
 			}, 500)
@@ -1771,9 +2061,9 @@
 		invoiceForm.value.remark = [selectedItems, containerInfo]
 		  .filter(item => item) // 过滤空字符串
 		  .join('\n');
-		invoiceForm.value.order_id= editId
-		invoiceForm.value.job_no= proxy.$refs.commonForm.saveData.job_no
-		invoiceForm.value.seller_id= proxy.$refs.commonForm.saveData["order_delegation_header.seller_id"]
+		invoiceForm.value.order_id= editId.value
+		invoiceForm.value.job_no= formBill.value.job_no
+		invoiceForm.value.seller_id= seller_id_bill.value
 		invoiceType.value= 1
 		dialogFormVisibleInvoiceForm.value= true
 		console.log(invoiceForm.value.remark,'invoiceForm.value.remark');
@@ -1816,6 +2106,120 @@
 		invoiceForm.value.checkList= []
 		invoiceForm.value.remark= ''
 	}
+	
+	// 导出图片
+	const exportToImage = async () => {
+	  try {
+	    const element = document.getElementById('cost-confirmation-content')
+	    
+	    const canvas = await html2canvas(element, {
+	      scale: 2,
+	      useCORS: true,
+	      backgroundColor: '#ffffff'
+	    })
+	    
+	    const imageData = canvas.toDataURL('image/png')
+	    const link = document.createElement('a')
+	    link.href = imageData
+	    link.download = `费用确认单_${new Date().toLocaleDateString()}.png`
+	    link.click()
+	  } catch (error) {
+	    console.error('导出图片失败:', error)
+	  }
+	}
+	
+	
+	async function downLoadWord() {
+	  try {
+		if(!formBillTemplates.value.wordName){
+			proxy.$modal.msgWarning("请输入导出文件名称");
+			return false
+		}
+	    // 深拷贝数据
+	    const orderBillItemsData = JSON.parse(JSON.stringify(orderBillItems.value));
+	    const orderBillContainersData = JSON.parse(JSON.stringify(orderBillContainers.value));
+	    
+	    // 处理费用类型名称
+	    orderBillItemsData.forEach(item => {
+	      item.fee_type_name = item.fee_type_id 
+	        ? seletData.value.FYLX?.filter(itemIndex => itemIndex.id == item.fee_type_id)[0]?.name || '' 
+	        : '';
+	      
+	      item.currency_name = item.currency 
+	        ? optionsComm['币种']?.filter(itemIndex => itemIndex.value == item.currency)[0]?.label || ''
+	        : '';
+	    });
+	
+	    // 处理容器数据
+	    orderBillContainersData.forEach((item, itemIndexs) => {
+	      item.index = itemIndexs + 1; // 序号从1开始
+	      item.container_type_name = item.container_type 
+	        ? seletData.value.XZLX?.filter(itemIndex => itemIndex.id == item.container_type)[0]?.name || ''
+	        : '';
+	    });
+	
+	    // 准备导出数据
+	    let data = {
+	      ...formBill.value,
+	      orderBillItems: orderBillItemsData,
+	      orderBillContainers: orderBillContainersData,
+	      cost_share: cost_share.value,
+	      customer_payment_info: customer_payment_info.value,
+	      remarkBill: remarkBill.value,
+		  totals: totals.value,
+	      exportDate: new Date().toLocaleDateString('zh-CN'), // 添加导出日期
+	      totalAmount: orderBillItemsData.reduce((sum, item) => sum + (item.amount || 0), 0) // 计算总金额
+	    };
+	
+	    // 调用导出函数 - 使用正确的路径
+	    await exportWordImage(
+	      "/template2.docx", // 确保模板文件在public/目录下
+	      data,
+	      `${formBillTemplates.value.wordName}.docx`,
+	      {}
+	    );
+	
+	    // 成功提示
+	    // ElMessage.success('导出成功');
+	    
+	  } catch (error) {
+	    console.error('导出失败:', error);
+	    // ElMessage.error(`导出失败: ${error.message}`);
+	  }
+	}
+	
+	// 导出pdf
+	const exportToPdf = async ( filename = 'document') => {
+	  return new Promise((resolve, reject) => {
+	    try {
+		 if(!formBillTemplates.value.wordName){
+			 proxy.$modal.msgWarning("请输入导出文件名称");
+			 return false
+		 }
+		 const element = document.getElementById('cost-confirmation-content')
+	      html2canvas(element, {
+	        scale: 2,
+	        useCORS: true,
+	        backgroundColor: '#ffffff'
+	      }).then(canvas => {
+	        const imgData = canvas.toDataURL('image/png');
+	        
+	        // 使用更基础的jsPDF配置
+	        const pdf = new jsPDF();
+	        const imgProps = pdf.getImageProperties(imgData);
+	        const pdfWidth = pdf.internal.pageSize.getWidth();
+	        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+	        
+	        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+	        pdf.save(`${filename}.pdf`);
+	        resolve(true);
+	      }).catch(reject);
+	      
+	    } catch (error) {
+	      reject(error);
+	    }
+	  });
+	};
 </script>
 
 <style>
