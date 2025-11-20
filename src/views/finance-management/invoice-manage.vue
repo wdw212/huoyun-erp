@@ -34,7 +34,7 @@
 	
 </template>
 
-<script setup name="InvoiceRequest">
+<script setup name="InvoiceManage">
 	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
 	import CommonForm from "@/components/commonForm/index";
@@ -49,7 +49,7 @@
 	import { queryParamsInvoice, formList, rulesInit,statistic } from '@/utils/services';
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
-	import InvoiceForm from '../../../components/InvoiceForm.vue'
+	import InvoiceForm from '@/components/InvoiceForm.vue'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);

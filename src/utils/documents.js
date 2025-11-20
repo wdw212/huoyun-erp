@@ -351,6 +351,7 @@ export const queryParams = ref([
 	}
 ])
 
+
 export const rulesInit = (message, type) => {
 	if(type == 1){
 		return { required: true, message, trigger: 'change' }
@@ -612,5 +613,6 @@ export const PaymentColumn = ref([
 		form: {
 			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
 		}
-	}
+	},
+	{}
 ]);
