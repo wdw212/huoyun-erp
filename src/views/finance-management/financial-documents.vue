@@ -115,6 +115,13 @@
 						<file-Table ref="fileInfo" @uploadFile="uploadFile"></file-Table>
 					</template>
 					
+					<!-- 开票合计 -->
+					<template #invoiceTotal>
+						<table-list :tableConfig="tableConfigInvoiceTot" :tableColumn="tableColumnInvoiceTot"
+						:toolbar="false" :multiple="false" ref="invoiceTotal" border>
+						</table-list>
+					</template>
+					
 				</common-form>
 			</el-card>
 		</el-dialog>
@@ -149,7 +156,7 @@
 	import { keyStatus,commonParam } from '@/utils/common'
 	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn, amountFormFin } from '@/utils/documents';
 	import { ElButton } from 'element-plus'
-	import { tableColumnInvoice } from './finance'
+	import { tableColumnInvoice, tableColumnInvoiceTot } from './finance'
 	import InvoiceForm from '@/components/InvoiceForm.vue'
 	const { proxy } = getCurrentInstance();
 	
@@ -159,42 +166,57 @@
 	const loading = ref(true);
 	const seletData = ref({});
 	
+	function accountInit() {
+		AccountsColumn.value[4].noShow = true;
+		AccountsColumn.value[7].noShow = true;
+		AccountsColumn.value[3].form.disabled = true;
+		AccountsColumn.value[6].form.disabled = true;
+		AccountsColumn.value[8].noShow = true;
+		
+		PaymentColumn.value[7].noShow = {
+			label: '操作',
+			prop: 'actions',
+			actions: [{
+				label: '删除',
+				type: 'danger',
+				onClick: (row, index) => paymentDelete(row, index)
+			}],
+			width: '70px'
+		};
+	}
+	accountInit();
+	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
 		keyStatus(formList.value, '操作单据', function(form, options) {
 			formListNew.value = form;
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
-			formListNew.value[5].formData[1].noShow = true;
+			formListNew.value[5].formData[3] = {
+				label: '开票合计 ( 以下单位均为人民币 )',
+				soltName: 'invoiceTotal',
+			};
 			loading.value = false;
 			seletData.value = options;
-			console.log('seletData.value', seletData.value)
+			// console.log('seletData.value', seletData.value)
 			AccountsColumn.value[0].form.options = seletData.value.YFTT;
 			// console.log('formListNew', formListNew, seletData.value)
 			
 			getStatistic();
 		})
 		
-		// // 应付款
-		// AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
-		// AccountsColumns.value.forEach((item,index)=>{
-		// 	if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
-		// 		AccountsColumns.value[index].form.disabled = true;
-		// 	}
-		// 	AccountsColumns.value[index].noShow = false;
-		// })
+		// 应付款
+		AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
+		AccountsColumns.value.splice(AccountsColumns.value.length-1, 1)
+		AccountsColumns.value.forEach((item,index)=>{
+			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
+				AccountsColumns.value[index].form.disabled = true;
+			}
+			AccountsColumns.value[index].noShow = false;
+		})
 		
-		// // 应收款
-		// PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
-		// PaymentColumns.value[PaymentColumns.value.length] = {
-		// 	label: '操作',
-		// 	prop: 'actions',
-		// 	actions: [{
-		// 		label: '删除',
-		// 		type: 'danger',
-		// 		onClick: (row, index) => paymentDelete(row, index)
-		// 	}],
-		// 	width: '70px'
-		// }
+		// 应收款
+		PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
+		console.log('PaymentColumns', PaymentColumns.value)
 	})
 	
 	//统计数据
@@ -217,6 +239,25 @@
 		requestMethod: httpGet,
 		isQuery: false
 	})
+	
+	//开票合计
+	const tableConfigInvoiceTot = ref({
+		url: '/orders/finance-index',
+		requestMethod: httpGet,
+		isQuery: false
+	})
+	const invoiceData = ref([
+		{title: '应付开票人民币金额', number1: 0, number2: 0, total: 0},
+		{title: '应收开票人民币金额', number1: 0, number2: 0, total: 0},
+		{title: '应付开票美金金额', number1: 0, number2: 0, total: 0},
+		{title: '应收开票美金金额', number1: 0, number2: 0, total: 0},
+		{title: '应付未开票人民币金额', number1: 0, number2: 0, total: 0},
+		{title: '应收未开票人民币金额', number1: 0, number2: 0, total: 0},
+		{title: '应付未开票美金金额', number1: 0, number2: 0, total: 0},
+		{title: '应收未开票美金金额', number1: 0, number2: 0, total: 0},
+		{title: '特殊费用总和', number1: 0, number2: 0, total: 0},
+		{title: '总利润金额', number1: 0, number2: 0, total: 0},
+	])
 	
 	const searchConfirm = (val) =>{
 		console.log('searchConfirm', val)
@@ -319,6 +360,8 @@
 			dialogFormVisible.value = true;
 			editId.value = row.id;
 			setTimeout(function(){
+				proxy.$refs.invoiceTotal.updateTableData(invoiceData.value);
+				
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
 					data[key] = res[key];
@@ -327,8 +370,8 @@
 				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
 				proxy.$refs.fileInfo.dafultFile(res.order_files);  //文件
-				proxy.$refs.paymentTable.tableData = [];
-				addPayment();
+				proxy.$refs.paymentTable.updateTableData([]);
+				// addPayment();
 			}, 500)
 		});
 	}

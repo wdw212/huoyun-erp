@@ -1,5 +1,5 @@
 <template>
-	<div style="padding: 20px 20px 0;">
+	<div :style="styleInfo||'padding: 20px 20px 0;'">
 		<el-form :model="searchQuery" :inline="true" label-width="auto">
 			<el-form-item v-for="(item,index) in queryParams" :key="item.key"
 			:label="item.label" :prop="item.key" :label-width="item.labelWidth"
@@ -105,6 +105,10 @@
 		showMaxNum: {   //最大默认显示数量
 			type: Number,
 			default: 10
+		},
+		styleInfo: {
+			type: String,
+			default: ''
 		},
 	})
 	

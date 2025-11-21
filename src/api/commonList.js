@@ -217,12 +217,24 @@ export const optionsComm = {
 		{label: '驮鸟已确认',value: 4},
 	],
 	'币种': [{
-					label: 'CNY',
-					value: 'cny'
-				},
-				{
-					label: 'USD',
-					value: 'usd'
-				}
-			]
+			label: 'CNY',
+			value: 'cny'
+		},
+		{
+			label: 'USD',
+			value: 'usd'
+		}
+	],
+	'人民币金额': [
+		{label: '人民币大于0', value: '1'},
+		{label: '人民币小于0', value: '2'},
+	],
+	'是否开票': [
+		{label: '开票', value: '1'},
+		{label: '不开票', value: '2'},
+	],
+	'有无发票号': [
+		{label: '有发票号', value: '1'},
+		{label: '无发票号', value: '2'},
+	],
 }
