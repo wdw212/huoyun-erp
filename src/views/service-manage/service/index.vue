@@ -413,6 +413,7 @@
 								</div>
 								<div class="flex pr-4">
 									<el-table
+									    v-if="is_show_containers"
 										class="flex-1"
 										ref="multipleTable"
 										:data="orderBillContainers"
@@ -553,7 +554,7 @@
 							  </el-form-item>
 							</el-form>
 						</div>
-						<div v-if= "billType !== 0" class="flex-1 pb-2" style="overflow-y: auto;">
+						<div class="flex-1 pb-2" style="overflow-y: auto;">
 							<div :class="['b-0','radius10','mr-1','mt-1',billTemplatesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in billTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
 								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
 								<el-button class="icon-color-black" :style="{background: billTemplatesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
@@ -565,13 +566,20 @@
 		<!-- </el-dialog> -->
 		</div>
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票" width="80%" :close-on-click-modal="false" style="z-index: 3000;">
+		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票列表" width="80%" :close-on-click-modal="false">
+			<el-button type="primary" @click="handleAddInvoiceForm()"> 新增 </el-button>
+			<table-list :tableConfig="tableConfigInvoiceForm" :tableColumn="tableColumnInvoiceForm" :toolbar="true" class="px-2" ref="tableListInvoiceForm" :number="true" :multiple="false">
+				<template #headerRight></template>
+			</table-list>
+		</el-dialog>
+		<el-dialog v-model="dialogFormVisibleInvoiceFormDetails" title="申请开票" width="80%" :close-on-click-modal="false" style="z-index: 3000;" append-to-body  @close="closeInvoiceFormBtn">
 			<!-- <el-card> -->
-				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm"/>
+				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm" ref="invoiceFormRef" :visible="dialogFormVisibleInvoiceFormDetails" @openDetails="openDetails"/>
 			<!-- </el-card> -->
 		</el-dialog>
-		<div id="cost-confirmation-content" style="width: 800px;padding: 40px;position: fixed;z-index: -1;top: -2000px;left: -1000px">
-			<div class="">
+		<div :style="{width: '800px',position: 'fixed',zIndex: isNowImageOrPdf== 0?'-1': '2000',top:isNowImageOrPdf== 0?'-2000px': '20px',left: isNowImageOrPdf== 0?'-1000px': '200px',backgroundColor: '#fff'}">
+			<div class="d-flex j-end pr-2 pt-1" v-if="isNowImageOrPdf== 1"><el-button @click="cancelBillImage">关 闭</el-button></div>
+			<div class="" id="cost-confirmation-content" :style="{padding: '40px',height: isNowImageOrPdf== 0?'auto':'800px', overflowY: isNowImageOrPdf== 0?'auto':'auto'}">
 				<div class=" w-100">
 					<div class="flex1">
 						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
@@ -583,42 +591,42 @@
 					<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
 						
 						 <div class="flex a-center flex-wrap py-1 w-100">
-							 <div style="width: 32%;" class="flex mt-2 mr-1">
+							 <div style="width: 30%;" class="flex mt-2 mr-1">
 								 <p style="width: 70px;">委托人：</p>
 								 <p>{{formBill.delegation_header}}</p>
 							 </div>
-							 <div style="width: 32%;" class="flex mt-2 mr-1">
+							 <div style="width: 30%;" class="flex mt-2 mr-1">
 								 <p  style="width: 70px;">起运港：</p>
 								 <p>{{formBill.origin_port}}</p>
 							 </div>
-							<div style="width: 32%;" class="flex mt-2 mr-1">
+							<div style="width: 30%;" class="flex mt-2 mr-1">
 								<p style="width: 70px;">提单号：</p>
 								<p>{{formBill.bl_no}}</p>
 							</div>
-							<div style="width: 32%;" class="flex mt-2 mr-1">
+							<div style="width: 30%;" class="flex mt-2 mr-1">
 								<p style="width: 70px;">合同号：</p>
 								<p>{{formBill.contract_no}}</p>
 							</div>
-							<div style="width: 32%;" class="flex mt-2 mr-1">
+							<div style="width: 30%;" class="flex mt-2 mr-1">
 								<p style="width: 70px;">目的港：</p>
 								<p>{{formBill.destination_port}}</p>
 							</div>
-							<div style="width: 32%;" class="flex mt-2 mr-1">
+							<div style="width: 30%;" class="flex mt-2 mr-1">
 								<p style="width: 70px;">船名/航次：</p>
-								<p>{{formBill.ship_name}}</p>
+								<p>{{formBill.ship_name}}/</p>
 								<p>{{formBill.ship_no}}</p>
 							</div>
-							<div style="width: 32%;" class="flex mt-2 mr-1">
+							<div style="width: 30%;" class="flex mt-2 mr-1">
 								<p style="width: 70px;">工作编号：</p>
 								<p>{{formBill.job_no}}</p>
 							</div>
-							<div class="flex mt-2 mr-1" style="width: 32%;">
+							<div class="flex mt-2 mr-1" style="width: 30%;">
 								<p style="width: 70px;">开船日期：</p>
-								<p>{{formBill.sailing_at}}</p>
+								<p>{{formBill.sailing_at?formBill.sailing_at.substring(0,10):''}}</p>
 							</div>
-							<div class="flex mt-2 mr-1" style="width: 32%;">
+							<div class="flex mt-2 mr-1" style="width: 30%;">
 								<p style="width: 70px;">到港日期：</p>
-								<p>{{formBill.arrival_at}}</p>
+								<p>{{formBill.arrival_at?formBill.arrival_at.substring(0,10):''}}</p>
 							</div>
 						</div>
 					</div>
@@ -681,7 +689,7 @@
 						</el-table>
 					</div>
 					<div class="pb-2">
-						<div class="d-flex j-end font-14 mb-1" style="margin-right: 120px;">
+						<div class="d-flex j-end font-14 mb-1" style="margin-right: 20px;">
 						  <div>
 							  总计：
 						  </div>
@@ -748,7 +756,7 @@
 							  </div>
 							</div>
 							<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
-								<p>{{remarkBill}}</p>
+								<p style="text-align: center;">{{remarkBill}}</p>
 						  </div>
 					</div>
 				</div>
@@ -764,7 +772,8 @@
 		onMounted,
 		h,
 		getCurrentInstance,
-		computed
+		computed,
+		nextTick
 	} from "vue";
 	import html2canvas from "html2canvas";
 	import {
@@ -868,12 +877,17 @@
 		wordName: ''
 	})  //模板名称
 	const dialogFormVisibleInvoiceForm= ref(false)  //申请开票弹框
+	const dialogFormVisibleInvoiceFormDetails= ref(false)
 	const saveDataBillAdd= ref(null)  //制作账单时的详情
 	// 制作账单
 	function handleAddBill(){
 		billBool.value= true
 		saveBillDataShow(saveDataBillAdd.value,2)
 		billDataList()
+	}
+	// 点击申请开票详情
+	function handleAddInvoiceForm(){
+		dialogFormVisibleInvoiceFormDetails.value= true
 	}
 	// 制作账单
 	function toBillPage(){
@@ -966,9 +980,10 @@
 		company_receipt_info.value= null
 		is_show_seal.value= true
 		billTemplatesCurrent.value= 9999
-		dialogFormVisibleInvoiceForm.value= false
+		// dialogFormVisibleInvoiceForm.value= false
+		dialogFormVisibleInvoiceFormDetails.value= false
 		billBool.value= false
-		seller_id_bill.value.value= ''
+		seller_id_bill.value= ''
 	}
 	// 模板
 	
@@ -1284,10 +1299,6 @@
 			prop: 'usd_amount',
 			formatter: (row) => row.usd_amount || '无'
 		},{
-			label: '备注',
-			prop: 'remark',
-			formatter: (row) => row.remark || '无'
-		},{
 			label: '保存时间',
 			prop: 'created_at',
 			formatter: (row) => row.created_at || '无'
@@ -1311,6 +1322,76 @@
 		url: '/order-bills',
 		requestMethod: httpGet,
 		isQuery: false
+	})
+	const tableConfigInvoiceForm= ref([{
+			label: '开票单据',
+			prop: 'delegation_header_name',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '开票抬头',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},
+		{
+			label: '销货单位',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '发票类型',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '税点',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '单子完结',
+			prop: 'job_no',
+			formatter: (row) => row.job_no || '无'
+		},{
+			label: '人民币金额',
+			prop: 'cny_amount',
+			formatter: (row) => row.cny_amount || '无'
+		},{
+			label: '人民币发票号',
+			prop: 'cny_amount',
+			formatter: (row) => row.cny_amount || '无'
+		},{
+			label: '美金金额',
+			prop: 'usd_amount',
+			formatter: (row) => row.usd_amount || '无'
+		},{
+			label: '美金发票号',
+			prop: 'cny_amount',
+			formatter: (row) => row.cny_amount || '无'
+		},{
+			label: '申请时间',
+			prop: 'created_at',
+			formatter: (row) => row.created_at || '无'
+		},{
+			label: '确认开票时间',
+			prop: 'created_at',
+			formatter: (row) => row.created_at || '无'
+		},{
+			label: '操作',
+			prop: 'actions',
+			actions: [{
+					label: '查看详情',
+					onClick: (row, index) => handleDetails(row, index)
+				},
+				{
+						label: '删除',
+						type: 'danger',
+						onClick: (row, index) => handleDeleteBill(row, index)
+					}
+			],
+			fixed: "right",
+			width: '190px'
+		}])
+	const tableColumnInvoiceForm = ref({
+		url: '/invoices',
+		requestMethod: httpGet,
+		isQuery: true
 	})
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
@@ -1941,6 +2022,7 @@
 				saveBillDataShow(res,0)
 			}, 500)
 		});
+		billDataList()
 	}
 	// function saveBillDataShow(res,type){
 	// 	if(contentContainer.value){
@@ -2038,17 +2120,18 @@
 		{label: '到港日期：',value:'arrival_at'},
 	])
 	function openInvoiceForm(){
-		console.log(seletData.value.WTTT,'seletData.value.WTTT')
+		console.log(formBill.value,'formBill.value2042')
 		// 处理 checkList 中的选中项
 		const selectedItems = checkListName.value
 		  .filter(item => invoiceForm.value.checkList.includes(item.value))
 		  .map(item => {
-			  if(item.value== 'delegation_header' && formBill.value.delegation_header){
-				  const delegation_header_name= seletData.value.WTTT.filter(itemIndex => (itemIndex.id== formBill.delegation_header))[0].company_name
-				  return `${item.label}${delegation_header_name}`
-			  }else{
-				  return `${item.label}${item.valueformBill[item.value]}`
-			  }
+			  // if(item.value== 'delegation_header' && formBill.value.delegation_header){
+				 //  const delegation_header_name= seletData.value.WTTT.filter(itemIndex => (itemIndex.id== formBill.delegation_header))[0]?.company_name
+				 //  return `${item.label}${delegation_header_name}`
+			  // }else{
+				 //  return `${item.label}${item.valueformBill[item.value]}`
+			  // }
+			   return `${item.label}${formBill.value[item.value]?formBill.value[item.value]:''}`
 		  })
 		  .join('\n');
 		
@@ -2062,10 +2145,10 @@
 		  .filter(item => item) // 过滤空字符串
 		  .join('\n');
 		invoiceForm.value.order_id= editId.value
-		invoiceForm.value.job_no= formBill.value.job_no
+		invoiceForm.value.job_no= proxy.$refs.commonForm.saveData.job_no
 		invoiceForm.value.seller_id= seller_id_bill.value
 		invoiceType.value= 1
-		dialogFormVisibleInvoiceForm.value= true
+		dialogFormVisibleInvoiceFormDetails.value= true
 		console.log(invoiceForm.value.remark,'invoiceForm.value.remark');
 	}
 	
@@ -2097,7 +2180,8 @@
 	}
 	
 	const closeInvoiceForm = () =>{
-		dialogFormVisibleInvoiceForm.value= false
+		console.log(proxy.$refs.invoiceForm,'proxy.$refs.invoiceForm2183')
+		dialogFormVisibleInvoiceFormDetails.value= false
 		invoiceForm.value.order_id= ''
 		invoiceForm.value.job_no= ''
 		invoiceForm.value.seller_id= ''
@@ -2106,28 +2190,39 @@
 		invoiceForm.value.checkList= []
 		invoiceForm.value.remark= ''
 	}
-	
-	// 导出图片
-	const exportToImage = async () => {
-	  try {
-	    const element = document.getElementById('cost-confirmation-content')
-	    
-	    const canvas = await html2canvas(element, {
-	      scale: 2,
-	      useCORS: true,
-	      backgroundColor: '#ffffff'
-	    })
-	    
-	    const imageData = canvas.toDataURL('image/png')
-	    const link = document.createElement('a')
-	    link.href = imageData
-	    link.download = `费用确认单_${new Date().toLocaleDateString()}.png`
-	    link.click()
-	  } catch (error) {
-	    console.error('导出图片失败:', error)
-	  }
+	const openDetails= () => {
+		// dialogFormVisible.value= true
 	}
 	
+	function closeInvoiceFormBtn(){
+		dialogFormVisibleInvoiceFormDetails.value= false
+		console.log(proxy.$refs.invoiceFormRef,'proxy.$refs.invoiceForm2195')
+	}
+	const isNowImageOrPdf= ref(0)  //1  图片  0pdf或者关闭  不显示在页面
+	// 导出图片
+	const exportToImage = async () => {
+		isNowImageOrPdf.value= 1
+	  // try {
+	  //   const element = document.getElementById('cost-confirmation-content')
+	    
+	  //   const canvas = await html2canvas(element, {
+	  //     scale: 2,
+	  //     useCORS: true,
+	  //     backgroundColor: '#ffffff'
+	  //   })
+	    
+	  //   const imageData = canvas.toDataURL('image/png')
+	  //   const link = document.createElement('a')
+	  //   link.href = imageData
+	  //   link.download = `费用确认单_${new Date().toLocaleDateString()}.png`
+	  //   link.click()
+	  // } catch (error) {
+	  //   console.error('导出图片失败:', error)
+	  // }
+	}
+	function cancelBillImage() {
+		isNowImageOrPdf.value= 0
+	}
 	
 	async function downLoadWord() {
 	  try {
@@ -2135,6 +2230,8 @@
 			proxy.$modal.msgWarning("请输入导出文件名称");
 			return false
 		}
+		isNowImageOrPdf.value= 0
+		await nextTick()
 	    // 深拷贝数据
 	    const orderBillItemsData = JSON.parse(JSON.stringify(orderBillItems.value));
 	    const orderBillContainersData = JSON.parse(JSON.stringify(orderBillContainers.value));
@@ -2170,13 +2267,16 @@
 	      exportDate: new Date().toLocaleDateString('zh-CN'), // 添加导出日期
 	      totalAmount: orderBillItemsData.reduce((sum, item) => sum + (item.amount || 0), 0) // 计算总金额
 	    };
-	
+		data.sailing_at= data.sailing_at?data.sailing_at.substring(0,10): ''
+		data.arrival_at= data.arrival_at?data.arrival_at.substring(0,10): ''
 	    // 调用导出函数 - 使用正确的路径
 	    await exportWordImage(
 	      "/template2.docx", // 确保模板文件在public/目录下
 	      data,
 	      `${formBillTemplates.value.wordName}.docx`,
-	      {}
+	      {
+			  pay_sure_logo:[150,75]
+		  }
 	    );
 	
 	    // 成功提示
@@ -2189,14 +2289,18 @@
 	}
 	
 	// 导出pdf
-	const exportToPdf = async ( filename = 'document') => {
+	// 导出pdf - 自动分页版本
+	const exportToPdf = async () => {
 	  return new Promise((resolve, reject) => {
 	    try {
-		 if(!formBillTemplates.value.wordName){
-			 proxy.$modal.msgWarning("请输入导出文件名称");
-			 return false
-		 }
-		 const element = document.getElementById('cost-confirmation-content')
+	      if(!formBillTemplates.value.wordName){
+	        proxy.$modal.msgWarning("请输入导出文件名称");
+	        return false
+	      }
+	      isNowImageOrPdf.value= 0
+	      nextTick()
+	      
+	      const element = document.getElementById('cost-confirmation-content')
 	      html2canvas(element, {
 	        scale: 2,
 	        useCORS: true,
@@ -2204,14 +2308,32 @@
 	      }).then(canvas => {
 	        const imgData = canvas.toDataURL('image/png');
 	        
-	        // 使用更基础的jsPDF配置
-	        const pdf = new jsPDF();
-	        const imgProps = pdf.getImageProperties(imgData);
-	        const pdfWidth = pdf.internal.pageSize.getWidth();
-	        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+	        const pdf = new jsPDF('p', 'mm', 'a4');
+	        const pageWidth = pdf.internal.pageSize.getWidth();
+	        const pageHeight = pdf.internal.pageSize.getHeight();
 	        
-	        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-	        pdf.save(`${filename}.pdf`);
+	        const imgWidth = pageWidth;
+	        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+	        
+	        let heightLeft = imgHeight;
+	        let position = 0;
+	        let pageNumber = 1;
+	        
+	        // 第一页
+	        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+	        heightLeft -= pageHeight;
+	        
+	        // 添加后续页面
+	        while (heightLeft >= 0) {
+	          position = heightLeft - imgHeight; // 计算新位置
+	          pdf.addPage();
+	          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+	          heightLeft -= pageHeight;
+	          pageNumber++;
+	        }
+	        
+	        pdf.save(`${formBillTemplates.value.wordName}.pdf`);
+	        console.log(`PDF生成完成，共${pageNumber}页`);
 	        resolve(true);
 	      }).catch(reject);
 	      

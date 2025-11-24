@@ -11,7 +11,7 @@
 							<div class="section mb30">
 								<el-form-item label="工作编号：" label-width="87px">
 									<el-input v-model="form.job_no" style="width: 130px"
-										placeholder="HQ4-WHJ25002"  disabled/>
+										placeholder=""  disabled/>
 								</el-form-item>
 								<el-form-item label="手机/邮箱：" label-width="87px">
 									<el-input v-model="form.email" style="width: 130px" />
@@ -49,7 +49,7 @@
 						<el-form-item label="单子完结">
 							<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
 							<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
-								:disabled="form.is_finish" />
+								:disabled="!form.is_finish" />
 						</el-form-item>
 						<el-form-item label="开票日期：">
 							<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
@@ -143,7 +143,7 @@
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="人民币发票号：">
 														<el-input v-model="form.cny_invoice_no" style="width: 180px"
-															placeholder="25932000000029068754" />
+															placeholder="" />
 													</el-form-item>
 												</div>
 											</div>
@@ -200,7 +200,7 @@
 													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 													<el-form-item label="美金发票号：">
 														<el-input v-model="form.usd_invoice_no" style="width: 180px"
-															placeholder="25932000000029068754" />
+															placeholder="" />
 													</el-form-item>
 												</div>
 											</div>
@@ -249,14 +249,14 @@
 					<!-- 操作按钮 -->
 					<div class="action-btns">
 						<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
-						<el-button>美元发票预览</el-button>
+						<el-button  @click="exportImg(2)">美元发票预览</el-button>
 						<el-button type="success" @click="submit">保存</el-button>
-						<el-button>业务单据</el-button>
+						<el-button @click="openDetails">业务单据</el-button>
 					</div>
 				</el-col>
 			</el-row>
 		</el-form>
-		<div id="cost-confirmation-content_invoice" style="width: 80%; padding: 20px; position: fixed;z-index: -1;top: -2000px;left: -1000px">
+		<div id="cost-confirmation-content_invoice" style="width: 1000px; padding: 20px; position: fixed;z-index: -1;top: -2000px;left: -1000px">
 			<div class="p-r">
 				<div class="flex j-center">
 					<div style="width: 600px;">
@@ -327,11 +327,11 @@
 											</template>
 										</el-table-column>
 										<el-table-column label="规格型号" width="60" align="center"></el-table-column>
-										<el-table-column label="单位" width="150" align="center" prop="unit"></el-table-column>
-										<el-table-column label="数量" width="100" align="center" prop="quantity"></el-table-column>
+										<el-table-column label="单位" width="100" align="center" prop="unit"></el-table-column>
+										<el-table-column label="数量" width="50" align="center" prop="quantity"></el-table-column>
 										<el-table-column label="单价" width="60" align="center"></el-table-column>
 										<el-table-column label="金额" width="200" align="center" prop="no_tax_amount"></el-table-column>
-										<el-table-column label="税率/征收率" width="150" align="center" prop="tax_rate"></el-table-column>
+										<el-table-column label="税率/征收率" width="50" align="center" prop="tax_rate"></el-table-column>
 										<el-table-column label="税额" width="200" align="center" prop="tax_amount"></el-table-column>
 									</el-table>
 								</div>
@@ -412,9 +412,13 @@ const Emit= defineEmits(['close'])
 			type: [Object, Array],
 			default: null
 		},
-		type: {
+		type: {  //0  业务默认展示  1  业务带参数战术
 			type: [Number, String],
 			default: 0,
+		},
+		visible: { 
+			type: Boolean,
+			default: false,
 		}
 	})
 	const sellerOptions = ref([])
@@ -434,7 +438,7 @@ const Emit= defineEmits(['close'])
 	    sale_usc_code: '',
 	    cny_remark: '',
 	    usd_remark: '',
-	    invoice_date: timeto(new Date().getTime(), 'ymd', '-'),
+	    invoice_date: '',
 	    tax_amount: 0,
 		cny_invoice_no: '',
 		usd_invoice_no: ''
@@ -448,15 +452,21 @@ const Emit= defineEmits(['close'])
 	        console.error('错误提示：', error)
 	    }
 	})
-	watch([() => props.type, isSellerOptionsLoaded], ([newType, loaded]) => {
-		if(loaded){
-			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
-			form.value.order_id= invoiceFormObj.value.order_id
-			form.value.sale_entity_id= invoiceFormObj.value.seller_id
-			console.log(form.value,'form.value')
-			changeSaleUscCode(form.value.sale_entity_id)
-			showDefaultData(newType)
-		}
+
+	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
+	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
+		  // 只有当弹框显示、数据加载完成且有类型时才执行
+		  if (isVisible && loaded) {
+		    invoicesCurrent.value= 9999
+			templatesName.value= ''
+		    invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
+		    form.value.order_id= invoiceFormObj.value.order_id
+		    form.value.sale_entity_id= invoiceFormObj.value.seller_id
+		    form.value.job_no= invoiceFormObj.value.job_no
+		    console.log(form.value,'form.value')
+		    changeSaleUscCode(form.value.sale_entity_id)
+		    showDefaultData(newType)
+		  }
 		
 	}, {
 		immediate: true
@@ -483,6 +493,11 @@ const Emit= defineEmits(['close'])
 				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 			}
+		}
+		if(type== 0 || type == 1){
+			form.value.invoice_date= ''
+		}else{
+			form.value.invoice_date= timeto(new Date().getTime(), 'ymd', '-')
 		}
 	}
 	
@@ -633,7 +648,7 @@ const Emit= defineEmits(['close'])
 		});
 
 		// 计算第五列（索引为4）的总和
-		const sumValue = data.reduce((acc, item) => acc + Number(item.formattedValue), 0).toFixed(2);
+		const sumValue = data.reduce((acc, item) => acc + Number(item.amount), 0).toFixed(2);
 		sums[4] = `${sumValue}`; // 第五列显示汇总值
 
 		return sums;
@@ -790,6 +805,9 @@ const Emit= defineEmits(['close'])
 			Emit('close')
 		});
 	}
+	function openDetails(){
+		Emit('openDetails')
+	}
 	// 保存模板
 	function saveInvoicesTemplates(){
 		if(!templatesName.value){
@@ -835,7 +853,7 @@ const Emit= defineEmits(['close'])
 			invoicesCurrent.value= index
 			form.value.email= item.email
 			form.value.remark= item.remark
-			form.value.purchase_entity_id= item.purchase_entity_id
+			form.value.purchase_entity_id= item.purchase_entity_id? Number(item.purchase_entity_id):''
 			form.value.purchase_usc_code= item.purchase_usc_code
 			remarkCNY.value= item.cny_remark
 			remarkUSD.value= item.usd_remark
