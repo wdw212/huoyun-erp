@@ -9,7 +9,7 @@
 			</div>
 			<div class="flex">
 				<slot name="headerRight"></slot>
-				<right-toolbar @queryTable="queryTable" :columns="columns" v-show="toolbar"></right-toolbar>
+				<right-toolbar @queryTable="queryTable" :columns="columns" v-show="toolbar" :toolbarRowReset='toolbarRowReset'></right-toolbar>
 			</div>
 		</div>
 
@@ -133,6 +133,10 @@
 			type: Boolean,
 			default: false
 		},
+		toolbarRowReset: {
+			type: Boolean,
+			default: true
+		}
 	})
 
 	const tableRowClassName = ({row, rowIndex}) => {

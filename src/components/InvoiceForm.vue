@@ -5,15 +5,15 @@
 		<el-form label-width="120px">
 			<!-- 头部信息 -->
 			<el-row>
-				<el-col :span="11">
+				<el-col :span="10">
 					<el-row>
-						<el-col :span="12" style="flex: 0 0 44%;">
+						<el-col :span="10" style="flex: 0 0 44%;">
 							<div class="section mb30">
 								<el-form-item label="工作编号：" label-width="87px">
 									<el-input v-model="form.job_no" style="width: 130px"
 										placeholder=""  disabled/>
 								</el-form-item>
-								<el-form-item label="手机/邮箱：" label-width="87px">
+								<el-form-item label="邮箱：" label-width="87px">
 									<el-input v-model="form.email" style="width: 130px" />
 								</el-form-item>
 								<el-form-item label="税点：" label-width="87px">
@@ -25,7 +25,7 @@
 						<el-col :span="12">
 							<div class="section">
 								<el-form-item label="发票名称：" label-width="85px">
-									<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)">
+									<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable>
 										<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
 											:value="item.id" />
 									</el-select>
@@ -44,8 +44,8 @@
 					<div class="logo"><img src="../assets/invoice_logo.png"></div>
 				</el-col>
 				<!-- 开票日期 -->
-				<el-col :span="7">
-					<div class="section mb30">
+				<el-col :span="10">
+					<div class="section mb30" style="margin-left: 80px;">
 						<el-form-item label="单子完结">
 							<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
 							<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
@@ -67,7 +67,7 @@
 							<div class="flex-1 pt-1" style="box-sizing: border-box;">
 								<div class="section">
 									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
+										<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable>
 											<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
 												:value="item.id" place />
 										</el-select>
@@ -214,7 +214,7 @@
 							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币备注</div>
 							<div class="flex-1">
 								<div class="section mt-1 mx-1">
-									<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" />
+									<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="" style="color: #000;"/>
 								</div>
 							</div>
 							<!-- 美元备注-->
@@ -431,7 +431,7 @@ const Emit= defineEmits(['close'])
 	    remark: '',
 	    tax_rate: '',
 	    commission: '',
-	    is_finish: true,
+	    is_finish: false,
 	    purchase_entity_id: '',
 	    purchase_usc_code: '',
 	    sale_entity_id: '',
@@ -459,6 +459,22 @@ const Emit= defineEmits(['close'])
 		  if (isVisible && loaded) {
 		    invoicesCurrent.value= 9999
 			templatesName.value= ''
+			form.value.invoice_type_id = ''
+			form.value.email = ''
+			form.value.remark = ''
+			form.value.tax_rate = ''
+			form.value.commission = ''
+			form.value.is_finish = false
+			form.value.purchase_entity_id = ''
+			form.value.purchase_usc_code = ''
+			form.value.sale_entity_id = ''
+			form.value.sale_usc_code = ''
+			form.value.cny_remark = ''
+			form.value.usd_remark = ''
+			form.value.invoice_date = ''
+			form.value.tax_amount = 0
+			form.value.cny_invoice_no = ''
+			form.value.usd_invoice_no = ''
 		    invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
 		    form.value.order_id= invoiceFormObj.value.order_id
 		    form.value.sale_entity_id= invoiceFormObj.value.seller_id
@@ -1151,5 +1167,8 @@ const Emit= defineEmits(['close'])
 	}
 	.exportImg .el-table__header .cell,.exportImg .el-table__footer .cell{
 		color: #800 !important
+	}
+	.wrapper .el-textarea .el-textarea__inner{
+		color: #000 !important;
 	}
 </style>

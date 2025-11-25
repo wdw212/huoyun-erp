@@ -172,7 +172,7 @@
 		</el-dialog>
 		<el-dialog v-model="billVisible" title="账单列表" width="80%" :close-on-click-modal="false">
 			<el-button type="primary" @click="handleAddBill()"> 新增 </el-button>
-			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" class="px-2" ref="tableListBill" :number="true" :multiple="false">
+			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" :toolbarRowReset='false' class="px-2" ref="tableListBill" :number="true" :multiple="false">
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
@@ -577,9 +577,9 @@
 				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm" ref="invoiceFormRef" :visible="dialogFormVisibleInvoiceFormDetails" @openDetails="openDetails"/>
 			<!-- </el-card> -->
 		</el-dialog>
-		<div :style="{width: '800px',position: 'fixed',zIndex: isNowImageOrPdf== 0?'-1': '2000',top:isNowImageOrPdf== 0?'-2000px': '20px',left: isNowImageOrPdf== 0?'-1000px': '200px',backgroundColor: '#fff'}">
+		<div v-draggable="{handle: '.custom-handle-image'}" :style="{width: '800px',position: 'fixed',zIndex: isNowImageOrPdf== 0?'-1': '2000',top:isNowImageOrPdf== 0?'-2000px': '20px',left: isNowImageOrPdf== 0?'-1000px': '200px',backgroundColor: '#fff'}">
 			<div class="d-flex j-end pr-2 pt-1" v-if="isNowImageOrPdf== 1"><el-button @click="cancelBillImage">关 闭</el-button></div>
-			<div class="" id="cost-confirmation-content" :style="{padding: '40px',height: isNowImageOrPdf== 0?'auto':'800px', overflowY: isNowImageOrPdf== 0?'auto':'auto'}">
+			<div class="custom-handle-image" id="cost-confirmation-content" :style="{padding: '40px',height: isNowImageOrPdf== 0?'auto':'800px', overflowY: isNowImageOrPdf== 0?'auto':'auto'}">
 				<div class=" w-100">
 					<div class="flex1">
 						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
@@ -590,44 +590,50 @@
 				<div class="flex-1"  style="overflow-y: auto;">
 					<div class="flex a-center flex-wrap pb-1 bB-0 w-100 font-12">
 						
-						 <div class="flex a-center flex-wrap py-1 w-100">
-							 <div style="width: 30%;" class="flex mt-2 mr-1">
-								 <p style="width: 70px;">委托人：</p>
-								 <p>{{formBill.delegation_header}}</p>
+						 <div class="py-1 w-100">
+							 <div class="flex a-center">
+								 <div class="flex mt-2 mr-1 flex-1">
+									 <p style="width: 70px;">委托人：</p>
+									 <p>{{formBill.delegation_header}}</p>
+								 </div>
+								 <div class="flex mt-2 mr-1 flex-1">
+								 	 <p  style="width: 70px;">起运港：</p>
+								 	 <p>{{formBill.origin_port}}</p>
+								  </div>
+								 <div class="flex mt-2 mr-1 flex-1">
+								 	<p style="width: 70px;">提单号：</p>
+								 	<p>{{formBill.bl_no}}</p>
+								 </div>
 							 </div>
-							 <div style="width: 30%;" class="flex mt-2 mr-1">
-								 <p  style="width: 70px;">起运港：</p>
-								 <p>{{formBill.origin_port}}</p>
+							 <div class="flex a-center">
+							 	<div class="flex mt-2 mr-1 flex-1">
+							 		<p style="width: 70px;">合同号：</p>
+							 		<p>{{formBill.contract_no}}</p>
+							 	</div>
+							 	<div class="flex mt-2 mr-1 flex-1">
+							 		<p style="width: 70px;">目的港：</p>
+							 		<p>{{formBill.destination_port}}</p>
+							 	</div>
+							 	<div class="flex mt-2 mr-1 flex-1">
+							 		<p style="width: 70px;">船名/航次：</p>
+							 		<p>{{formBill.ship_name}}/</p>
+							 		<p>{{formBill.ship_no}}</p>
+							 	</div>
 							 </div>
-							<div style="width: 30%;" class="flex mt-2 mr-1">
-								<p style="width: 70px;">提单号：</p>
-								<p>{{formBill.bl_no}}</p>
-							</div>
-							<div style="width: 30%;" class="flex mt-2 mr-1">
-								<p style="width: 70px;">合同号：</p>
-								<p>{{formBill.contract_no}}</p>
-							</div>
-							<div style="width: 30%;" class="flex mt-2 mr-1">
-								<p style="width: 70px;">目的港：</p>
-								<p>{{formBill.destination_port}}</p>
-							</div>
-							<div style="width: 30%;" class="flex mt-2 mr-1">
-								<p style="width: 70px;">船名/航次：</p>
-								<p>{{formBill.ship_name}}/</p>
-								<p>{{formBill.ship_no}}</p>
-							</div>
-							<div style="width: 30%;" class="flex mt-2 mr-1">
-								<p style="width: 70px;">工作编号：</p>
-								<p>{{formBill.job_no}}</p>
-							</div>
-							<div class="flex mt-2 mr-1" style="width: 30%;">
-								<p style="width: 70px;">开船日期：</p>
-								<p>{{formBill.sailing_at?formBill.sailing_at.substring(0,10):''}}</p>
-							</div>
-							<div class="flex mt-2 mr-1" style="width: 30%;">
-								<p style="width: 70px;">到港日期：</p>
-								<p>{{formBill.arrival_at?formBill.arrival_at.substring(0,10):''}}</p>
-							</div>
+							 <div class="flex a-center flex-1">
+								 <div class="flex mt-2 mr-1 flex-1">
+								 	<p style="width: 70px;">工作编号：</p>
+								 	<p>{{formBill.job_no}}</p>
+								 </div>
+								 <div class="flex mt-2 mr-1 flex-1">
+								 	<p style="width: 70px;">开船日期：</p>
+								 	<p>{{formBill.sailing_at?formBill.sailing_at.substring(0,10):''}}</p>
+								 </div>
+								 <div class="flex mt-2 mr-1 flex-1">
+								 	<p style="width: 70px;">到港日期：</p>
+								 	<p>{{formBill.arrival_at?formBill.arrival_at.substring(0,10):''}}</p>
+								 </div>
+							 </div>
 						</div>
 					</div>
 					<div class="bB-0 py-1 w-100" style="font-size: 12px;">
@@ -655,7 +661,7 @@
 							  prop="name"
 							  label="币种"
 							  align="center"
-							  width="100">
+							  width="120">
 							  <template v-slot="{row}">
 								  <p>{{row.currency?optionsComm['币种'].filter(itemIndex => (itemIndex.value== row.currency))[0]?.label: ''}}</p>
 							  </template>
@@ -671,17 +677,17 @@
 							  label="数量"
 							  align="center"
 							  prop="quantity"
-							  width="70"></el-table-column>
+							  width="90"></el-table-column>
 							<el-table-column
 							  label="单价"
 							  align="center"
 							  prop="price"
-							  width="80"></el-table-column>
+							  width="100"></el-table-column>
 							<el-table-column
 							  prop="address"
 							  label="小计"
 							  align="center"
-							  width="90">
+							  width="120">
 							  <template v-slot="{row}">
 									<p>{{row.quantity * row.price}}</p>
 							  </template>
@@ -736,14 +742,16 @@
 						  <p class="pt-2">请在收到此费用确认单24小时之内确认回传，否则我司默认以上费用正确无误。谢谢合作!</p>
 						  <div class="flex">
 							  <div class="w-70">
-								  <div class="pt-2 w-100">
-									  <p>{{cost_share}}</p>
+								  <div class="pt-2 w-100" v-if="cost_share">
+									  <p v-for="(paragraph, index) in cost_share.split(/\n|\r\n/).filter(p => p.trim())" :key="index">{{ paragraph }}</p >
 								  </div>
-								  <div class="pt-2 w-100">
-									  <p>{{customer_payment_info}}</p>
+								  <div class="pt-2 w-100" v-if="customer_payment_info">
+									  <p v-for="(paragraph, index) in customer_payment_info.split(/\n|\r\n/).filter(p => p.trim())" :key="index">{{ paragraph }}</p >
+									  <!-- <p>{{customer_payment_info}}</p> -->
 								  </div>
-								  <div class="pt-2 w-100">
-									  <p>{{company_receipt_info}}</p>
+								  <div class="pt-2 w-100" v-if="company_receipt_info">
+									  <p v-for="(paragraph, index) in company_receipt_info.split(/\n|\r\n/).filter(p => p.trim())" :key="index">{{ paragraph }}</p >
+									  <!-- <p>{{company_receipt_info}}</p> -->
 								  </div>
 							  </div>
 							  <div class="pl-2">
@@ -755,8 +763,9 @@
 								  </div>
 							  </div>
 							</div>
-							<div class="pt-2 bT-0 font-center" style="margin-top: 100px;">
-								<p style="text-align: center;">{{remarkBill}}</p>
+							<div class="pt-2 bT-0 font-center" style="margin-top: 100px;" v-if="remarkBill">
+								<p style="text-align: center;" v-for="(paragraph, index) in remarkBill.split(/\n|\r\n/).filter(p => p.trim())" :key="index">{{ paragraph }}</p >
+								<!-- <p style="text-align: center;">{{remarkBill}}</p> -->
 						  </div>
 					</div>
 				</div>
@@ -896,11 +905,13 @@
 		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 		billDataList()
 	}
+	const billEntranceType= ref(0)
 	function saveBillDataShow(res,type){ //type 0 详情  1 单据详情进入页面  2 新增进入页面
 		if(contentContainer.value){
 			contentContainer.value.scrollTop = 0
 			contentContainer.value.scrollLeft = 0
 		}
+		billEntranceType.value= type
 		console.log(res,'res')
 		console.log(type,'type')
 		const delegation_header_id= type== 1 || type== 2? res["order_delegation_header.company_header_id"]:''
@@ -920,6 +931,7 @@
 			sailing_at: res.sailing_at,
 			arrival_at: res.arrival_at
 		}
+		formBillTemplates.value.wordName= res.job_no
 		seller_id_bill.value= type== 0 || type== 2?saveDataBillAdd.value.order_delegation_header.seller_id :res["order_delegation_header.seller_id"]
 		console.log(res,'res')
 		httpGet(`/sellers/${seller_id_bill.value}`).then(res => {
@@ -966,7 +978,7 @@
 			cost_share.value= res.cost_share
 			customer_payment_info.value= res.customer_payment_info
 			company_receipt_info.value= res.company_receipt_info
-			remarkBill.value= res.is_show_seal
+			remarkBill.value= res.remark
 			is_show_seal.value= res.is_show_seal=== 1?true: false
 		}
 		
@@ -975,6 +987,7 @@
 		// formBill.value= null
 		remarkBill.value= null
 		formBillTemplates.value.name= null
+		formBillTemplates.value.wordName= null
 		cost_share.value= null
 		customer_payment_info.value= null
 		company_receipt_info.value= null
@@ -984,6 +997,15 @@
 		dialogFormVisibleInvoiceFormDetails.value= false
 		billBool.value= false
 		seller_id_bill.value= ''
+		invoiceForm.value= {
+			order_id: '',
+			job_no: '',
+			seller_id: '',
+			orderBillItems: [],
+			orderBillContainers: [],
+			checkList: [],
+			remark: ''
+		}
 	}
 	// 模板
 	
@@ -2145,7 +2167,7 @@
 		  .filter(item => item) // 过滤空字符串
 		  .join('\n');
 		invoiceForm.value.order_id= editId.value
-		invoiceForm.value.job_no= proxy.$refs.commonForm.saveData.job_no
+		invoiceForm.value.job_no= billEntranceType.value== 1? proxy.$refs.commonForm.saveData.job_no: saveDataBillAdd.value.job_no
 		invoiceForm.value.seller_id= seller_id_bill.value
 		invoiceType.value= 1
 		dialogFormVisibleInvoiceFormDetails.value= true
@@ -2262,6 +2284,7 @@
 	      orderBillContainers: orderBillContainersData,
 	      cost_share: cost_share.value,
 	      customer_payment_info: customer_payment_info.value,
+		  company_receipt_info: company_receipt_info.value,
 	      remarkBill: remarkBill.value,
 		  totals: totals.value,
 	      exportDate: new Date().toLocaleDateString('zh-CN'), // 添加导出日期

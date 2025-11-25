@@ -5,7 +5,7 @@
 				<el-button icon="Refresh" plain @click="refresh()">刷新</el-button>
 			</el-col>
 
-			<el-col :span="1.5" v-if="columns">
+			<el-col :span="1.5" v-if="columns && toolbarRowReset">
 				<el-button icon="Menu" plain @click="showColumn()" v-if="showColumnsType == 'transfer'">列设置</el-button>
 				<el-dropdown trigger="click" :hide-on-click="false" v-if="showColumnsType == 'checkbox'">
 					<el-button plain icon="Menu">列设置</el-button>
@@ -53,6 +53,11 @@
 		gutter: {
 			type: Number,
 			default: 10,
+		},
+		// 是否显示列设置
+		toolbarRowReset: {
+			type: Boolean,
+			default: true,
 		},
 	})
 
