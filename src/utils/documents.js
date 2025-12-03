@@ -421,7 +421,7 @@ export const formList = ref([
 					},
 					{ type: 'input',value: '',label: '工作编号',placeholder: '请输入工作编号',key: 'job_no', rules: rulesInit('请填写工作编号')},
 					{ type: 'input',value: '',label: '合同号',placeholder: '请输入合同号',key: 'contract_no' },
-					{ type: 'date',value: '',label: '归属时间',placeholder: '请选择归属时间',key: 'finish_at', dateType: 'date' },
+					{ type: 'date',value: '',label: '归属时间',placeholder: '请选择归属时间',key: 'finish_at', dateType: 'date',disabled: true },
 					{ type: 'select',value: '',label: '业务员',placeholder: '请选择业务员',key: 'business_user_id',options: [],rules: rulesInit('请选择业务员', 1),labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'select',value: '',label: '操作员',placeholder: '请选择操作员',key: 'operate_user_id',options: [],labelName: 'name', valueName: 'id',filterable: true },
 					{ type: 'select',value: '',label: '单证员',placeholder: '请选择单证员',key: 'document_user_id',options: [],rules: rulesInit('请选择单证员', 1),labelName: 'name', valueName: 'id',filterable: true },

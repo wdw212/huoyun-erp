@@ -27,7 +27,7 @@
 		</table-list>
 
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="商务详情" width="80%" :close-on-click-modal="false" style="z-index: 999">
+		<el-dialog v-model="dialogFormVisible" title="业务详情" width="80%" :close-on-click-modal="false" style="z-index: 999">
 			<el-card>
 				<common-form ref="commonForm" v-model:formList="formListNew" @confirm="confirmSubmit"
 					@cancel="cancelForm" @itemChange="itemChange" @tabsChange="tabsChange" :btnShow="false">
@@ -574,12 +574,34 @@
 		</el-dialog>
 		<el-dialog v-model="dialogFormVisibleInvoiceFormDetails" title="申请开票" width="80%" :close-on-click-modal="false" style="z-index: 3000;" append-to-body  @close="closeInvoiceFormBtn">
 			<!-- <el-card> -->
-				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm" ref="invoiceFormRef" :visible="dialogFormVisibleInvoiceFormDetails" @openDetails="openDetails"/>
+				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm" ref="invoiceFormRef" :visible="dialogFormVisibleInvoiceFormDetails" />
 			<!-- </el-card> -->
 		</el-dialog>
-		<div v-draggable="{handle: '.custom-handle-image'}" :style="{width: '800px',position: 'fixed',zIndex: isNowImageOrPdf== 0?'-1': '2000',top:isNowImageOrPdf== 0?'-2000px': '20px',left: isNowImageOrPdf== 0?'-1000px': '200px',backgroundColor: '#fff'}">
-			<div class="d-flex j-end pr-2 pt-1" v-if="isNowImageOrPdf== 1"><el-button @click="cancelBillImage">关 闭</el-button></div>
-			<div class="custom-handle-image" id="cost-confirmation-content" :style="{padding: '40px',height: isNowImageOrPdf== 0?'auto':'800px', overflowY: isNowImageOrPdf== 0?'auto':'auto'}">
+		<div 
+		    v-draggable="{ handle: '.custom-handle-image' }"
+		    :class="['draggable-container', { 'hidden': isNowImageOrPdf === 0 }]"
+		    :style="{
+		      width: '800px',
+		      position: 'fixed',
+		      top: '20px',
+		      left: '200px',
+		      zIndex: isNowImageOrPdf === 0 ? '-1' : '2000',
+		      backgroundColor: '#fff'
+		    }"
+		  >
+			<div class="d-flex j-end pr-2 pt-1" v-if="isNowImageOrPdf === 1">
+			      <el-button @click="cancelBillImage">关 闭</el-button>
+			    </div>
+			    <div 
+			      class="custom-handle-image" 
+			      id="cost-confirmation-content" 
+			      :style="{
+			        padding: '40px',
+			        height: isNowImageOrPdf === 0 ? 'auto' : '800px', 
+			        overflowY: isNowImageOrPdf === 0 ? 'auto' : 'auto'
+			      }"
+				  @mousedown.prevent
+			    >
 				<div class=" w-100">
 					<div class="flex1">
 						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
@@ -759,7 +781,8 @@
 									v-model="is_show_seal">
 								  </el-switch> -->
 								  <div class="mt-2" v-if="is_show_seal">
-									 <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> 
+									  <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" /> 
+									 <!-- <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> -->
 								  </div>
 							  </div>
 							</div>
@@ -967,6 +990,7 @@
 			
 		}else{
 			orderBillContainers.value= res.order_bill_containers.map(item =>({
+				id: item.id,
 				no: item.no?item.no: '',
 				container_type: item.container_type?item.container_type: '',
 				driver: item.driver?item.driver: '',
@@ -1006,6 +1030,8 @@
 			checkList: [],
 			remark: ''
 		}
+		isNowImageOrPdf.value= 0
+		is_show_containers.value= true
 	}
 	// 模板
 	
@@ -1278,13 +1304,14 @@
 					onClick: (row, index) => handleEdit(row, index)
 				},
 				{
-					label: '申请开票',
-					onClick: (row, index) => handleApply(row, index)
-				},
-				{
 					label: '帐单列表',
 					onClick: (row, index) => handleBillList(row, index)
+				},
+				{
+					label: '申请开票',
+					onClick: (row, index) => handleApply(row, index)
 				}
+				
 			],
 			fixed: "right"
 		}
@@ -2005,11 +2032,13 @@
 	
 	function submitFormBill(){
 		console.log(orderBillItems.value,'orderBillItems.value')
-		let order_bill_containers= orderBillContainers.value.map(item => ({
-			no: item.no?item.no: '',
-			container_type: item.container_type?item.container_type: '',
-			driver: item.driver?item.driver: '',
-		}))
+		console.log(orderBillContainers.value,'orderBillContainers.value')
+		let order_bill_containers = orderBillContainers.value.map(item => ({
+			no: item.no ? item.no : '',
+			container_type: item.container_type ? item.container_type : '',
+			driver: item.driver ? item.driver : '',
+			...(item.id && { id: item.id }) // 只有item.id为真值时才添加id属性
+		}));
 		const data= {
 			...formBill.value,
 			order_bill_items: JSON.stringify(orderBillItems.value),
@@ -2022,11 +2051,13 @@
 		}
 		if(formBill.value.id){
 			httpPut(`/order-bills/${formBill.value.id}`, data).then(res => {
+				proxy.$modal.msgSuccess("修改成功!");
 				// billBool.value = false;
 				cancelBill()
 			});
 		}else{
 			httpPost(`/order-bills`, data).then(res => {
+				proxy.$modal.msgSuccess("保存成功!");
 				// billBool.value = false;
 				cancelBill()
 			});
@@ -2212,9 +2243,6 @@
 		invoiceForm.value.checkList= []
 		invoiceForm.value.remark= ''
 	}
-	const openDetails= () => {
-		// dialogFormVisible.value= true
-	}
 	
 	function closeInvoiceFormBtn(){
 		dialogFormVisibleInvoiceFormDetails.value= false
@@ -2223,7 +2251,7 @@
 	const isNowImageOrPdf= ref(0)  //1  图片  0pdf或者关闭  不显示在页面
 	// 导出图片
 	const exportToImage = async () => {
-		isNowImageOrPdf.value= 1
+		showBillImage()
 	  // try {
 	  //   const element = document.getElementById('cost-confirmation-content')
 	    
@@ -2242,8 +2270,26 @@
 	  //   console.error('导出图片失败:', error)
 	  // }
 	}
-	function cancelBillImage() {
-		isNowImageOrPdf.value= 0
+	// 如果需要显示时也重置位置
+	const showBillImage = () => {
+	  isNowImageOrPdf.value = 1
+	  nextTick(() => {
+	    const draggableElement = document.querySelector('.draggable-container');
+	    if (draggableElement && draggableElement._resetDragPosition) {
+	      draggableElement._resetDragPosition();
+	    }
+	  });
+	}
+	const cancelBillImage = () => {
+	  isNowImageOrPdf.value = 0
+	  
+	  // 可选：如果需要立即重置拖拽位置
+	  nextTick(() => {
+	    const draggableElement = document.querySelector('.draggable-container');
+	    if (draggableElement && draggableElement._resetDragPosition) {
+	      draggableElement._resetDragPosition();
+	    }
+	  });
 	}
 	
 	async function downLoadWord() {
@@ -2252,7 +2298,7 @@
 			proxy.$modal.msgWarning("请输入导出文件名称");
 			return false
 		}
-		isNowImageOrPdf.value= 0
+		cancelBillImage()
 		await nextTick()
 	    // 深拷贝数据
 	    const orderBillItemsData = JSON.parse(JSON.stringify(orderBillItems.value));
@@ -2320,7 +2366,7 @@
 	        proxy.$modal.msgWarning("请输入导出文件名称");
 	        return false
 	      }
-	      isNowImageOrPdf.value= 0
+	      cancelBillImage()
 	      nextTick()
 	      
 	      const element = document.getElementById('cost-confirmation-content')
@@ -2423,4 +2469,21 @@
 		border: 1px solid #333
 	}
 	
+	.draggable-container.hidden {
+	  /* 使用 transform 和 opacity 隐藏，避免影响布局 */
+	  transform: translate(-1000px, -2000px) !important;
+	  opacity: 0 !important;
+	  z-index: -1 !important;
+	  pointer-events: none !important;
+	}
+	
+	/* 拖拽手柄样式 */
+	.custom-handle-image {
+	  cursor: grab;
+	  user-select: none;
+	}
+	
+	.custom-handle-image:active {
+	  cursor: grabbing;
+	}
 </style>

@@ -1,361 +1,363 @@
 <template>
-	<div class="invoice-container">
-		<div class="header">此页面为一份人民币发票和一份美金发票，需区分普通发票和专用发票(一份普通发票和一份专用发票，需开两份发票)
-			如需打印费用单在下方上传，单子完结“是”后不能再增开发票，为此单结束。</div>
-		<el-form label-width="120px">
-			<!-- 头部信息 -->
-			<el-row>
-				<el-col :span="10">
-					<el-row>
-						<el-col :span="10" style="flex: 0 0 44%;">
-							<div class="section mb30">
-								<el-form-item label="工作编号：" label-width="87px">
-									<el-input v-model="form.job_no" style="width: 130px"
-										placeholder=""  disabled/>
-								</el-form-item>
-								<el-form-item label="邮箱：" label-width="87px">
-									<el-input v-model="form.email" style="width: 130px" />
-								</el-form-item>
-								<el-form-item label="税点：" label-width="87px">
-									<el-input v-model="percentageValue" style="width: 130px" disabled/>
-								</el-form-item>
+	<div>
+		<div class="invoice-container">
+			<div class="header">此页面为一份人民币发票和一份美金发票，需区分普通发票和专用发票(一份普通发票和一份专用发票，需开两份发票)
+				如需打印费用单在下方上传，单子完结“是”后不能再增开发票，为此单结束。</div>
+			<el-form label-width="120px">
+				<!-- 头部信息 -->
+				<el-row>
+					<el-col :span="10">
+						<el-row>
+							<el-col :span="10" style="flex: 0 0 44%;">
+								<div class="section mb30">
+									<el-form-item label="工作编号：" label-width="87px">
+										<el-input v-model="form.job_no" style="width: 130px"
+											placeholder=""  disabled/>
+									</el-form-item>
+									<el-form-item label="邮箱：" label-width="87px">
+										<el-input v-model="form.email" style="width: 130px" />
+									</el-form-item>
+									<el-form-item label="税点：" label-width="87px">
+										<el-input v-model="percentageValue" style="width: 130px" disabled/>
+									</el-form-item>
 
-							</div>
-						</el-col>
-						<el-col :span="12">
-							<div class="section">
-								<el-form-item label="发票名称：" label-width="85px">
-									<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable>
-										<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
-											:value="item.id" />
-									</el-select>
-								</el-form-item>
-								<el-form-item label="备注：" label-width="85px">
-									<el-input v-model="form.remark" style="width: 100%" />
-								</el-form-item>
-								<el-form-item label="税额：" label-width="87px">
-									<el-input v-model="calculations.tax_amount" style="width: 100%" disabled/>
-								</el-form-item>
-							</div>
-						</el-col>
-					</el-row>
-				</el-col>
-				<el-col :span="4">
-					<div class="logo"><img src="../assets/invoice_logo.png"></div>
-				</el-col>
-				<!-- 开票日期 -->
-				<el-col :span="10">
-					<div class="section mb30" style="margin-left: 80px;">
-						<el-form-item label="单子完结">
-							<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
-							<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
-								:disabled="!form.is_finish" />
-						</el-form-item>
-						<el-form-item label="开票日期：">
-							<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
-						</el-form-item>
-					</div>
-				</el-col>
-			</el-row>
-			<!-- 大表格定义边框4*4-->
-			<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
-				<div border class="wrapper">
-					<div class="flex flex-column">
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">购买方信息</div>
-							<!-- 购买方信息 -->
-							<div class="flex-1 pt-1" style="box-sizing: border-box;">
+								</div>
+							</el-col>
+							<el-col :span="12">
 								<div class="section">
-									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable>
-											<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
-												:value="item.id" place />
+									<el-form-item label="发票名称：" label-width="85px">
+										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable>
+											<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
+												:value="item.id" />
 										</el-select>
 									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<el-input v-model="form.purchase_usc_code" disabled/>
+									<el-form-item label="备注：" label-width="85px">
+										<el-input v-model="form.remark" style="width: 100%" />
+									</el-form-item>
+									<el-form-item label="税额：" label-width="87px">
+										<el-input v-model="calculations.tax_amount" style="width: 100%" disabled/>
 									</el-form-item>
 								</div>
-							</div>
-							<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;" class="vertical-text flex0">销售方信息</div>
-							<div class="flex-1">
-								<!-- 销售方信息 -->
-								<div class="section pt-1">
-									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
-											<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
-												:value="item.id" place />
-										</el-select>
-									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<el-input v-model="form.sale_usc_code" disabled/>
-									</el-form-item>
-								</div>
-							</div>
+							</el-col>
+						</el-row>
+					</el-col>
+					<el-col :span="4">
+						<div class="logo"><img src="../assets/invoice_logo.png"></div>
+					</el-col>
+					<!-- 开票日期 -->
+					<el-col :span="10">
+						<div class="section mb30" style="margin-left: 80px;">
+							<el-form-item label="单子完结">
+								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
+								<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
+									:disabled="!form.is_finish" />
+							</el-form-item>
+							<el-form-item label="开票日期：">
+								<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
+							</el-form-item>
 						</div>
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div>
-							<div style="vertical-align:top; width: 0" class="flex-1">
-								<!-- 项目明细表格 左侧 -->
-								<div class="w-100 section">
-									<el-table :data="tableDataCNY" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
-										:summary-method="getSummaries">
-										<el-table-column type="index" width="50" align="center"></el-table-column>
-										<el-table-column prop="name" label="项目名称" width="" align="center">
-											<template #default="{row}">
-												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
-													remote @change="changeFeeTypeCNY()">
-													<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
-														:value="opt.id" />
-												</el-select>
-											</template>
-										</el-table-column>
-										<el-table-column label="单位" width="60" align="center">
-											<template #default="{ row }">
-												<el-input v-model="row.unit" />
-											</template>
-										</el-table-column>
-										<el-table-column label="数量" width="60" align="center">
-											<template #default="{ row }">
-												<el-input v-model="row.quantity" />
-											</template>
-										</el-table-column>
-										<el-table-column label="金额" width="60" align="center">
-											<template #default="{row}">
-												<el-input v-model="row.amount" type="number"></el-input>
-											</template>
-										</el-table-column>
-										<el-table-column width="80" align="center">
-											<template #header>
-												<el-button type="primary" size="mini" @click="addRow"
-													:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
-											</template>
-											<template v-if="tableDataCNY.length>1" #default="{ $index }">
-												<el-button type="text" @click="delRow($index)" class="del">删除</el-button>
-											</template>
-										</el-table-column>
-									</el-table>
-									<div>
+					</el-col>
+				</el-row>
+				<!-- 大表格定义边框4*4-->
+				<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
+					<div border class="wrapper">
+						<div class="flex flex-column">
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">购买方信息</div>
+								<!-- 购买方信息 -->
+								<div class="flex-1 pt-1" style="box-sizing: border-box;">
+									<div class="section">
+										<el-form-item label="名称：" class="society" style="width: 90%;">
+											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable>
+												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
+													:value="item.id" place />
+											</el-select>
+										</el-form-item>
+										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+											<el-input v-model="form.purchase_usc_code" disabled/>
+										</el-form-item>
+									</div>
+								</div>
+								<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;" class="vertical-text flex0">销售方信息</div>
+								<div class="flex-1">
+									<!-- 销售方信息 -->
+									<div class="section pt-1">
+										<el-form-item label="名称：" class="society" style="width: 90%;">
+											<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
+												<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
+													:value="item.id" place />
+											</el-select>
+										</el-form-item>
+										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+											<el-input v-model="form.sale_usc_code" disabled/>
+										</el-form-item>
+									</div>
+								</div>
+							</div>
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div>
+								<div style="vertical-align:top; width: 0" class="flex-1">
+									<!-- 项目明细表格 左侧 -->
+									<div class="w-100 section">
+										<el-table :data="tableDataCNY" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
+											:summary-method="getSummaries">
+											<el-table-column type="index" width="50" align="center"></el-table-column>
+											<el-table-column prop="name" label="项目名称" width="" align="center">
+												<template #default="{row}">
+													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+														remote @change="changeFeeTypeCNY()">
+														<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+															:value="opt.id" />
+													</el-select>
+												</template>
+											</el-table-column>
+											<el-table-column label="单位" width="60" align="center">
+												<template #default="{ row }">
+													<el-input v-model="row.unit" />
+												</template>
+											</el-table-column>
+											<el-table-column label="数量" width="60" align="center">
+												<template #default="{ row }">
+													<el-input v-model="row.quantity" />
+												</template>
+											</el-table-column>
+											<el-table-column label="金额" width="60" align="center">
+												<template #default="{row}">
+													<el-input v-model="row.amount" type="number"></el-input>
+												</template>
+											</el-table-column>
+											<el-table-column width="80" align="center">
+												<template #header>
+													<el-button type="primary" size="mini" @click="addRow"
+														:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
+												</template>
+												<template v-if="tableDataCNY.length>1" #default="{ $index }">
+													<el-button type="text" @click="delRow($index)" class="del">删除</el-button>
+												</template>
+											</el-table-column>
+										</el-table>
 										<div>
-											<div class="total-btns">
-												<!-- <div class="total">合计：</div> -->
-												<div class="flex j-end w-100 pr-2">
-													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
-													<el-form-item label="人民币发票号：">
-														<el-input v-model="form.cny_invoice_no" style="width: 180px"
-															placeholder="" />
-													</el-form-item>
+											<div>
+												<div class="total-btns">
+													<!-- <div class="total">合计：</div> -->
+													<div class="flex j-end w-100 pr-2">
+														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
+														<el-form-item label="人民币发票号：">
+															<el-input v-model="form.cny_invoice_no" style="width: 180px"
+																placeholder="" />
+														</el-form-item>
+													</div>
 												</div>
-											</div>
-				
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- 项目明细表格 右侧 -->
-							<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美金发票</div>
-							<div style="vertical-align:top; width: 0" class="flex-1">
-								<div class="section w-100 ">
-									<el-table :data="tableDataUSD" border style="width: 100%" show-summary sum-text="合计"
-										:summary-method="getSummariesR">
-										<el-table-column type="index" width="50" align="center"></el-table-column>
-										<el-table-column prop="name" label="项目名称" width="" align="center">
-											<template #default="{row}">
-												<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
-													remote @change="changeFeeTypeUSD()">
-													<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
-														:value="opt.id" />
-												</el-select>
-											</template>
-										</el-table-column>
-										<el-table-column label="单位" width="60" align="center">
-											<template #default="{ row }">
-												<el-input v-model="row.unit" />
-											</template>
-										</el-table-column>
-										<el-table-column label="数量" width="60" align="center">
-											<template #default="{ row }">
-												<el-input v-model="row.quantity" />
-											</template>
-										</el-table-column>
-										<el-table-column label="金额" width="60" align="center">
-											<template #default="{row}">
-												<el-input v-model="row.amount" type="number"></el-input>
-											</template>
-										</el-table-column>
-										<el-table-column width="70" align="center">
-											<template #header>
-												<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false">增行</el-button>
-											</template>
-											<template v-if="tableDataUSD.length>1" #default="{ $index }">
-												<el-button type="text" @click="delRoww($index)" class="del">删除</el-button>
-											</template>
-										</el-table-column>
-									</el-table>
-									<div>
-										<div :span="10" :offset="11">
-											<div class="total-btns">
-												<!-- <div class="total">合计：</div> -->
-												<div class="flex j-end w-100 pr-2">
-													<!-- <el-input v-model="total.number" style="width: 100px" /> -->
-													<el-form-item label="美金发票号：">
-														<el-input v-model="form.usd_invoice_no" style="width: 180px"
-															placeholder="" />
-													</el-form-item>
-												</div>
+					
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-						</div>
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<!-- 人民币备注-->
-							<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币备注</div>
-							<div class="flex-1">
-								<div class="section mt-1 mx-1">
-									<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="" style="color: #000;"/>
+								<!-- 项目明细表格 右侧 -->
+								<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美金发票</div>
+								<div style="vertical-align:top; width: 0" class="flex-1">
+									<div class="section w-100 ">
+										<el-table :data="tableDataUSD" border style="width: 100%" show-summary sum-text="合计"
+											:summary-method="getSummariesR">
+											<el-table-column type="index" width="50" align="center"></el-table-column>
+											<el-table-column prop="name" label="项目名称" width="" align="center">
+												<template #default="{row}">
+													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+														remote @change="changeFeeTypeUSD()">
+														<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
+															:value="opt.id" />
+													</el-select>
+												</template>
+											</el-table-column>
+											<el-table-column label="单位" width="60" align="center">
+												<template #default="{ row }">
+													<el-input v-model="row.unit" />
+												</template>
+											</el-table-column>
+											<el-table-column label="数量" width="60" align="center">
+												<template #default="{ row }">
+													<el-input v-model="row.quantity" />
+												</template>
+											</el-table-column>
+											<el-table-column label="金额" width="60" align="center">
+												<template #default="{row}">
+													<el-input v-model="row.amount" type="number"></el-input>
+												</template>
+											</el-table-column>
+											<el-table-column width="70" align="center">
+												<template #header>
+													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false">增行</el-button>
+												</template>
+												<template v-if="tableDataUSD.length>1" #default="{ $index }">
+													<el-button type="text" @click="delRoww($index)" class="del">删除</el-button>
+												</template>
+											</el-table-column>
+										</el-table>
+										<div>
+											<div :span="10" :offset="11">
+												<div class="total-btns">
+													<!-- <div class="total">合计：</div> -->
+													<div class="flex j-end w-100 pr-2">
+														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
+														<el-form-item label="美金发票号：">
+															<el-input v-model="form.usd_invoice_no" style="width: 180px"
+																placeholder="" />
+														</el-form-item>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
 							</div>
-							<!-- 美元备注-->
-							<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美元备注</div>
-							<div class="flex-1">
-								<div class="section mt-1 mx-1">
-									<el-input v-model="remarkUSD" :rows="6" type="textarea" placeholder="美元备注" />
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<!-- 人民币备注-->
+								<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币备注</div>
+								<div class="flex-1">
+									<div class="section mt-1 mx-1">
+										<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="" style="color: #000;"/>
+									</div>
+								</div>
+								<!-- 美元备注-->
+								<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美元备注</div>
+								<div class="flex-1">
+									<div class="section mt-1 mx-1">
+										<el-input v-model="remarkUSD" :rows="6" type="textarea" placeholder="美元备注" />
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<!-- 模板信息-->
-			<el-row>
-				<el-col :span="12">
-					<div class="section d-flex">
-						<el-form-item label="模板名称：">
-							<el-input v-model="templatesName" style="width: 150px" />
-						</el-form-item>
-						<el-button type="primary" class="ml20" @click="saveInvoicesTemplates">保存模板</el-button>
-						<!-- <el-button>删除模板</el-button> -->
-					</div>
-					<div class="flex-1 pb-2" style="overflow-y: auto;max-height: 100px;">
-						<div :class="['b-0','radius10','mr-1','mt-1',invoicesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in invoiceTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
-							<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
-							<el-button class="icon-color-black" :style="{background: invoicesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
+				<!-- 模板信息-->
+				<el-row>
+					<el-col :span="12">
+						<div class="section d-flex">
+							<el-form-item label="模板名称：">
+								<el-input v-model="templatesName" style="width: 150px" />
+							</el-form-item>
+							<el-button type="primary" class="ml20" @click="saveInvoicesTemplates">保存模板</el-button>
+							<!-- <el-button>删除模板</el-button> -->
+						</div>
+						<div class="flex-1 pb-2" style="overflow-y: auto;max-height: 100px;">
+							<div :class="['b-0','radius10','mr-1','mt-1',invoicesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in invoiceTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
+								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
+								<el-button class="icon-color-black" :style="{background: invoicesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
+							</div>
+						</div>
+					</el-col>
+					<el-col :span="12">
+						<!-- 操作按钮 -->
+						<div class="action-btns">
+							<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
+							<el-button  @click="exportImg(2)">美元发票预览</el-button>
+							<el-button type="success" @click="submit">保存</el-button>
+							<el-button @click="openDetails">业务单据</el-button>
+						</div>
+					</el-col>
+				</el-row>
+			</el-form>
+			<div id="cost-confirmation-content_invoice" style="width: 1000px; padding: 20px; position: fixed;z-index: -1;top: -2000px;left: -1000px">
+				<div class="p-r">
+					<div class="flex j-center">
+						<div style="width: 600px;">
+							<img class="w-100" v-if="invoiceLogoType== 0" src="../assets/pu_invoice_logo.png">
+							<img class="w-100" v-else src="../assets/zhuan_invoice_logo.png">
 						</div>
 					</div>
-				</el-col>
-				<el-col :span="12">
-					<!-- 操作按钮 -->
-					<div class="action-btns">
-						<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
-						<el-button  @click="exportImg(2)">美元发票预览</el-button>
-						<el-button type="success" @click="submit">保存</el-button>
-						<el-button @click="openDetails">业务单据</el-button>
-					</div>
-				</el-col>
-			</el-row>
-		</el-form>
-		<div id="cost-confirmation-content_invoice" style="width: 1000px; padding: 20px; position: fixed;z-index: -1;top: -2000px;left: -1000px">
-			<div class="p-r">
-				<div class="flex j-center">
-					<div style="width: 600px;">
-						<img class="w-100" v-if="invoiceLogoType== 0" src="../assets/pu_invoice_logo.png">
-						<img class="w-100" v-else src="../assets/zhuan_invoice_logo.png">
+					<div class="p-a font-16" style="top: 30%;right: 20px;">
+						<div class="mb-2"><span class="color-800">发票号码：</span>{{exportiInvoiceNo}}</div>
+						<div><span class="color-800">开票日期：</span>{{form.invoice_date}}</div>
 					</div>
 				</div>
-				<div class="p-a font-16" style="top: 30%;right: 20px;">
-					<div class="mb-2"><span class="color-800">发票号码：</span>{{exportiInvoiceNo}}</div>
-					<div><span class="color-800">开票日期：</span>{{form.invoice_date}}</div>
-				</div>
-			</div>
-			<!-- 大表格定义边框4*4-->
-			<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
-				<div border class="wrapper">
-					<div class="flex flex-column">
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<div style="width: 40px;border-right: 1px solid #800;height: 100%;padding-top: 12px;" class="font-14 d-flex flex-column j-center a-center color-800">购<br />买<br />方<br />信<br />息</div>
-							<!-- 购买方信息 -->
-							<div class="flex-1 pt-1" style="box-sizing: border-box;">
-								<div class="section">
-									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<p>{{form.purchase_entity_id?COMPANY_HEADERS_LIST.filter(itemIndex => (itemIndex.id== form.purchase_entity_id))[0]?.company_name: ''}}</p>
-										<!-- <el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
-											<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
-												:value="item.id" place />
-										</el-select> -->
-									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<p>{{form.purchase_usc_code}}</p>
-										<!-- <el-input v-model="form.purchase_usc_code" disabled/> -->
-									</el-form-item>
+				<!-- 大表格定义边框4*4-->
+				<div style="width: 100%;overflow-x: auto;margin-bottom: 20px;">
+					<div border class="wrapper">
+						<div class="flex flex-column">
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<div style="width: 40px;border-right: 1px solid #800;height: 100%;padding-top: 12px;" class="font-14 d-flex flex-column j-center a-center color-800">购<br />买<br />方<br />信<br />息</div>
+								<!-- 购买方信息 -->
+								<div class="flex-1 pt-1" style="box-sizing: border-box;">
+									<div class="section">
+										<el-form-item label="名称：" class="society" style="width: 90%;">
+											<p>{{form.purchase_entity_id?COMPANY_HEADERS_LIST.filter(itemIndex => (itemIndex.id== form.purchase_entity_id))[0]?.company_name: ''}}</p>
+											<!-- <el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
+												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
+													:value="item.id" place />
+											</el-select> -->
+										</el-form-item>
+										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+											<p>{{form.purchase_usc_code}}</p>
+											<!-- <el-input v-model="form.purchase_usc_code" disabled/> -->
+										</el-form-item>
+									</div>
+								</div>
+								<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;padding-top: 10px;text-align: center;" class="font-14 color-800">销<br />售<br />方<br />信<br />息</div>
+								<div class="flex-1">
+									<!-- 销售方信息 -->
+									<div class="section pt-1">
+										<el-form-item label="名称：" class="society" style="width: 90%;">
+											<p>{{form.sale_entity_id?sellerOptions.filter(itemIndex => (itemIndex.id== form.sale_entity_id))[0]?.name: ''}}</p>
+											<!-- <el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
+												<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
+													:value="item.id" place />
+											</el-select> -->
+										</el-form-item>
+										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
+											<p>{{form.sale_usc_code}}</p>
+										</el-form-item>
+									</div>
 								</div>
 							</div>
-							<div style="width: 40px;border-right: 1px solid #800;border-left: 1px solid #800;padding-top: 10px;text-align: center;" class="font-14 color-800">销<br />售<br />方<br />信<br />息</div>
-							<div class="flex-1">
-								<!-- 销售方信息 -->
-								<div class="section pt-1">
-									<el-form-item label="名称：" class="society" style="width: 90%;">
-										<p>{{form.sale_entity_id?sellerOptions.filter(itemIndex => (itemIndex.id== form.sale_entity_id))[0]?.name: ''}}</p>
-										<!-- <el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
-											<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
-												:value="item.id" place />
-										</el-select> -->
-									</el-form-item>
-									<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
-										<p>{{form.sale_usc_code}}</p>
-									</el-form-item>
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<!-- <div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div> -->
+								<div style="vertical-align:top; width: 0" class="flex-1">
+									<!-- 项目明细表格 左侧 -->
+									<div class="w-100 section exportImg">
+										<el-table :data="tableData" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
+											:summary-method="getSummariesToTal">
+											<el-table-column type="index" width="50" align="center"></el-table-column>
+											<el-table-column prop="name" label="项目名称" width="" align="center">
+												<template #default="{row}">
+													<p>{{row.fee_type_id?FEE_TYPES_LIST_CNY.filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
+													<!-- <el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+														remote @change="changeFeeTypeCNY()">
+														<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+															:value="opt.id" />
+													</el-select> -->
+												</template>
+											</el-table-column>
+											<el-table-column label="规格型号" width="60" align="center"></el-table-column>
+											<el-table-column label="单位" width="100" align="center" prop="unit"></el-table-column>
+											<el-table-column label="数量" width="50" align="center" prop="quantity"></el-table-column>
+											<el-table-column label="单价" width="60" align="center"></el-table-column>
+											<el-table-column label="金额" width="200" align="center" prop="no_tax_amount"></el-table-column>
+											<el-table-column label="税率/征收率" width="50" align="center" prop="tax_rate"></el-table-column>
+											<el-table-column label="税额" width="200" align="center" prop="tax_amount"></el-table-column>
+										</el-table>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<!-- <div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币发票</div> -->
-							<div style="vertical-align:top; width: 0" class="flex-1">
-								<!-- 项目明细表格 左侧 -->
-								<div class="w-100 section exportImg">
-									<el-table :data="tableData" border style="width: 100%;font-size: 12px;" fit show-summary sum-text="合计"
-										:summary-method="getSummariesToTal">
-										<el-table-column type="index" width="50" align="center"></el-table-column>
-										<el-table-column prop="name" label="项目名称" width="" align="center">
-											<template #default="{row}">
-												<p>{{row.fee_type_id?FEE_TYPES_LIST_CNY.filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
-												<!-- <el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
-													remote @change="changeFeeTypeCNY()">
-													<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
-														:value="opt.id" />
-												</el-select> -->
-											</template>
-										</el-table-column>
-										<el-table-column label="规格型号" width="60" align="center"></el-table-column>
-										<el-table-column label="单位" width="100" align="center" prop="unit"></el-table-column>
-										<el-table-column label="数量" width="50" align="center" prop="quantity"></el-table-column>
-										<el-table-column label="单价" width="60" align="center"></el-table-column>
-										<el-table-column label="金额" width="200" align="center" prop="no_tax_amount"></el-table-column>
-										<el-table-column label="税率/征收率" width="50" align="center" prop="tax_rate"></el-table-column>
-										<el-table-column label="税额" width="200" align="center" prop="tax_amount"></el-table-column>
-									</el-table>
+							<div class="d-flex w-100 font-16" style="border-bottom: 1px solid #800;height: ;">
+								<!-- 人民币备注-->
+								<div style="width: 200px;border-right: 1px solid #800;" class="flex0 py-2 color-800 ">价税合计(大写)</div>
+								<div class="flex-1 flex2">
+									<div class="section mt-1 mx-1">
+									
+										<p>{{exportTotal}}</p>
+										<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
+									</div>
+									<p><span class="color-800 font-12">（小写）</span>￥{{exportTotalNum}}</p>
 								</div>
 							</div>
-						</div>
-						<div class="d-flex w-100 font-16" style="border-bottom: 1px solid #800;height: ;">
-							<!-- 人民币备注-->
-							<div style="width: 200px;border-right: 1px solid #800;" class="flex0 py-2 color-800 ">价税合计(大写)</div>
-							<div class="flex-1 flex2">
-								<div class="section mt-1 mx-1">
-								
-									<p>{{exportTotal}}</p>
-									<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
-								</div>
-								<p><span class="color-800 font-12">（小写）</span>￥{{exportTotalNum}}</p>
-							</div>
-						</div>
-						<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
-							<!-- 人民币备注-->
-							<div style="width: 40px;border-right: 1px solid #800;text-align: center;" class="py-2 color-800 font-14">备<br />注</div>
-							<div class="flex-1">
-								<div class="section mt-1 mx-1">
-									<p v-html="exportRemark"></p>
-									<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
+							<div class="d-flex w-100" style="border-bottom: 1px solid #800;">
+								<!-- 人民币备注-->
+								<div style="width: 40px;border-right: 1px solid #800;text-align: center;" class="py-2 color-800 font-14">备<br />注</div>
+								<div class="flex-1">
+									<div class="section mt-1 mx-1">
+										<p v-html="exportRemark"></p>
+										<!-- <el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="人民币备注" /> -->
+									</div>
 								</div>
 							</div>
 						</div>
@@ -363,6 +365,7 @@
 				</div>
 			</div>
 		</div>
+		<DocumentDetails v-model:visible="dialogFormVisibleDetails" :editId="form.order_id" :type="invoiceType"/>
 	</div>
 </template>
 
@@ -371,6 +374,7 @@
 	import { NumberToChinese, convertNumber, convertToMoney } from '@/utils/number-to-chinese.js';
 	import html2canvas from "html2canvas";
 	import userStore from "@/store/modules/user";
+	import DocumentDetails from "@/components/documentDetails/index";
 	import {
 		ref,
 		computed,
@@ -407,6 +411,7 @@ const Emit= defineEmits(['close'])
 	const rolesListCW= ['SUPER_ADMIN','FINANCE']
 	const disabledYWEdit= ref(false) 
 	const disabledCWEdit= ref(false) 
+	const dialogFormVisibleDetails= ref(false) 
 	const props = defineProps({
 		invoiceForm: {
 			type: [Object, Array],
@@ -452,11 +457,12 @@ const Emit= defineEmits(['close'])
 	        console.error('错误提示：', error)
 	    }
 	})
-
+	const invoiceType= ref(0)
 	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
 	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
 		  // 只有当弹框显示、数据加载完成且有类型时才执行
 		  if (isVisible && loaded) {
+			invoiceType.value= newType
 		    invoicesCurrent.value= 9999
 			templatesName.value= ''
 			form.value.invoice_type_id = ''
@@ -822,7 +828,7 @@ const Emit= defineEmits(['close'])
 		});
 	}
 	function openDetails(){
-		Emit('openDetails')
+		dialogFormVisibleDetails.value= true
 	}
 	// 保存模板
 	function saveInvoicesTemplates(){
@@ -1043,7 +1049,7 @@ const Emit= defineEmits(['close'])
 		z-index: 9999
 	}
 
-	:deep .el-form-item__label {
+	:deep .invoice-container .el-form-item__label {
 		color: #800;
 	}
 

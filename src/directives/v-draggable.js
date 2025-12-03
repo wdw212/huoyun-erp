@@ -1,40 +1,20 @@
-// v-draggable.js - 修复版本
+// v-draggable-transform.js - 修复版本
 export default {
-  mounted(el, binding, vnode) {
+  mounted(el, binding) {
     const options = binding.value || {};
     
-    // 创建拖拽手柄
     let handle;
     if (options.handle) {
       handle = el.querySelector(options.handle);
-    } else {
-      handle = document.createElement('div');
-      handle.className = 'drag-handle';
-      handle.style.cssText = `
-        height: 20px;
-        background: #f0f0f0;
-        cursor: grab;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        user-select: none;
-      `;
-      handle.innerHTML = '<span style="color: #666;">≡ 拖拽</span>';
-      el.insertBefore(handle, el.firstChild);
-      el._createdHandle = handle;
     }
     
-    // 存储拖拽相关数据和位置
+    // 存储拖拽数据
     el._draggable = {
       isDragging: false,
       startX: 0,
       startY: 0,
-      initialX: 0,
-      initialY: 0,
       currentX: 0,
-      currentY: 0,
-      hasMoved: false // 标记是否已经移动过
+      currentY: 0
     };
 
     const onMouseDown = (e) => {
@@ -42,18 +22,25 @@ export default {
       
       const dragData = el._draggable;
       dragData.isDragging = true;
+      
+      // 记录鼠标按下时的位置
       dragData.startX = e.clientX;
       dragData.startY = e.clientY;
       
-      // 获取元素当前位置
-      const rect = el.getBoundingClientRect();
-      dragData.initialX = rect.left;
-      dragData.initialY = rect.top;
+      // 获取元素当前的transform值
+      const transform = el.style.transform;
+      if (transform) {
+        const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+        if (match) {
+          dragData.currentX = parseFloat(match[1]) || 0;
+          dragData.currentY = parseFloat(match[2]) || 0;
+        }
+      }
       
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
       
-      handle.style.cursor = 'grabbing';
+      if (handle) handle.style.cursor = 'grabbing';
       el.style.userSelect = 'none';
       el.style.zIndex = '2171';
     };
@@ -62,54 +49,75 @@ export default {
       const dragData = el._draggable;
       if (!dragData.isDragging) return;
       
+      // 计算鼠标移动的距离
       const deltaX = e.clientX - dragData.startX;
       const deltaY = e.clientY - dragData.startY;
       
-      // 更新元素位置并保存当前位置
-      dragData.currentX = dragData.initialX + deltaX;
-      dragData.currentY = dragData.initialY + deltaY;
-      dragData.hasMoved = true;
+      // 计算新的位置（当前位置 + 移动距离）
+      const newX = dragData.currentX + deltaX;
+      const newY = dragData.currentY + deltaY;
       
-      el.style.position = 'fixed';
-      el.style.left = dragData.currentX + 'px';
-      el.style.top = dragData.currentY + 'px';
+      // 应用transform
+      el.style.transform = `translate(${newX}px, ${newY}px)`;
     };
 
     const onMouseUp = (e) => {
       const dragData = el._draggable;
-      dragData.isDragging = false;
+      if (dragData.isDragging) {
+        dragData.isDragging = false;
+        
+        // 更新当前位置
+        const transform = el.style.transform;
+        if (transform) {
+          const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+          if (match) {
+            dragData.currentX = parseFloat(match[1]) || 0;
+            dragData.currentY = parseFloat(match[2]) || 0;
+          }
+        }
+      }
       
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       
-      handle.style.cursor = 'grab';
+      if (handle) handle.style.cursor = 'grab';
       el.style.userSelect = '';
     };
 
-    handle.addEventListener('mousedown', onMouseDown);
+    if (handle) {
+      handle.addEventListener('mousedown', onMouseDown);
+      handle.style.cursor = 'grab';
+    }
     
-    // 存储事件处理函数以便清理
+    // 存储事件监听器以便清理
     el._onMouseDown = onMouseDown;
     el._onMouseMove = onMouseMove;
     el._onMouseUp = onMouseUp;
-
-    handle.style.cursor = 'grab';
+    
+    // 添加重置方法
+    el._resetDragPosition = () => {
+      const dragData = el._draggable;
+      dragData.currentX = 0;
+      dragData.currentY = 0;
+      el.style.transform = '';
+    };
   },
 
-  updated(el, binding, vnode) {
-    // 在组件更新后恢复位置
-    const dragData = el._draggable;
-    if (dragData && dragData.hasMoved && !dragData.isDragging) {
-      // 确保元素保持固定定位和最后的位置
-      el.style.position = 'fixed';
-      el.style.left = dragData.currentX + 'px';
-      el.style.top = dragData.currentY + 'px';
+  updated(el, binding) {
+    // 检查是否需要重置拖拽位置
+    const isHidden = el.style.top === '-2000px' || 
+                    el.style.left === '-1000px' || 
+                    el.classList.contains('hidden');
+    
+    if (isHidden && el._resetDragPosition) {
+      el._resetDragPosition();
     }
   },
 
-  unmounted(el, binding, vnode) {
+  unmounted(el) {
+    // 清理事件监听器
     if (el._onMouseDown) {
-      const handle = el._dragHandle || el.querySelector('.drag-handle');
+      const handle = el.querySelector('.custom-handle-image');
       if (handle) {
         handle.removeEventListener('mousedown', el._onMouseDown);
       }
@@ -118,15 +126,11 @@ export default {
     document.removeEventListener('mousemove', el._onMouseMove);
     document.removeEventListener('mouseup', el._onMouseUp);
     
-    if (el._createdHandle) {
-      el.removeChild(el._createdHandle);
-    }
-    
+    // 清理数据
     delete el._draggable;
-    delete el._dragHandle;
     delete el._onMouseDown;
     delete el._onMouseMove;
     delete el._onMouseUp;
-    delete el._createdHandle;
+    delete el._resetDragPosition;
   }
 }

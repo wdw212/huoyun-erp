@@ -15,7 +15,7 @@
 			<el-option v-for="item in DOCUMENT_USER" :key="item.id" :label="item.name" :value="item.id" />
 		</el-select> -->
 		<!-- 表格 -->
-		<<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
+		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
 			<template #headerCon></template>
 			<template #headerLeft> </template>
 			<template #headerRight>
@@ -212,7 +212,7 @@
 			// formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
 			seletData.value = options;
-			console.log(options,'options')
+			console.log(userStore,'userStore215')
 			console.log(seletData.value,'seletData.value')
 			// console.log('formListNew', formListNew, seletData.value)
 		})
@@ -424,6 +424,7 @@
 	function resetInfo() {
 		formListNew.value[2].formData[0].formItem[1].value = '';
 		formListNew.value[2].formData[0].formItem[1].remark = '';
+		formListNew.value[0].formData[0].formItem[14].disabled = true;
 		formListNew.value[0].formData[0].formItem[17].disabled = false;
 		formListNew.value[0].formData[0].formItem[20].disabled = false;
 		formListNew.value[0].formData[0].formItem[21].disabled = false;
@@ -444,7 +445,18 @@
 	
 	function saveDataShow(res, type) {
 		resetInfo();
-	
+		console.log(userStore.userRoleCode,'userStore.userRoleCode525')
+		console.log(formListNew.value[1].formData[0].formItem[1],'formListNew.value[1].formData[0].formItem[1]525')
+		if(userStore.userRoleCode=== 'OPERATE'){
+			formListNew.value[1].formData[0].formItem[1].noShow = false
+			formListNew.value[1].formData[0].formItem[2].noShow = false
+			formListNew.value[1].formData[0].formItem[3].noShow = false
+		}else{
+			formListNew.value[1].formData[0].formItem[1].noShow = true
+			formListNew.value[1].formData[0].formItem[2].noShow = true
+			formListNew.value[1].formData[0].formItem[3].noShow = true
+		}
+		
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
 		var defaultKey = ['insurance', 'is_delivery', 'is_finish', 'is_allowed'];  //保持默认不变的值
@@ -521,6 +533,7 @@
 			payment_status.value = 0;
 			proxy.$refs.boxInfo.addBox(true); //箱子数据
 		}
+		
 		updateKeyRemark(data);
 	}
 	//更新表单字段备注信息
