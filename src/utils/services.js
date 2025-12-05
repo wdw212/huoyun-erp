@@ -362,6 +362,7 @@ export const formList = ref([
 			formData: [
 				{
 					label: '',
+					disabled: true,
 					formItem: [
 						{
 							type: 'select',

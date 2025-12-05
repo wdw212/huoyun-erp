@@ -488,6 +488,8 @@ const Emit= defineEmits(['close'])
 				form.value.order_id= invoiceFormObj.value.order_id
 				form.value.sale_entity_id= invoiceFormObj.value.seller_id
 				form.value.job_no= invoiceFormObj.value.job_no
+				remarkCNY.value= ''
+				remarkUSD.value= ''
 				console.log(form.value,'form.value')		
 				changeSaleUscCode(form.value.sale_entity_id)
 			}else if(newType == 2){

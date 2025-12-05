@@ -462,6 +462,7 @@
 		var defaultKey = ['insurance', 'is_delivery', 'is_finish', 'is_allowed'];  //保持默认不变的值
 		for (var key in proxy.$refs.commonForm.saveData) {
 			if(!(type==2&&defaultKey.indexOf(key) > -1)){
+				console.log(type,'type465')
 				if (key.indexOf('.') > -1) {
 					var keys = key.split('.');
 					var keyData = res[keys[0]]?.[keys[1]] || '';
@@ -469,8 +470,10 @@
 				} else {
 					data[key] = res[key] === 0 ? '0' : res[key];
 				}
-				if (type == 2 && nullKey.indexOf(key) > -1) {
-					data[key] = '';
+				if (type == 2 && nullKey.indexOf(key) > -1) {userStore.userRoleCode=== 'OPERATE'
+					if(key!== 'commerce_user_id' || userStore.userRoleCode!== 'COMMERCE'){
+						data[key] = '';
+					}
 				}
 			}else{
 				data['insurance']= '0'

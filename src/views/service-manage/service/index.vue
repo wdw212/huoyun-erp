@@ -92,7 +92,6 @@
 							<el-button type="success" plain>费用未完结</el-button>
 							<el-button type="success" plain>账单未做</el-button>
 							<el-button type="primary" plain @click="toBillPage()">制作账单</el-button>
-							<el-button type="primary" plain @click="addAccount()">添加明细</el-button>
 						</div>
 					</template>
 					<template #AccountsPayable="{saveData,formList}">
@@ -149,9 +148,9 @@
 					</template>
 
 					<!-- 提单信息 -->
-				<!-- 	<template #billInfo>
+					<template #billInfo>
 						<BillForm ref="billForm" @saveBill="saveBill"></BillForm>
-					</template -->>
+					</template>
 
 					<!-- 文件上传 -->
 					<template #fileInfo>
@@ -172,7 +171,7 @@
 		</el-dialog>
 		<el-dialog v-model="billVisible" title="账单列表" width="80%" :close-on-click-modal="false">
 			<el-button type="primary" @click="handleAddBill()"> 新增 </el-button>
-			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" :toolbarRowReset='false' class="px-2" ref="tableListBill" :number="true" :multiple="false">
+			<table-list :tableConfig="tableConfigBill" :tableColumn="tableColumnBill" :toolbar="true" :toolbarRowReset='false' class="px-2" ref="tableListBill" :number="true" :multiple="false"  :show-summary="true" :summary-fields="['cny_amount','usd_amount']">
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
@@ -1178,12 +1177,8 @@
 			formatter: (row) => row.job_no || '无'
 		},
 		{
-			label: '委托抬头',
-			prop: 'company_name',
-			formatter: (row) => {
-				var company_name = row?.orderDelegationHeader?.company_header?.company_name || ''
-				return company_name
-			}
+			label: '委托公司',
+			prop: 'delegation_header',
 		},
 		{
 			label: '操作模式',
@@ -1192,10 +1187,6 @@
 		{
 			label: '提单号',
 			prop: 'bl_no'
-		},
-		{
-			label: '柜型',
-			prop: 'container_type'
 		},
 		{
 			label: '目的港',
@@ -1210,17 +1201,17 @@
 			prop: 'arrival_at'
 		},
 		{
-			label: '业务员',
-			prop: 'business_user.name'
+			label: '操作员',
+			prop: 'operate_user.name'
 		},
 		{
 			label: '提货',
-			prop: 'is_delivery',
+			prop: 'bl_status',
 			// formatter: (row) => row.is_delivery === 1 ? '已提货' : (row.is_delivery === 2 ?'超期未提货':'未提货'),
 			render: (row, index) => {
 				return [
 					h(ElButton, {
-							type: row.is_delivery == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
+							type: row.bl_status == 1 ?'success' : (row.is_delivery == 2 ?'danger':'warning'),
 							size: 'small',
 							onClick: () => {},
 							style: {
@@ -1228,14 +1219,42 @@
 							},
 							key: row.id
 						},
-						() => (row.is_delivery == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
+						() => (row.bl_status == 1 ? '已提货' : (row.is_delivery == 2 ?'超期未提货':'未提货'))
 					)
 				]
 			}
 		},
 		{
+			label: '应收人民币',
+			prop: 'receipt_total_cny_amount'
+		},
+		{
+			label: '兑付情况',
+			prop: 'receipt_cny_cashed_status'
+		},
+		{
+			label: '应收美金',
+			prop: 'receipt_total_usd_amount'
+		},
+		{
+			label: '兑付情况',
+			prop: 'receipt_usd_cashed_status'
+		},
+		{
+			label: '毛利润',
+			prop: 'gross_profit'
+		},
+		{
+			label: '特殊费用',
+			prop: 'special_fee'
+		},
+		{
+			label: '兑付情况',
+			prop: 'cashed_status'
+		},
+		{
 			label: '文件',
-			prop: 'file',
+			prop: 'order_files_count',
 			render: (row, index) => {
 				return [
 					h(ElButton, {
@@ -1253,28 +1272,9 @@
 			}
 		},
 		{
-			label: '费用完结',
-			prop: 'payment_status',
-			render: (row, index) => {
-				return [
-					h(ElButton, {
-							type: row.payment_status && row.payment_status == 1 ? 'success' : 'danger',
-							size: 'small',
-							onClick: () => {},
-							style: {
-								margin: '0px'
-							},
-							key: row.id
-						},
-						() => (row.payment_status && row.payment_status == 1 ? '已完结' : '未完结')
-					)
-				]
-			}
-		},
-		{
-			label: '归属时间',
-			prop: 'finish_at',
-			formatter: (row) => row.finish_at ? row.finish_at.substring(0,10) : ''
+			label: '开票时间',
+			prop: 'invoice_date',
+			formatter: (row) => row.invoice_date ? row.invoice_date.substring(0,10) : ''
 		},
 		{
 			label: '备注',
@@ -1328,11 +1328,7 @@
 	// 账单列表
 	const tableColumnBill = ref([{
 			label: '委托人',
-			prop: 'delegation_header_name',
-			formatter: (row) => {
-				var delegation_header_name = row.delegation_header?seletData.value.WTTT.filter(itemIndex => (itemIndex.id== row.delegation_header))[0]?.company_name:'无'
-				return delegation_header_name
-			}
+			prop: 'delegation_header',
 		},{
 			label: '工作编号',
 			prop: 'job_no',
@@ -2332,7 +2328,7 @@
 	    const imageData = canvas.toDataURL('image/png')
 	    const link = document.createElement('a')
 	    link.href = imageData
-	    link.download = `费用确认单_${new Date().toLocaleDateString()}.png`
+	    link.download = `${formBillTemplates.value.wordName}.png`
 	    link.click()
 	  } catch (error) {
 	    console.error('导出图片失败:', error)
