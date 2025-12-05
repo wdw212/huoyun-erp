@@ -217,13 +217,13 @@
 				let params= JSON.parse(JSON.stringify(form.value))
 				params.tax_rate= form.value.tax_rate?form.value.tax_rate/100: ''
 				if (form.value.id != null) {
-					updateData(form.value).then(response => {
+					updateData(params).then(response => {
 						proxy.$modal.msgSuccess("修改成功");
 						open.value = false;
 						getList();
 					});
 				} else {
-					addData(form.value).then(response => {
+					addData(params).then(response => {
 						proxy.$modal.msgSuccess("新增成功");
 						open.value = false;
 						getList();

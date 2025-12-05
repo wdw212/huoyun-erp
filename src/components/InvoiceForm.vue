@@ -26,7 +26,7 @@
 							<el-col :span="12">
 								<div class="section">
 									<el-form-item label="发票名称：" label-width="85px">
-										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable>
+										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable filterable>
 											<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
 												:value="item.id" />
 										</el-select>
@@ -49,7 +49,7 @@
 						<div class="section mb30" style="margin-left: 80px;">
 							<el-form-item label="单子完结">
 								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
-								<el-input v-model="form.commission" style="width: 150px; margin-left: 20px"
+								<el-input v-model="form.commission" type="number" style="width: 150px; margin-left: 20px"
 									:disabled="!form.is_finish" />
 							</el-form-item>
 							<el-form-item label="开票日期：">
@@ -68,7 +68,7 @@
 								<div class="flex-1 pt-1" style="box-sizing: border-box;">
 									<div class="section">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable>
+											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable>
 												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
 													:value="item.id" place />
 											</el-select>
@@ -83,7 +83,7 @@
 									<!-- 销售方信息 -->
 									<div class="section pt-1">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled>
+											<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled filterable>
 												<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
 													:value="item.id" place />
 											</el-select>
@@ -144,7 +144,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="人民币发票号：">
 															<el-input v-model="form.cny_invoice_no" style="width: 180px"
-																placeholder="" />
+																placeholder="" :disabled="[0,1,2].includes(type) "/>
 														</el-form-item>
 													</div>
 												</div>
@@ -201,7 +201,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="美金发票号：">
 															<el-input v-model="form.usd_invoice_no" style="width: 180px"
-																placeholder="" />
+																placeholder="" :disabled="[0,1,2].includes(type)" />
 														</el-form-item>
 													</div>
 												</div>
@@ -251,7 +251,7 @@
 						<div class="action-btns">
 							<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
 							<el-button  @click="exportImg(2)">美元发票预览</el-button>
-							<el-button type="success" @click="submit">保存</el-button>
+							<el-button type="success" @click="submit" v-if="!form.is_lock || form.is_lock== 0 || userStore.userRoleCode== 'SUPER_ADMIN'">保存</el-button>
 							<el-button @click="openDetails">业务单据</el-button>
 						</div>
 					</el-col>
@@ -373,7 +373,7 @@
 	import {timeto } from '@/utils/index';
 	import { NumberToChinese, convertNumber, convertToMoney } from '@/utils/number-to-chinese.js';
 	import html2canvas from "html2canvas";
-	import userStore from "@/store/modules/user";
+	import useUserStore from "@/store/modules/user";
 	import DocumentDetails from "@/components/documentDetails/index";
 	import {
 		ref,
@@ -396,6 +396,7 @@
 	} = getCurrentInstance();
 import { find } from 'lodash';
 const Emit= defineEmits(['close'])
+	const userStore = useUserStore()  //vuex缓存的用户信息
 	// 添加加载状态
 	const isSellerOptionsLoaded = ref(false)
 	const templatesName= ref('')
@@ -417,7 +418,7 @@ const Emit= defineEmits(['close'])
 			type: [Object, Array],
 			default: null
 		},
-		type: {  //0  业务默认展示  1  业务带参数战术
+		type: {  //0  业务默认展示 新增  1  业务带参数战术 新增   2 业务 查看详情
 			type: [Number, String],
 			default: 0,
 		},
@@ -450,7 +451,7 @@ const Emit= defineEmits(['close'])
 	})
 	onMounted(async () => {
 	    try {
-			// console.log(userStore().roles,'setKeyInfo')
+			console.log(userStore.userRoleCode,'setKeyInfo454')
 	        sellerOptions.value = await getXHDW()
 	        isSellerOptionsLoaded.value = true
 	    } catch (error) {
@@ -465,28 +466,38 @@ const Emit= defineEmits(['close'])
 			invoiceType.value= newType
 		    invoicesCurrent.value= 9999
 			templatesName.value= ''
-			form.value.invoice_type_id = ''
-			form.value.email = ''
-			form.value.remark = ''
-			form.value.tax_rate = ''
-			form.value.commission = ''
-			form.value.is_finish = false
-			form.value.purchase_entity_id = ''
-			form.value.purchase_usc_code = ''
-			form.value.sale_entity_id = ''
-			form.value.sale_usc_code = ''
-			form.value.cny_remark = ''
-			form.value.usd_remark = ''
-			form.value.invoice_date = ''
-			form.value.tax_amount = 0
-			form.value.cny_invoice_no = ''
-			form.value.usd_invoice_no = ''
-		    invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
-		    form.value.order_id= invoiceFormObj.value.order_id
-		    form.value.sale_entity_id= invoiceFormObj.value.seller_id
-		    form.value.job_no= invoiceFormObj.value.job_no
-		    console.log(form.value,'form.value')
-		    changeSaleUscCode(form.value.sale_entity_id)
+			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
+			if(newType== 0 || newType== 1){
+				form.value.id = ''
+				form.value.invoice_type_id = ''
+				form.value.email = ''
+				form.value.remark = ''
+				form.value.tax_rate = ''
+				form.value.commission = ''
+				form.value.is_finish = false
+				form.value.purchase_entity_id = ''
+				form.value.purchase_usc_code = ''
+				form.value.sale_entity_id = ''
+				form.value.sale_usc_code = ''
+				form.value.cny_remark = ''
+				form.value.usd_remark = ''
+				form.value.invoice_date = ''
+				form.value.tax_amount = 0
+				form.value.cny_invoice_no = ''
+				form.value.usd_invoice_no = ''
+				form.value.order_id= invoiceFormObj.value.order_id
+				form.value.sale_entity_id= invoiceFormObj.value.seller_id
+				form.value.job_no= invoiceFormObj.value.job_no
+				console.log(form.value,'form.value')		
+				changeSaleUscCode(form.value.sale_entity_id)
+			}else if(newType == 2){
+				form.value= JSON.parse(JSON.stringify(props.invoiceForm))
+				form.value.purchase_entity_id= form.value.purchase_entity_id? Number(form.value.purchase_entity_id): ''
+				form.value.sale_entity_id= form.value.sale_entity_id? Number(form.value.sale_entity_id): ''
+				console.log(form.value,'497')
+				// changeSaleUscCode(form.value.sale_entity_id)
+			}
+			
 		    showDefaultData(newType)
 		  }
 		
@@ -495,13 +506,30 @@ const Emit= defineEmits(['close'])
 	})
 	// 默认的选择
 	function showDefaultData(type){
+		if(type== 0){
+			tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+			tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+		}
 		if (type == 1) {
 			remarkCNY.value = invoiceFormObj.value.remark?invoiceFormObj.value.remark: ''
 			remarkUSD.value = invoiceFormObj.value.remark? invoiceFormObj.value.remark: ''
 			console.log(form.value.sale_entity_id,'form.value.sale_entity_id')
 			if (invoiceFormObj.value.orderBillItems.length > 0) {
-				tableDataCNY.value = []
-				tableDataUSD.value = []
+				
+				const hasCNY = invoiceFormObj.value.orderBillItems.some(item => item.currency === 'cny');
+				const hasUSD = invoiceFormObj.value.orderBillItems.some(item => item.currency === 'usd');
+				if(hasCNY){
+					tableDataCNY.value = []
+					tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				}else if(hasUSD){
+					tableDataUSD.value = []
+					tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				}else{
+					tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+					tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				}
+				console.log(hasCNY); // true
+				console.log(tableDataCNY.value,'tableDataCNY.value'); // true
 				invoiceFormObj.value.orderBillItems.forEach(item => {
 					if (item.currency == 'cny') {
 						item.amount = item.quantity * item.price
@@ -515,10 +543,22 @@ const Emit= defineEmits(['close'])
 				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 			}
+		}else if(type == 2){
+			remarkCNY.value= invoiceFormObj.value.cny_remark
+			remarkUSD.value= invoiceFormObj.value.usd_remark
+			if(invoiceFormObj.value.cny_invoice_items && invoiceFormObj.value.cny_invoice_items.length> 0){
+				tableDataCNY.value= invoiceFormObj.value.cny_invoice_items
+			}
+			if(invoiceFormObj.value.usd_invoice_items && invoiceFormObj.value.usd_invoice_items.length> 0){
+				tableDataUSD.value= invoiceFormObj.value.usd_invoice_items
+			}
 		}
+		// 业务的时间新增都清零
 		if(type== 0 || type == 1){
 			form.value.invoice_date= ''
-		}else{
+		}else if(type == 2){
+			
+		} else{
 			form.value.invoice_date= timeto(new Date().getTime(), 'ymd', '-')
 		}
 	}
@@ -603,7 +643,7 @@ const Emit= defineEmits(['close'])
 				fee_type_id: '',
 				unit: '',
 				quantity: null,
-				formattedValue: 0
+				amount: 0
 			})
 		}
 	}
@@ -812,20 +852,38 @@ const Emit= defineEmits(['close'])
 	}
 	// 保存
 	function submit(){
-		const data= {
-			...form.value,
-			cny_invoice_items: JSON.stringify(tableDataCNY.value),
-			usd_invoice_items: JSON.stringify(tableDataUSD.value),
-			cny_remark: remarkCNY.value,
-			usd_remark: remarkUSD.value,
-			is_finish: form.value.is_finish== true? 1: 0
+		if(!form.value.invoice_type_id){
+			proxy.$modal.msgWarning("请选择发票名称");
+			return false
 		}
-		httpPost(`/invoices`, data).then(res => {
-			console.log(res,'res111')
-			proxy.$modal.msgSuccess("保存成功!");
-			saveBillDataShow()
-			Emit('close')
-		});
+		if(!form.value.purchase_entity_id){
+			proxy.$modal.msgWarning("请选择购买方信息名称");
+			return false
+		}
+		const data = {
+		  ...form.value,
+		  ...(form.value.id && { id: form.value.id }), // 只有id有值时才会包含id字段
+		  cny_invoice_items: JSON.stringify(tableDataCNY.value),
+		  usd_invoice_items: JSON.stringify(tableDataUSD.value),
+		  cny_remark: remarkCNY.value,
+		  usd_remark: remarkUSD.value,
+		  is_finish: form.value.is_finish == true ? 1 : 0
+		}
+		console.log(data,'data851')
+		if(form.value.id){
+			httpPut(`/invoices/${data.id}`, data).then(res => {
+				proxy.$modal.msgSuccess("保存成功!");
+				saveBillDataShow()
+				Emit('close')
+			});
+		}else{
+			httpPost(`/invoices`, data).then(res => {
+				proxy.$modal.msgSuccess("保存成功!");
+				saveBillDataShow()
+				Emit('close')
+			});
+		}
+		
 	}
 	function openDetails(){
 		dialogFormVisibleDetails.value= true
@@ -838,6 +896,7 @@ const Emit= defineEmits(['close'])
 		}
 		const data= {
 			name: templatesName.value,
+			invoice_type_id: form.value.invoice_type_id,
 			email: form.value.email,
 			remark: form.value.remark,
 			cny_remark: remarkCNY.value,
@@ -873,6 +932,7 @@ const Emit= defineEmits(['close'])
 		if(invoicesCurrent.value == 9999 || invoicesCurrent.value!= index){
 			templatesName.value= item.name
 			invoicesCurrent.value= index
+			form.value.invoice_type_id= item.invoice_type_id
 			form.value.email= item.email
 			form.value.remark= item.remark
 			form.value.purchase_entity_id= item.purchase_entity_id? Number(item.purchase_entity_id):''
@@ -885,6 +945,7 @@ const Emit= defineEmits(['close'])
 		else{
 			invoicesCurrent.value= 9999
 			templatesName.value= ''
+			form.value.invoice_type_id= ''
 			form.value.email= ''
 			form.value.remark= ''
 			form.value.purchase_entity_id= ''

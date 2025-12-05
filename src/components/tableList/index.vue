@@ -19,7 +19,8 @@
 			:cell-class-name="(val)=>cellClassName(val)" 
 			:show-summary="showSummary"
 			@row-click="rowClick" @cell-click="cellClick"
-			style="font-size: 12px;">
+			style="font-size: 12px;"
+			:summary-method="getSummaries">
 			<el-table-column type="selection" width="55" align="center" v-if="multiple" />
 			<el-table-column label="序号" width="55" align="center" v-if="number" type="index"></el-table-column>
 			<template v-for="(item,index) in tableColumn" :key="index">
@@ -136,6 +137,15 @@
 		toolbarRowReset: {
 			type: Boolean,
 			default: true
+		},
+		summaryFields: {
+			type: Array,
+			default: () => ['']
+		},
+		summaryMethod: Function,
+		summaryText: {
+		  type: String,
+		  default: '合计'
 		}
 	})
 
@@ -346,6 +356,84 @@
 			)
 		}
 	})
+	
+	// 合计计算方法
+	const getSummaries = computed(() => {
+	  if (props.summaryMethod) {
+	    return props.summaryMethod
+	  }
+	  return (param) => defaultSummaryMethod(param)
+	})
+	
+	// 默认合计方法
+	const defaultSummaryMethod = ({ columns, data }) => {
+	  
+	  // 空数据检查
+	  if (!columns || columns.length === 0) {
+	    console.log('警告：列配置为空')
+	    return []
+	  }
+	  
+	  if (!data || data.length === 0) {
+	    console.log('警告：数据为空，显示空合计行')
+	    const sums = []
+	    columns.forEach((column, index) => {
+	      sums[index] = index === 0 ? props.summaryText : '0.00'
+	    })
+	    return sums
+	  }
+	  
+	  const sums = []
+	  const hasSummaryFields = props.summaryFields && props.summaryFields.length > 0
+	  
+	  columns.forEach((column, index) => {
+	    if (index === 0) {
+	      sums[index] = props.summaryText
+	      return
+	    }
+	    
+	    const field = column.property || column.prop || ''
+	    
+	    // 如果指定了 summaryFields，只合计指定字段
+	    if (hasSummaryFields && field) {
+	      if (!props.summaryFields.includes(field)) {
+	        // 非合计字段直接设为空字符串
+	        sums[index] = ''
+	        return
+	      }
+	    }
+	    
+	    // 检查是否应该计算合计
+	    const shouldCalculate = !hasSummaryFields || (field && props.summaryFields.includes(field))
+	    
+	    if (!shouldCalculate) {
+	      sums[index] = ''
+	      return
+	    }
+	    
+	    // 计算合计值
+	    const values = data.map(item => {
+	      const val = item[field]
+	      // 多种类型处理
+	      if (val === null || val === undefined) return 0
+	      if (typeof val === 'number') return val
+	      if (typeof val === 'string') {
+	        // 去除逗号、空格等
+	        const num = parseFloat(val.replace(/,/g, '').trim())
+	        return isNaN(num) ? 0 : num
+	      }
+	      return 0
+	    })
+	    
+	    const sum = values.reduce((prev, curr) => prev + curr, 0)
+	    
+	    // 总是显示数字格式，即使和为0
+	    sums[index] = sum.toFixed(2)
+	  })
+	  
+	  console.log('合计结果:', sums)
+	  return sums
+	}
 </script>
 
 <style scoped>

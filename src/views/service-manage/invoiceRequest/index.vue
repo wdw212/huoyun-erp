@@ -16,7 +16,8 @@
 		</el-select> -->
 		<!-- 表格 -->
 		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2" :number="true">
+		class="px-2" :number="true" ref="tableList" :show-summary="true"
+            :summary-fields="['tax_rate']">
 			<template #headerLeft> </template>
 			<template #headerRight>
 				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1">新增</el-button>
@@ -24,9 +25,9 @@
 		</table-list>
 		
 		<!-- 单据详情 -->
-		<el-dialog v-model="dialogFormVisible" title="申请开票" width="80%" :close-on-click-modal="false">
+		<el-dialog v-model="dialogFormVisibleInvoiceFormDetails" title="申请开票" width="80%" :close-on-click-modal="false" style="z-index: 3000;"  @close="closeInvoiceFormBtn">
 			<!-- <el-card> -->
-				<InvoiceForm />
+				<InvoiceForm :invoiceForm="invoiceForm" :type="invoiceType" @close="closeInvoiceForm" ref="invoiceFormRef" :visible="dialogFormVisibleInvoiceFormDetails" />
 			<!-- </el-card> -->
 		</el-dialog>
 		
@@ -50,6 +51,9 @@
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
 	import InvoiceForm from '../../../components/InvoiceForm.vue'
+	import {
+		ElButton
+	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
 	
 	const dialogFormVisible = ref(false);
@@ -111,20 +115,33 @@
 	
 	/** 查询列表 */
 	const tableColumn = ref([
-		{label: '开票数据',prop: 'job_no'},
-		{label: '名称',prop: 'origin_port'},
-		{label: '销货单位',prop: 'destination_port'},
-		{label: '发票类型',prop: 'shipping_company'},
-		{label: '单子完结',prop: 'bl_no'},
-		{label: '人民币金额',prop: 'container_type'},
-		{label: '人民币发票',prop: 'sailing_schedule'},
-		{label: '美金金额',prop: 'sailing_at'},
-		{label: '美金发票',prop: 'arrival_at'},
-		{label: '申请时间',prop: 'finish_at'},
-		{label: '需寄发票',prop: 'operation_user.name'},
-		{label: '寄件分类',prop: 'business_user.name'},
-		{label: '快递单号',prop: 'business_user.name'},
-		{label: '确认开票时间',prop: 'business_user.name'},
+		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order.job_no || '无'},
+		{label: '开票抬头',prop: 'purchase_entity.name'},
+		{label: '销货单位',prop: 'sale_entity.name'},
+		{label: '发票类型',prop: 'invoice_type.name'},
+		{label: '税额',prop: 'tax_rate'},
+		{label: '单子完结',prop: 'is_finish_name',
+			render: (row, index) => {
+				return [
+					h(ElButton, {
+							type: row?.order?.is_finish== 1? 'success' : 'danger',
+							size: 'small',
+							onClick: () => {},
+							style: {
+								margin: '0px'
+							},
+							key: row.id
+						},
+						() => (row?.order?.is_finish== 1?'已完结': '未完结')
+					)
+				]
+			}},
+		{label: '人民币金额',prop: 'total_cny_amount'},
+		{label: '人民币发票',prop: 'cny_invoice_no'},
+		{label: '美金金额',prop: 'total_usd_amount'},
+		{label: '美金发票',prop: 'usd_invoice_no'},
+		{label: '申请时间',prop: 'created_at'},
+		{label: '确认开票时间',prop: 'confirm_at'},
 		{ 
 			label: '操作',
 			prop: 'actions',
@@ -136,7 +153,7 @@
 				{
 					label: '删除',
 					type: 'danger',
-					onClick: (row) => handleDelete(row)
+					onClick: (row, index) => handleDelete(row, index)
 				},
 			],
 			fixed: "right",
@@ -182,15 +199,33 @@
 			addDelegation();
 		}, 200)
 	}
+	const invoiceType= ref(2)
+	const dialogFormVisibleInvoiceFormDetails= ref(false)
+	const invoiceForm= ref(null)
 	// 编辑操作处理方法
 	const handleEdit = (row) => {
-		httpGet(`/orders/${row.id}`).then(res => {
-			dialogFormVisible.value = true;
-			editId.value = row.id;
-			setTimeout(function() {
-				saveDataShow(res, 1);
-			}, 500)
+		httpGet(`/invoices/${row.id}`).then(res => {
+			console.log(row,'invoiceForm.value1')
+			invoiceType.value= 2
+			invoiceForm.value = {
+			  ...res,
+			  job_no: row.order.job_no,
+			};
+			console.log(invoiceForm.value,'invoiceForm.value2')
+			dialogFormVisibleInvoiceFormDetails.value = true
+			
 		});
+	}
+	function closeInvoiceFormBtn(){
+		dialogFormVisibleInvoiceFormDetails.value= false
+		console.log(proxy.$refs.invoiceFormRef,'proxy.$refs.invoiceForm2195')
+	}
+	const closeInvoiceForm = () =>{
+		console.log(proxy.$refs.invoiceForm,'proxy.$refs.invoiceForm2183')
+		dialogFormVisibleInvoiceFormDetails.value= false
+		invoiceForm.value= null
+		
+		
 	}
 	//单据复制
 	function handleCopy(row) {
@@ -297,8 +332,9 @@
 	function handleDelete(row, index) {
 		const _ids = row.id || deleteIds.value;
 		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
-			return httpDelete('/orders/' + _ids);
+			return httpDelete('/invoices/' + _ids);
 		}).then(() => {
+			console.log(336)
 			proxy.$refs.tableList.getList();
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});

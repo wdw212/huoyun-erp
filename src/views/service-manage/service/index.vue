@@ -568,7 +568,8 @@
 		<!-- 单据详情 -->
 		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票列表" width="80%" :close-on-click-modal="false">
 			<el-button type="primary" @click="handleAddInvoiceForm()"> 新增 </el-button>
-			<table-list :tableConfig="tableConfigInvoiceForm" :tableColumn="tableColumnInvoiceForm" :toolbar="true" class="px-2" ref="tableListInvoiceForm" :number="true" :multiple="false">
+			<table-list :tableConfig="tableConfigInvoice" :tableColumn="tableColumnInvoice" :toolbar="true" :toolbarRowReset='false' class="px-2" ref="tableListInvoiceForm" :number="true" :multiple="false"  :show-summary="true"
+            :summary-fields="['tax_rate', 'total_cny_amount', 'total_usd_amount']">
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
@@ -590,10 +591,10 @@
 		    }"
 		  >
 			<div class="d-flex j-end pr-2 pt-1" v-if="isNowImageOrPdf === 1">
+				<el-button type="primary" @click="handleExportImage">生成图片</el-button>
 			      <el-button @click="cancelBillImage">关 闭</el-button>
 			    </div>
 			    <div 
-			      class="custom-handle-image" 
 			      id="cost-confirmation-content" 
 			      :style="{
 			        padding: '40px',
@@ -602,7 +603,7 @@
 			      }"
 				  @mousedown.prevent
 			    >
-				<div class=" w-100">
+				<div class=" w-100 custom-handle-image ">
 					<div class="flex1">
 						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
 						<p class="font-32 font-w">Logistics & Services</p>
@@ -919,6 +920,8 @@
 	}
 	// 点击申请开票详情
 	function handleAddInvoiceForm(){
+		console.log(invoiceForm.value,'922')
+		invoiceType.value = 0;
 		dialogFormVisibleInvoiceFormDetails.value= true
 	}
 	// 制作账单
@@ -1309,7 +1312,7 @@
 				},
 				{
 					label: '申请开票',
-					onClick: (row, index) => handleApply(row, index)
+					onClick: (row, index) => handleInvoiceList(row, index)
 				}
 				
 			],
@@ -1337,8 +1340,8 @@
 		},
 		{
 			label: '合同号',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
+			prop: 'contract_no',
+			formatter: (row) => row.contract_no || '无'
 		},{
 			label: '人民币金额',
 			prop: 'cny_amount',
@@ -1372,76 +1375,56 @@
 		requestMethod: httpGet,
 		isQuery: false
 	})
-	const tableConfigInvoiceForm= ref([{
-			label: '开票单据',
-			prop: 'delegation_header_name',
-			formatter: (row) => row.job_no || '无'
-		},{
-			label: '开票抬头',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
-		},
-		{
-			label: '销货单位',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
-		},{
-			label: '发票类型',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
-		},{
-			label: '税点',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
-		},{
-			label: '单子完结',
-			prop: 'job_no',
-			formatter: (row) => row.job_no || '无'
-		},{
-			label: '人民币金额',
-			prop: 'cny_amount',
-			formatter: (row) => row.cny_amount || '无'
-		},{
-			label: '人民币发票号',
-			prop: 'cny_amount',
-			formatter: (row) => row.cny_amount || '无'
-		},{
-			label: '美金金额',
-			prop: 'usd_amount',
-			formatter: (row) => row.usd_amount || '无'
-		},{
-			label: '美金发票号',
-			prop: 'cny_amount',
-			formatter: (row) => row.cny_amount || '无'
-		},{
-			label: '申请时间',
-			prop: 'created_at',
-			formatter: (row) => row.created_at || '无'
-		},{
-			label: '确认开票时间',
-			prop: 'created_at',
-			formatter: (row) => row.created_at || '无'
-		},{
+	const tableColumnInvoice= ref([
+		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order.job_no || '无'},
+		{label: '开票抬头',prop: 'purchase_entity.name'},
+		{label: '销货单位',prop: 'sale_entity.name'},
+		{label: '发票类型',prop: 'invoice_type.name'},
+		{label: '税额',prop: 'tax_rate'},
+		{label: '单子完结',prop: 'is_finish_name',
+		render: (row, index) => {
+			return [
+				h(ElButton, {
+						type: row?.order?.is_finish== 1? 'success' : 'danger',
+						size: 'small',
+						onClick: () => {},
+						style: {
+							margin: '0px'
+						},
+						key: row.id
+					},
+					() => (row?.order?.is_finish== 1?'已完结': '未完结')
+				)
+			]
+		}},
+		{label: '人民币金额',prop: 'total_cny_amount'},
+		{label: '人民币发票',prop: 'cny_invoice_no'},
+		{label: '美金金额',prop: 'total_usd_amount'},
+		{label: '美金发票',prop: 'usd_invoice_no'},
+		{label: '申请时间',prop: 'created_at'},
+		{label: '确认开票时间',prop: 'confirm_at'},
+		{ 
 			label: '操作',
 			prop: 'actions',
-			actions: [{
+			actions: [
+				{
 					label: '查看详情',
-					onClick: (row, index) => handleDetails(row, index)
+					onClick: (row) => handleInvoiceEdit(row)
 				},
 				{
-						label: '删除',
-						type: 'danger',
-						onClick: (row, index) => handleDeleteBill(row, index)
-					}
+					label: '删除',
+					type: 'danger',
+					onClick: (row, index) => handleInvoiceDelete(row, index)
+				},
 			],
 			fixed: "right",
 			width: '190px'
 		}])
-	const tableColumnInvoiceForm = ref({
+	const tableConfigInvoice= ref({
 		url: '/invoices',
 		requestMethod: httpGet,
-		isQuery: true
-	})
+		isQuery: false
+	})	
 	const payment_status = ref(0); //费用完结状态
 	const changePaymentStatus = () => {   //修改费用完结状态
 		if(payment_status.value==1){
@@ -1487,31 +1470,66 @@
 		});
 	}
     // 申请开票
-	const handleApply = async (row) => {
+	const handleInvoiceList = async (row) => {
+		
 	  try {
+		tableConfigInvoice.value.data= {order_id: row.id}
+		tableConfigInvoice.value.isQuery= true
+	    //  获取订单详情
+	    const res = await httpGet(`/orders/${row.id}`);
 	    
-	    const res = await httpGet(`/orders/${row.id}`)
-	    
-	    // 使用 Object.assign 确保响应式更新
-	    invoiceForm.value = Object.assign({}, invoiceForm.value, {
+	   
+	    //  设置发票表单数据
+	    invoiceForm.value = {
+	      ...invoiceForm.value, // 保留原有属性
 	      order_id: row.id,
 	      job_no: res.job_no,
-	      seller_id: res.order_delegation_header.seller_id
-	    })
+	      seller_id: res.order_delegation_header?.seller_id // 使用可选链防止错误
+	    };
 	    
-	    invoiceType.value = 0
-	    editId.value = row.id
+	    //  设置其他状态
+	    invoiceType.value = 0;
+	    editId.value = row.id;
 	    
-	    // 使用 nextTick 确保DOM更新
-	    await nextTick()
-		console.log(invoiceForm.value,'invoiceForm.value')
-	    dialogFormVisibleInvoiceForm.value = true
+	    //  等待DOM更新后显示对话框
+	    await nextTick();
+	    
+	    console.log('发票表单数据:', invoiceForm.value);
+	    
+	    //  显示对话框
+	    dialogFormVisibleInvoiceForm.value = true;
 	    
 	  } catch (error) {
-	    console.error('获取订单数据失败:', error)
-	    // 即使失败也显示对话框进行测试
-	    dialogFormVisibleInvoiceForm.value = true
+	    console.error('获取订单数据失败:', error);
+	    
+	    // 如果获取订单失败，仍然可以设置基本数据并显示对话框
+	    invoiceForm.value = {
+	      ...invoiceForm.value,
+	      order_id: row.id,
+	      // 其他字段可以设为默认值或空
+	      job_no: '',
+	      seller_id: ''
+	    };
+	    
+	    invoiceType.value = 0;
+	    editId.value = row.id;
+		
+		
+		console.log('发票查询配置:', tableConfigInvoice.value);
+	    dialogFormVisibleInvoiceForm.value = true;
 	  }
+	}
+	// 查看详情--发票
+	const invoiceFormDetails= ref(null)
+	function handleInvoiceEdit(row){
+		httpGet(`/invoices/${row.id}`).then(res => {
+			invoiceType.value= 2
+			dialogFormVisibleInvoiceFormDetails.value = true
+			invoiceForm.value = {
+			  ...invoiceForm.value,
+			  ...res
+			};
+		});
 	}
 	//单据复制
 	function handleCopy(row) {
@@ -1525,17 +1543,30 @@
 	}
 	
 	// 帐单列表
-	function handleBillList(row){
-		console.log(row,'row')
-		billVisible.value = true;
-		editId.value= row.id
-		tableConfigBill.value.data= {order_id: row.id}
-		httpGet(`/orders/${row.id}`).then(res => {
-			tableConfigBill.value.isQuery= true
-			setTimeout(function() {
-				saveDataBillAdd.value= res
-			}, 500)
-		});
+	const handleBillList = async (row) => {
+	  try {
+	    console.log('当前行数据:', row);
+	    
+	    // 1. 显示对话框
+	    billVisible.value = true;
+	    
+	    // 2. 设置编辑ID
+	    editId.value = row.id;
+	    // 3. 设置账单查询配置
+	    tableConfigBill.value.data= {order_id: row.id}
+	    tableConfigBill.value.isQuery= true
+	    
+	    // 4. 获取订单详情
+	    const res = await httpGet(`/orders/${row.id}`);
+	    
+	    // 5. 设置账单数据（去掉setTimeout延迟）
+	    saveDataBillAdd.value = res;
+	    
+	  } catch (error) {
+	    console.error('获取账单数据失败:', error);
+	    // 这里可以添加错误提示，但仍然显示对话框
+	    billVisible.value = true;
+	  }
 	}
 
 	function resetInfo() {
@@ -1648,6 +1679,17 @@
 			return httpDelete('/order-bills/' + _ids);
 		}).then(() => {
 			proxy.$refs.tableListBill.getList();
+			proxy.$modal.msgSuccess("删除成功");
+		}).catch(() => {});
+	}
+	// 删除发票
+	function handleInvoiceDelete(row, index){
+		const _ids = row.id || deleteIds.value;
+		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+			return httpDelete('/invoices/' + _ids);
+		}).then(() => {
+			tableConfigInvoice.value.data= {order_id: editId.value}
+			tableConfigInvoice.value.isQuery= true
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
@@ -2178,13 +2220,15 @@
 		const selectedItems = checkListName.value
 		  .filter(item => invoiceForm.value.checkList.includes(item.value))
 		  .map(item => {
-			  // if(item.value== 'delegation_header' && formBill.value.delegation_header){
-				 //  const delegation_header_name= seletData.value.WTTT.filter(itemIndex => (itemIndex.id== formBill.delegation_header))[0]?.company_name
-				 //  return `${item.label}${delegation_header_name}`
-			  // }else{
-				 //  return `${item.label}${item.valueformBill[item.value]}`
-			  // }
-			   return `${item.label}${formBill.value[item.value]?formBill.value[item.value]:''}`
+			  if(item.value== 'sailing_at' && formBill.value.sailing_at){
+				  const sailing_at= formBill.value.sailing_at.substring(0,10)
+				  return `${item.label}${sailing_at}`
+			  }else if(item.value== 'arrival_at' && formBill.value.arrival_at){
+				  const arrival_at= formBill.value.arrival_at.substring(0,10)
+				  return `${item.label}${arrival_at}`
+			  }else{
+				  return `${item.label}${formBill.value[item.value]?formBill.value[item.value]:''}`
+			  }
 		  })
 		  .join('\n');
 		
@@ -2242,6 +2286,11 @@
 		invoiceForm.value.orderBillContainers= []
 		invoiceForm.value.checkList= []
 		invoiceForm.value.remark= ''
+		invoiceForm.value.id= ''
+		console.log(invoiceType.value,'invoiceType.value')
+		if(invoiceType.value== 0 || invoiceType.value== 2){
+			handleInvoiceList({id: editId.value})
+		}
 	}
 	
 	function closeInvoiceFormBtn(){
@@ -2269,6 +2318,25 @@
 	  // } catch (error) {
 	  //   console.error('导出图片失败:', error)
 	  // }
+	}
+	const handleExportImage= async () => {
+	  try {
+	    const element = document.getElementById('cost-confirmation-content')
+	    
+	    const canvas = await html2canvas(element, {
+	      scale: 2,
+	      useCORS: true,
+	      backgroundColor: '#ffffff'
+	    })
+	    
+	    const imageData = canvas.toDataURL('image/png')
+	    const link = document.createElement('a')
+	    link.href = imageData
+	    link.download = `费用确认单_${new Date().toLocaleDateString()}.png`
+	    link.click()
+	  } catch (error) {
+	    console.error('导出图片失败:', error)
+	  }
 	}
 	// 如果需要显示时也重置位置
 	const showBillImage = () => {

@@ -550,7 +550,11 @@
 		if(data.actual_arrival_at){
 			formListNew.value[0].formData[0].formItem[21].disabled = true;
 		}
-		payment_status.value = res.payment_status || 0;
+		if(type== 1){
+			payment_status.value = res.payment_status || 0;
+		}else{
+			payment_status.value =  0;
+		}
 		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
 		
 		//提单信息
