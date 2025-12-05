@@ -116,11 +116,11 @@
 					</template>
 					
 					<!-- 开票合计 -->
-					<template #invoiceTotal>
+					<!-- <template #invoiceTotal>
 						<table-list :tableConfig="tableConfigInvoiceTot" :tableColumn="tableColumnInvoiceTot"
 						:toolbar="false" :multiple="false" ref="invoiceTotal" border>
 						</table-list>
-					</template>
+					</template> -->
 					
 				</common-form>
 			</el-card>
@@ -169,10 +169,12 @@
 	function accountInit() {
 		AccountsColumn.value[4].noShow = true;
 		AccountsColumn.value[7].noShow = true;
-		AccountsColumn.value[3].form.disabled = true;
-		AccountsColumn.value[6].form.disabled = true;
+		AccountsColumn.value[3].form.disabled = false;
+		AccountsColumn.value[6].form.disabled = false;
 		AccountsColumn.value[8].noShow = true;
 		
+		PaymentColumn.value[3].noShow = false;
+		PaymentColumn.value[6].noShow = false;
 		PaymentColumn.value[7].noShow = {
 			label: '操作',
 			prop: 'actions',
@@ -191,10 +193,10 @@
 		keyStatus(formList.value, '操作单据', function(form, options) {
 			formListNew.value = form;
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
-			formListNew.value[5].formData[3] = {
-				label: '开票合计 ( 以下单位均为人民币 )',
-				soltName: 'invoiceTotal',
-			};
+			// formListNew.value[5].formData[3] = {
+			// 	label: '开票合计 ( 以下单位均为人民币 )',
+			// 	soltName: 'invoiceTotal',
+			// };
 			loading.value = false;
 			seletData.value = options;
 			// console.log('seletData.value', seletData.value)
@@ -360,7 +362,7 @@
 			dialogFormVisible.value = true;
 			editId.value = row.id;
 			setTimeout(function(){
-				proxy.$refs.invoiceTotal.updateTableData(invoiceData.value);
+				// proxy.$refs.invoiceTotal.updateTableData(invoiceData.value);
 				
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
@@ -371,7 +373,7 @@
 				proxy.$refs.accountTable.updateTableData(res.order_payments);
 				proxy.$refs.fileInfo.dafultFile(res.order_files);  //文件
 				proxy.$refs.paymentTable.updateTableData([]);
-				// addPayment();
+				addPayment();
 			}, 500)
 		});
 	}
@@ -442,7 +444,8 @@
 		isQuery: false
 	})
 	const addPayment = () => {
-		proxy.$refs.paymentTable.tableData.push({
+		var tableData = proxy.$refs.paymentTable.state.tableData;
+		var data = {
 			company_header_id: '',
 			no_invoice_remark: '',
 			cny_amount: '',
@@ -451,7 +454,9 @@
 			usd_amount: '',
 			usd_invoice_number: '',
 			usd_is_cashed: 0
-		});
+		}
+		tableData.push(data);
+		proxy.$refs.paymentTable.updateTableData(tableData);
 	}
 	const paymentDelete = (row) => {
 		const rowIndex = proxy.$refs.paymentTable.tableData.findIndex(item => item === row);

@@ -52,21 +52,21 @@
 															:style="vv.style||'width:100%'"
 															:placeholder="vv.placeholder||'请输入'"
 															:clearable="vv.clearable"
-															@input="changeValue($event, vv)" :disabled="vv.disabled"/>
+															@input="changeValue($event, vv)" :disabled="vv.disabled||item.disabled"/>
 														</template>
 														<template v-if="vv.type=='textarea'">
 															<el-input v-model="saveData[vv.key]" type="textarea"
 															:resize="vv.resize||'vertical'"
 															:style="vv.style" :rows="4"
 															:placeholder="vv.placeholder||'请输入'"
-															@input="changeValue($event, vv)" :disabled="vv.disabled"/>
+															@input="changeValue($event, vv)" :disabled="vv.disabled||item.disabled"/>
 														</template>
 														<template v-if="vv.type=='date'">
 															<el-date-picker v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
 															:placeholder="vv.placeholder" 
 															:clearable="vv.clearable"
 															:value-format="vv.valueFormat||'YYYY-MM-DD'" 
-															:type="vv.dateType||'daterange'" :disabled="vv.disabled"
+															:type="vv.dateType||'daterange'" :disabled="vv.disabled||item.disabled"
 															:start-placeholder="vv.startPlaceholder||'开始时间'" 
 															:end-placeholder="vv.endPlaceholder||'结束时间'" 
 															:range-separator="vv.rangeSeparator||'-'"  
@@ -79,7 +79,7 @@
 															:value-format="vv.valueFormat||'YYYY-MM-DD HH:mm'" 
 															:format="vv.format||'YYYY-MM-DD HH:mm'" 
 															time-format="HH:mm"
-															:type="vv.dateType||'datetime'" :disabled="vv.disabled"
+															:type="vv.dateType||'datetime'" :disabled="vv.disabled||item.disabled"
 															:start-placeholder="vv.startPlaceholder||'开始时间'" 
 															:end-placeholder="vv.endPlaceholder||'结束时间'" 
 															:range-separator="vv.rangeSeparator||'-'"  
@@ -89,7 +89,7 @@
 															<el-select v-model="saveData[vv.key]" :style="vv.style||'width:100%'"
 															:placeholder="vv.placeholder||'请选择'"
 															:clearable="vv.clearable"
-															:disabled="vv.disabled"
+															:disabled="vv.disabled||item.disabled"
 															:filterable="vv.filterable"
 															@change="changeValue($event, vv)">
 																<el-option v-for="v in vv.options" 
@@ -101,7 +101,7 @@
 														<template v-if="vv.type=='selectSearch'">
 															<el-select v-model="saveData[vv.key]" filterable
 															:style="vv.style||'width:100%'"
-															:disabled="vv.disabled"
+															:disabled="vv.disabled||item.disabled"
 															:clearable="vv.clearable"
 															:multiple="vv.multiple" remote
 															:placeholder="vv.placeholder||'请选择'"

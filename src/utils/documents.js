@@ -389,16 +389,16 @@ export const amountFormDoc = ref([
 
 //财务单据合计信息
 export const amountFormFin = ref([
-	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24 },
-	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', span: 12 },
-	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'title2', span: 12, options: optionsComm['兑付'],clearable: false, defaultValue: 0 },
-	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'title2', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'title3', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', span: 12, disabled: true },
+	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24, placeholder: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', placeholder: '0.00', span: 12 },
+	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'title2', placeholder: '0.00', span: 12, options: optionsComm['兑付'],clearable: false, defaultValue: 0 },
+	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
 	{ key: 'title2', span: 6, soltName: '发票未开' },
 	{ type: 'input', labelWidth: '200px',key: 'title2', span: 6, placeholder: '当月美金汇率：0', disabled: true },
 ])
@@ -409,6 +409,7 @@ export const formList = ref([
 		formData: [
 			{
 				label: '',
+				// disabled: true,  //整个板块的表单框禁用
 				formItem: [
 					{
 						type: 'select',
