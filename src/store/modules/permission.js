@@ -174,6 +174,18 @@ const routerList = [{
 			name: "OperatingDocuments",
 			path: "operatingDocuments",
 		},
+		{
+			component: "operation-page/operation-platform/index",
+			hidden: false,
+			meta: {
+				icon: "edit",
+				link: null,
+				noCache: false,
+				title: "操作平台"
+			},
+			name: "OperatingPlatform",
+			path: "operatingPlatform",
+		},
 	],
 	component: "Layout",
 	hidden: false,
