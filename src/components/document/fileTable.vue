@@ -1,8 +1,9 @@
 <template>
 	<div>
 		<el-upload ref="uploadRef" :action="baseUrl + '/uploads/file'" v-model:file-list="order_files"
-			:on-change="handleFilesChange" :auto-upload="false" multiple :show-file-list="false"
-			:on-success="handleUploadSuccess" :on-error="handleUploadError" :http-request="uploadRequest">
+		:on-change="handleFilesChange" :auto-upload="false" multiple :show-file-list="false"
+		:on-success="handleUploadSuccess" :on-error="handleUploadError" :http-request="uploadRequest"
+		v-if="props.isEdit">
 			<el-button type="primary">点击上传</el-button>
 		</el-upload>
 
@@ -27,14 +28,15 @@
 			<el-table-column label="操作" align="center" width="280" class-name="small-padding">
 				<template #default="scope">
 					<el-button type="success" size="small" v-if="order_files[scope.$index].status === 'success'"
-						@click="toUploadFile(fileList[scope.$index].url)">查看详情</el-button>
+					@click="toUploadFile(fileList[scope.$index].url)">查看详情</el-button>
 					<el-button plain type="danger" size="small" icon="Delete"
-						@click="removeFile(scope.$index)">删除</el-button>
+					@click="removeFile(scope.$index)" v-if="props.isEdit">删除</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
 
-		<el-button style="margin-top: 20px;" type="success" @click="submitUploadFiles">确定上传</el-button>
+		<el-button style="margin-top: 20px;" type="success" 
+		@click="submitUploadFiles" v-if="props.isEdit">确定上传</el-button>
 	</div>
 </template>
 
@@ -53,6 +55,15 @@
 	const order_files = ref([]);
 	const fileList = ref([]);
 	const uploadRef = ref();
+	
+	const props = defineProps({
+		isEdit: {
+			type: Boolean,  //是否可以编辑
+			default: () => {
+				return true
+			}
+		},
+	})
 
 	function handleFilesChange(uploadFile, uploadFiles) {
 		// 更新文件列表

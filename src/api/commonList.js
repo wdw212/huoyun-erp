@@ -165,7 +165,7 @@ export const optionsComm = {
 		{label: '不符合比例', value: '2'},
 	],
 	'兑付': [
-		{label: '未兑付', value: '0'},
+		{label: '未兑付', value: 0},
 		{label: '已兑付', value: 1},
 	],
 	'费用完结': [

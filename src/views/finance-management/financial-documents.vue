@@ -6,7 +6,7 @@
 		
 		<!-- 表格 -->
 		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2">
+		class="px-2" ref="tableList">
 			<template #headerCon>
 				<div style="display: flex;flex-wrap: wrap;text-align: center!important;">
 					<div style="width: 20%;margin-top: 10px;" v-for="(item,index) in statistic" :key="index">
@@ -58,7 +58,8 @@
 					<!-- 应付款 -->
 					<template #AccountsBtn="{saveData,formList}">
 						<div>
-							<el-button type="primary">费用已完结</el-button>
+							<el-button :type="payment_status==1?'success':'danger'" disabled
+							>费用{{payment_status==1?'已':'未'}}完结</el-button>
 							<span class="colorr pl-1">业务员请仔细核对费用内容，如有疑问，请与操作确认！</span>
 						</div>
 					</template>
@@ -107,12 +108,12 @@
 					
 					<!-- 提单信息 -->
 					<template #billInfo>
-						<bill-form ref="billInfo"></bill-form>
+						<bill-form ref="billForm"></bill-form>
 					</template>
 					
 					<!-- 文件上传 -->
 					<template #fileInfo>
-						<file-Table ref="fileInfo" @uploadFile="uploadFile"></file-Table>
+						<file-Table ref="fileInfo" @uploadFile="uploadFile" :isEdit="false"></file-Table>
 					</template>
 					
 					<!-- 开票合计 -->
@@ -121,6 +122,13 @@
 						:toolbar="false" :multiple="false" ref="invoiceTotal" border>
 						</table-list>
 					</template> -->
+					
+					<!-- 合计结算 -->
+					<template #settlement>
+						<div style="display: flex;justify-content: end">
+							<el-button type="danger" @click="" style="width: 120px;">未结算</el-button>
+						</div>
+					</template>
 					
 				</common-form>
 			</el-card>
@@ -151,13 +159,14 @@
 	import BoxInfo from "@/components/document/boxInfo";
 	import FileTable from "@/components/document/fileTable";
 	import BillForm from '@/components/document/BillForm.vue'
-	import { httpPost, httpGet } from '@/api/apiCommon';
+	import { httpPost, httpPut, httpGet } from '@/api/apiCommon';
 	import { useTransition } from '@vueuse/core'
 	import { keyStatus,commonParam } from '@/utils/common'
 	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn, amountFormFin } from '@/utils/documents';
 	import { ElButton } from 'element-plus'
 	import { tableColumnInvoice, tableColumnInvoiceTot } from './finance'
 	import InvoiceForm from '@/components/InvoiceForm.vue'
+	import { formatChinaTime } from '@/utils/utils'
 	const { proxy } = getCurrentInstance();
 	
 	const formListNew = ref([]);
@@ -175,7 +184,7 @@
 		
 		PaymentColumn.value[3].noShow = false;
 		PaymentColumn.value[6].noShow = false;
-		PaymentColumn.value[7].noShow = {
+		PaymentColumn.value[7] = {
 			label: '操作',
 			prop: 'actions',
 			actions: [{
@@ -186,12 +195,19 @@
 			width: '70px'
 		};
 	}
-	accountInit();
 	
 	onMounted(async ()=>{
 		// console.log('onMounted', queryParams);
 		keyStatus(formList.value, '操作单据', function(form, options) {
 			formListNew.value = form;
+			formListNew.value.forEach((item, index)=>{
+				formListNew.value[index].formData[0].disabled = true;
+				if(formListNew.value[index].formData[0].formItem){
+					formListNew.value[index].formData[0].formItem.forEach((vv,ii)=>{
+						delete formListNew.value[index].formData[0].formItem[ii].rules;
+					})
+				}
+			})
 			formListNew.value[5].formData[2].formItem = JSON.parse(JSON.stringify(amountFormFin.value));
 			// formListNew.value[5].formData[3] = {
 			// 	label: '开票合计 ( 以下单位均为人民币 )',
@@ -203,14 +219,16 @@
 			AccountsColumn.value[0].form.options = seletData.value.YFTT;
 			// console.log('formListNew', formListNew, seletData.value)
 			
-			getStatistic();
+			getStatistic(); //统计数据
+			getDollerRate(); //获取当月美金税率
 		})
 		
+		accountInit();
 		// 应付款
 		AccountsColumns.value = JSON.parse(JSON.stringify(AccountsColumn.value));
 		AccountsColumns.value.splice(AccountsColumns.value.length-1, 1)
 		AccountsColumns.value.forEach((item,index)=>{
-			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed'].indexOf(item.prop)==-1){
+			if(['cny_invoice_number','cny_is_cashed','usd_invoice_number','usd_is_cashed','no_invoice_remark'].indexOf(item.prop)==-1){
 				AccountsColumns.value[index].form.disabled = true;
 			}
 			AccountsColumns.value[index].noShow = false;
@@ -363,18 +381,46 @@
 			editId.value = row.id;
 			setTimeout(function(){
 				// proxy.$refs.invoiceTotal.updateTableData(invoiceData.value);
+				resetInfo(); //清空之前数据
 				
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
 					data[key] = res[key];
 				}
-				proxy.$refs.boxInfo.defaultBox(res.containers);
+				proxy.$refs.boxInfo.defaultBox(res.containers||[]);
 				proxy.$refs.commonForm.changeSave(data);
-				proxy.$refs.accountTable.updateTableData(res.order_payments);
-				proxy.$refs.fileInfo.dafultFile(res.order_files);  //文件
-				proxy.$refs.paymentTable.updateTableData([]);
-				addPayment();
+				proxy.$refs.accountTable.updateTableData(res.order_payments||[]);
+				proxy.$refs.fileInfo.dafultFile(res.order_files||[]);  //文件
+				proxy.$refs.paymentTable.updateTableData(res.order_receipts||[]);
+				
+				payment_status.value = res.payment_status || 0;
+				// addPayment();
 			}, 500)
+		});
+	}
+	var payment_status = ref(0);
+	function resetInfo() {
+		proxy.$refs.commonForm.activeName = '操作单据';
+		payment_status.value = 0;
+		containers.value = [];
+		proxy.$refs.accountTable.state.tableData = [];
+		proxy.$refs.paymentTable.state.tableData = [];
+		order_files.value = [];
+		proxy.$refs.fileInfo.dafultFile([]);
+	}
+	
+	// 当月美金汇率
+	var dollerRate = ref(0);
+	function getDollerRate(){
+		var month = formatChinaTime(new Date().getTime(), 'yyyy-MM')
+		httpGet(`/special-cost-rates`, {
+			pageSize: 1,
+			page: 1,
+			month: month
+		}).then(res => {
+			dollerRate.value = res.data[0].k_value;
+			formListNew.value[5].formData[2].formItem[11].placeholder = '当月美金汇率：'+dollerRate.value;
+			console.log('dollerRate.value', formListNew.value)
 		});
 	}
 	
@@ -414,16 +460,25 @@
 	// 单据信息提交
 	const confirmSubmit = (data) => {
 		// console.log('编辑行:', row)
-		var order_payments = proxy.$refs.accountTable.tableData
 		var params = {
 			...data,
 			containers: containers.value,
-			orderPaymentsList: order_payments,
-			order_payments: JSON.stringify(order_payments),
-			order_receipts: proxy.$refs.paymentTable.tableData,
+			order_payments: proxy.$refs.accountTable.state.tableData,
+			order_receipts: proxy.$refs.paymentTable.state.tableData,
 			order_files: order_files.value,
+			bl_info: proxy.$refs.billForm.save(2),
+			payment_status: payment_status.value
 		}
-		params.order_delegation_header = JSON.stringify(params.order_delegation_header);
+		var strKey = ['booking_info', 'order_delegation_header', 'order_payments', 'order_receipts', 'containers', 'order_files',
+			'bl_info'
+		];
+		strKey.forEach((item) => {
+			if (params[item] && JSON.stringify(params[item]) != '[]' && JSON.stringify(params[item]) != '{}') {
+				params[item] = JSON.stringify(params[item]);
+			} else {
+				delete params[item];
+			}
+		})
 		delete params['undefined'];
 		console.log('确认提交', params)
 		httpPut(`/orders/${editId.value}`, params).then(res => {
@@ -447,7 +502,6 @@
 		var tableData = proxy.$refs.paymentTable.state.tableData;
 		var data = {
 			company_header_id: '',
-			no_invoice_remark: '',
 			cny_amount: '',
 			cny_invoice_number:'',
 			cny_is_cashed: 0,
@@ -459,8 +513,8 @@
 		proxy.$refs.paymentTable.updateTableData(tableData);
 	}
 	const paymentDelete = (row) => {
-		const rowIndex = proxy.$refs.paymentTable.tableData.findIndex(item => item === row);
-		proxy.$refs.paymentTable.tableData.splice(row.index, 1)
+		const rowIndex = proxy.$refs.paymentTable.state.tableData.findIndex(item => item === row);
+		proxy.$refs.paymentTable.state.tableData.splice(row.index, 1);
 		// console.log('paymentDelete', row, rowIndex)
 	}
 	

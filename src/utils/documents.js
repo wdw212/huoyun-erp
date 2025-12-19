@@ -389,7 +389,7 @@ export const amountFormDoc = ref([
 
 //财务单据合计信息
 export const amountFormFin = ref([
-	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24, placeholder: '0.00' },
+	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24, placeholder: '' },
 	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
 	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
 	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', placeholder: '0.00', span: 12 },
@@ -399,7 +399,7 @@ export const amountFormFin = ref([
 	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
 	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
 	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
-	{ key: 'title2', span: 6, soltName: '发票未开' },
+	{ key: 'settlement', span: 6, soltName: 'settlement' },
 	{ type: 'input', labelWidth: '200px',key: 'title2', span: 6, placeholder: '当月美金汇率：0', disabled: true },
 ])
 
@@ -554,7 +554,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
+			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
@@ -569,7 +569,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
+			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{}
@@ -597,7 +597,7 @@ export const PaymentColumn = ref([
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,
+			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
@@ -612,7 +612,7 @@ export const PaymentColumn = ref([
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,
+			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{}

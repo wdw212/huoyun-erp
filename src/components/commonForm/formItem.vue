@@ -1,7 +1,7 @@
 <template>
 	<div style="width: 100%;">
 		<el-popover placement="top" width="auto" effect="dark"
-		:disabled="saveData&&newItem.popover?false:true"  >
+		:disabled="saveData!== null&&saveData!=''&&newItem.popover?false:true"  >
 			<template #default>
 				<pre>{{showContent||saveData}}</pre>
 			</template>

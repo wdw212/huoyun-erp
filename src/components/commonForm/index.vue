@@ -19,7 +19,7 @@
 						</div>
 						<slot :name="item.soltName" :saveData="saveData" :formList="formList"></slot>
 						<el-row :gutter="20">
-							<el-col v-for="(vv,ii) in item.formItem" :key="vv.key" :span="vv.span||6" v-show="vv.noShow== false || !vv.noShow">
+							<el-col v-for="(vv,ii) in item.formItem" :key="vv.key" :span="vv.span||6" v-show="vv.noShow== false || !vv.noShow" :style="vv.colStyle||''">
 								<div>
 									<template v-if="vv.soltName">
 										<slot :name="vv.soltName" :saveData="saveData" :formList="formList"></slot>
@@ -33,7 +33,8 @@
 											:formValue="saveData[vv.key]"
 											@changeValue="(val) => changeValue(val, item)"></common-form-item> -->
 											
-											<div style="display: flex;width: 100%;flex: 1;">
+											<div style="display: flex;" 
+											:style="vv.style||'flex: 1'">
 												<slot :name="vv.beforeSolt" :saveData="saveData" :item="vv"></slot>
 												
 												<el-popover placement="top-start" width="auto" effect="dark"
