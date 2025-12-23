@@ -389,18 +389,18 @@ export const amountFormDoc = ref([
 
 //财务单据合计信息
 export const amountFormFin = ref([
-	{ type: 'textarea', label: '整单备注',key: 'title1', span: 24, placeholder: '' },
-	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'title2', placeholder: '0.00', span: 12 },
-	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'title2', placeholder: '0.00', span: 12, options: optionsComm['兑付'],clearable: false, defaultValue: 0 },
-	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'title3', placeholder: '0.00', span: 12, disabled: true },
-	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'title2', placeholder: '0.00', span: 12, disabled: true },
+	{ type: 'textarea', label: '整单备注',key: 'remark', span: 24, placeholder: '' },
+	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'amountTest1', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'amountTest2', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'amountTest3', placeholder: ' ', span: 12,defaultValue: '0.00' },
+	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'amountTest4', placeholder: ' ', span: 12, options: optionsComm['兑付'],clearable: false ,defaultValue: '0' },
+	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'amountTest5', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'amountTest6', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'amountTest7', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'amountTest8', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'amountTest9', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ key: 'settlement', span: 6, soltName: 'settlement' },
-	{ type: 'input', labelWidth: '200px',key: 'title2', span: 6, placeholder: '当月美金汇率：0', disabled: true },
+	{ type: 'input', labelWidth: '200px',key: '', span: 6, placeholder: '当月美金汇率：0', disabled: true },
 ])
 
 export const formList = ref([

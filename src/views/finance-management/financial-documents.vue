@@ -217,7 +217,7 @@
 			seletData.value = options;
 			// console.log('seletData.value', seletData.value)
 			AccountsColumn.value[0].form.options = seletData.value.YFTT;
-			// console.log('formListNew', formListNew, seletData.value)
+			console.log('formListNew', formListNew, seletData.value)
 			
 			getStatistic(); //统计数据
 			getDollerRate(); //获取当月美金税率
@@ -375,7 +375,6 @@
 	// 单据编辑
 	const handleEdit = (row) => {
 		// console.log('编辑行:', row)
-		console.log('proxy', proxy.$refs)
 		httpGet(`/orders/${row.id}`).then(res => {
 			dialogFormVisible.value = true;
 			editId.value = row.id;
@@ -383,9 +382,10 @@
 				// proxy.$refs.invoiceTotal.updateTableData(invoiceData.value);
 				resetInfo(); //清空之前数据
 				
+				// console.log('proxy', proxy.$refs.commonForm.saveData)
 				var data = {};
 				for(var key in proxy.$refs.commonForm.saveData){
-					data[key] = res[key];
+					data[key] = res[key]||proxy.$refs.commonForm.saveData[key];
 				}
 				proxy.$refs.boxInfo.defaultBox(res.containers||[]);
 				proxy.$refs.commonForm.changeSave(data);

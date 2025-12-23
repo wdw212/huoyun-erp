@@ -751,11 +751,11 @@
 		var boxInfo = data.boxInfo;
 		
 		var entered_port_wharf = data.entered_port_wharf_id?options.MT.find(v=>{return v.id==data.entered_port_wharf_id}):{};  //进港码头
-		var boxType = boxInfo.container_type_id?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
-		var lxdc = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
-		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
-		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
-		var shipping_company = data.shipping_company_id?options.CGS.find(v=>{return v.id==data.shipping_company_id}):{};  //船公司
+		var boxType = boxInfo.container_type_id&&options.XZLX?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
+		var lxdc = boxInfo.drop_off_wharf_id&&options.LX?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
+		var yt = boxInfo.pre_pull_wharf_id&&options.YT?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
+		var txmt = boxInfo.wharf_id&&options.MT?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
+		var shipping_company = data.shipping_company_id&&options.CGS?options.CGS.find(v=>{return v.id==data.shipping_company_id}):{};  //船公司
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
 		
 		form.value.ship_info = (data.ship_name||'')+'/'+(data.ship_no||'');  //船名/航次

@@ -192,12 +192,12 @@
 	const activeName = ref('');
 	const tabsList = ref([]);
 
-	const saveData = reactive([]);
-	watch(saveData, (newVal) => {
-		console.log('watch-saveData', newVal)
-	}, {
-		deep: true
-	})
+	const saveData = reactive({});
+	// watch(saveData, (newVal) => {
+	// 	console.log('watch-saveData', newVal)
+	// }, {
+	// 	deep: true
+	// })
 
 	const resetKey = (formList, reset, isTab) => {
 		if(!isTab){
@@ -222,17 +222,17 @@
 				if (v.formItem && v.formItem.length > 0) {
 					v.formItem.forEach((vv, ii) => {
 						if(!vv.key) return;
+						data[vv.key] = vv.value || vv.defaultValue;
 						if (saveData[vv.key]&&JSON.stringify(saveData[vv.key])!='[]'&&!reset) {
 							data[vv.key] = saveData[vv.key];
-						} else {
-							data[vv.key] = vv.value || vv.defaultValue || '';
 						}
+						// saveData[vv.key] = data[vv.key];
 					})
 				}
 			})
 		})
 		Object.assign(saveData, data);
-		// console.log('saveData', saveData);
+		console.log('saveData', data, saveData);
 	}
 
 	const tabChange = (val) => {
@@ -241,7 +241,7 @@
 	}
 	
 	const remoteMethod = async (val, vv) => {
-		console.log('val, vv', val, vv)
+		// console.log('val, vv', val, vv)
 		if(val){
 			var methodType = vv.method=='get'?httpGet:httpPost;
 			let res = await methodType(vv.url, {
@@ -267,7 +267,7 @@
 					}else if(saveData[key]||saveData[key]===0){
 						data[key] = saveData[key]===0?'0':saveData[key];
 					}
-					// console.log(key,  saveData[key], data[key])
+					// console.log('测测测测',key,  saveData[key], data[key])
 				}
 				delete data['undefined'];
 				emit('confirm', data);
@@ -309,12 +309,12 @@
 	const changeSave = (val) => {
 		var data = JSON.parse(JSON.stringify(saveData));
 		for(var key in val){
-			if(key&&key!=undefined){
+			if(key!==null&&key!=undefined){
 				data[key] = val[key]===0?'0':val[key];
 			}
 		}
 		Object.assign(saveData, data);
-		console.log('changeSave-回显', saveData);
+		// console.log('changeSave-回显', saveData);
 	}
 	
 	// 上传文件
@@ -322,7 +322,7 @@
 		var data = JSON.parse(JSON.stringify(saveData));
 		data[item.key] = val;
 		Object.assign(saveData, data);
-		console.log('uploadFileSimple', data, val, item);
+		// console.log('uploadFileSimple', data, val, item);
 		emit('itemChange', data, val, item);
 	}
 
