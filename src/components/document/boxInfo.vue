@@ -1,7 +1,7 @@
 <template>
 	<div id="boxInfo" class="flex1" style="width: 100%;height: 800px;">
 		<!-- <div style="width: 100%;">{{state.boxList}}</div> -->
-		<el-card class="mr-2 h-100" style="padding: 8px 10px;">
+		<el-card class="mr-2 h-100" style="padding: 8px 10px;" v-if="isShowBoxListLeft">
 			<template #header>
 				<el-row justify="space-between" class="pb">
 					<span class="font-16">箱号列表</span>
@@ -135,6 +135,12 @@
 				return true
 			}
 		},
+		isShowBoxListLeft: {
+			type: Boolean,
+			default: () => {
+				return true
+			}
+		}
 	})
 	
 	const MT = ref([]); //码头

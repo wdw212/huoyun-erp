@@ -23,8 +23,14 @@
 			<el-tab-pane label="发票类型" name="发票类型">
 				<invoiceType />
 			</el-tab-pane>
-			<el-tab-pane label="费用类型" name="开票明细">
+			<el-tab-pane label="费用类型" name="费用类型">
 				<invoiceForm />
+			</el-tab-pane>
+			<el-tab-pane label="司机信息" name="司机信息">
+				<driverInfo />
+			</el-tab-pane>
+			<el-tab-pane label="港口信息" name="港口信息">
+				<protInfo />
 			</el-tab-pane>
 		</el-tabs>
 	</div>
@@ -41,6 +47,8 @@
 	import yardWharves from './yard-wharves.vue'
 	import invoiceType from './invoiceType.vue'
 	import invoiceForm from './invoiceForm.vue'
+	import driverInfo from './driverInfo.vue'
+	import protInfo from './portInfo.vue'
 
 	const activeName = ref('船公司')
 
