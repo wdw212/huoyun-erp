@@ -12,6 +12,18 @@
 
 		<el-row :gutter="10" class="mb8" justify="end">
 			<el-col :span="1.5">
+				<el-button type="primary" plain @click="handleDownload">模板下载</el-button>
+				<!-- <el-button type="primary" plain @click="handleAdd">批量导入</el-button> -->
+				<el-upload
+				  ref="upload"
+				  :action="baseUrl + '/uploads/file'"
+				  accept=".xls,.xlsx"
+				  :show-file-list="false"
+				  :on-success="handleUploadSuccess"
+				  style="display: inline-block; margin-left: 8px"
+				>
+				  <el-button type="primary">批量导入</el-button>
+				</el-upload>
 				<el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
 			</el-col>
 			<right-toolbar @queryTable="getList"></right-toolbar>
@@ -19,9 +31,12 @@
 
 		<el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
 			<el-table-column label="港口代码" align="center" prop="code" />
-			<el-table-column label="港口名称" align="center" prop="name" />
+			<el-table-column label="港口" align="center" prop="name" />
+			<el-table-column label="港口(英文)" align="center" prop="en_name" />
 			<el-table-column label="国家" align="center" prop="country" />
+			<el-table-column label="国家(英文)" align="center" prop="en_country" />
 			<el-table-column label="航线" align="center" prop="route" />
+			<el-table-column label="备注" align="center" prop="remark" />
 			<el-table-column label="操作" align="center" class-name="small-padding fixed-width">
 				<template #default="scope">
 					<el-button plain type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -37,9 +52,9 @@
 		<!-- <el-dialog :title="title" v-model="open" width="80%">
 			<InvoiceForm />
 		</el-dialog> -->
-		<el-dialog :title="title" v-model="open" width="500px">
-			<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-				<el-form-item label="港口代码" prop="code">
+		<el-dialog :title="title" v-model="open" width="600px">
+			<el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+				<el-form-item label="港口代码">
 					
 					<el-input v-model="form.code" placeholder="请输入" />
 				</el-form-item>
@@ -47,12 +62,23 @@
 					
 					<el-input v-model="form.name" placeholder="请输入" />
 				</el-form-item>
+				<el-form-item label="港口名称(英文)" prop="en_name">
+					
+					<el-input v-model="form.en_name" placeholder="请输入" />
+				</el-form-item>
 				<el-form-item label="国家" prop="country">
 					<el-input v-model="form.country" placeholder="请输入" />
 				</el-form-item>
-				<el-form-item label="航线" prop="route">
+				<el-form-item label="国家(英文)" prop="en_country">
+					<el-input v-model="form.en_country" placeholder="请输入" />
+				</el-form-item>
+				<el-form-item label="航线">
 					<el-input v-model="form.route" placeholder="请输入" />
 				</el-form-item>
+				<el-form-item label="备注">
+					<el-input v-model="form.remark" placeholder="请输入" type="textarea" rows="4" />
+				</el-form-item>
+				
 			</el-form>
 			<template #footer>
 				<div class="dialog-footer">
@@ -70,7 +96,9 @@
 		getData,
 		delByIds,
 		addData,
-		updateData
+		updateData,
+		downLoadTemplate,
+		batchImport
 	} from "@/api/system/pull-down-options/port-info";
 
 	const {
@@ -85,6 +113,8 @@
 	const multiple = ref(true);
 	const total = ref(0);
 	const title = ref("");
+	const file = ref("");
+	const baseUrl = import.meta.env.VITE_APP_BASE_API;
 	
 
 	const data = reactive({
@@ -95,14 +125,14 @@
 			title: null
 		},
 		rules: {
-			code: [{
-				required: true,
-				message: "港口代码不能为空",
-				trigger: "blur"
-			}],
 			name: [{
 				required: true,
 				message: "港口名称不能为空",
+				trigger: "blur"
+			}],
+			en_name: [{
+				required: true,
+				message: "港口名称(英文)不能为空",
 				trigger: "blur"
 			}],
 			country: [{
@@ -110,9 +140,9 @@
 				message: "国家不能为空",
 				trigger: "blur"
 			}],
-			route: [{
+			en_country: [{
 				required: true,
-				message: "航线不能为空",
+				message: "国家(英文)不能为空",
 				trigger: "blur"
 			}]
 		}
@@ -146,8 +176,11 @@
 			id: null,
 			code: null,
 			name: null,
+			en_name: null,
 			country: null,
-			route: null
+			en_country: null,
+			route: null,
+			remark: null
 		};
 		proxy.resetForm("formRef");
 	}
@@ -222,4 +255,43 @@
 	}
 
 	getList();
+	
+	function handleDownload(){
+		downLoadTemplate().then(response => {
+			console.log(response, 'response');
+			    
+			// 创建隐藏的 a 标签
+			const a = document.createElement('a');
+			a.href = response.url;
+			
+			// 设置 download 属性可以指定下载的文件名
+			// 如果后端返回了文件名，可以使用 response.filename
+			a.download = response.filename || 'template.xlsx'; // 设置默认文件名
+			
+			// 将 a 标签添加到页面（隐藏）
+			document.body.appendChild(a);
+			
+			// 模拟点击
+			a.click();
+			
+			// 移除 a 标签
+			document.body.removeChild(a);
+		});
+	}
+	
+	// 批量上传
+	const handleUploadSuccess = (response) => {
+		console.log('上传成功:', response);
+		file.value= response.url
+		console.log(response.url,'response.url')
+		if(response.url){
+			let formData= new FormData()
+			formData.append('file', response.url)
+			batchImport(formData).then(res => {
+				proxy.$modal.msgSuccess("上传成功");
+				getList();
+			});
+		}
+		
+	};
 </script>

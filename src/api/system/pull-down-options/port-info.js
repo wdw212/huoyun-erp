@@ -41,3 +41,20 @@ export function delByIds(id) {
 		method: 'delete'
 	})
 }
+
+// 下载模板
+export function downLoadTemplate(params) {
+	return request({
+		url: '/harbors/import-template',
+		method: 'get'
+	})
+}
+
+// 批量上传
+export function batchImport(data) {
+	return request({
+		url: '/harbors/batch-import',
+		method: 'post',
+		data
+	})
+}
