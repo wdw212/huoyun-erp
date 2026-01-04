@@ -1,6 +1,6 @@
 <template>
-	<div class="app-container">
-		<el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+	<div class="app-container platform">
+		<el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick"  type="card">
 			<el-tab-pane label="截单" name="截单">
 				<orderCutOff />
 			</el-tab-pane>
@@ -30,4 +30,11 @@
 </script>
 
 <style>
+	.platform .el-tabs--card>.el-tabs__header .el-tabs__item.is-active{
+		border: 1px solid #409EFF;
+	}
+	.platform .el-tabs__nav-scroll{
+		display: flex;
+		justify-content: center;
+	}
 </style>

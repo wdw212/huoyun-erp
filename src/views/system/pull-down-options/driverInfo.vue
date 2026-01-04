@@ -1,14 +1,14 @@
 <template>
 	<div class="app-container">
-		<!-- <el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
-			<el-form-item label="名称" prop="neme">
-				<el-input v-model="queryParams.title" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
+		<el-form :model="queryParams" ref="queryRef" :inline="true" label-width="68px">
+			<el-form-item label="关键字">
+				<el-input v-model="queryParams.keyword" placeholder="请输入关键字搜索" clearable @keyup.enter="handleQuery" />
 			</el-form-item>
 			<el-form-item>
 				<el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
 				<el-button icon="Refresh" @click="resetQuery">重置</el-button>
 			</el-form-item>
-		</el-form> -->
+		</el-form>
 
 		<el-row :gutter="10" class="mb8" justify="end">
 			<el-col :span="1.5">
@@ -30,8 +30,8 @@
 			</el-table-column>
 		</el-table>
 
-		<!-- <pagination v-show="total>0" :total="total" v-model:page="queryParams.page" v-model:limit="queryParams.pageSize"
-			@pagination="getList" /> -->
+		<pagination v-show="total>0" :total="total" v-model:page="queryParams.page" v-model:limit="queryParams.pageSize"
+			@pagination="getList" />
 
 		<!-- 添加或修改对话框 -->
 		<!-- <el-dialog :title="title" v-model="open" width="80%">
@@ -93,7 +93,7 @@
 		queryParams: {
 			page: 1,
 			pageSize: 15,
-			title: null
+			keyword: null
 		},
 		rules: {
 			plate_number: [{
@@ -125,7 +125,7 @@
 		loading.value = true;
 		listData(queryParams.value).then(response => {
 			dataList.value = response.data;
-			// total.value = response.meta.total;
+			total.value = response.meta.total;
 			loading.value = false;
 		});
 	}

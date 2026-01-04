@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
 // 查询列表
-export function listData() {
+export function listData(params) {
 	return request({
 		url: '/harbors',
-		method: 'get'
+		method: 'get',
+		params
 	})
 }
 

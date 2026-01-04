@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
 // 查询列表
-export function listData() {
+export function listData(params) {
 	return request({
 		url: '/drivers',
-		method: 'get'
+		method: 'get',
+		params
 	})
 }
 
