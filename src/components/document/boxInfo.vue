@@ -112,7 +112,7 @@
 		httpPost,
 		httpGet
 	} from '@/api/apiCommon';
-	import { optionsComm, getCGS, getMT, getCHD, getXZLX, getLX, getZGDZ } from '@/api/commonList';
+	import { optionsComm, getCGS, getMT, getCHD, getXZLX, getLX, getZGDZ,getSJ } from '@/api/commonList';
 	import CommonForm from "@/components/commonForm/index";
 	import TableList from "@/components/tableList/index";
 	import PackForm from '@/components/document/PackForm.vue'
@@ -149,6 +149,7 @@
 	const YT = ref([]); //预提
 	const LX = ref([]); //落箱
 	const ZGDZ = ref([]);  //装柜地址
+	const SJ = ref([]);  //司机
 	
 	const formListBox = ref([]);
 	
@@ -160,10 +161,12 @@
 		YT.value = await getLX({type: '0'});
 		LX.value = await getLX({type: 1});
 		ZGDZ.value = await getZGDZ();
+		SJ.value = await getSJ();
 		formList.value[0].formData[0].formItem[2].options = XZLX.value;
 		formList.value[0].formData[0].formItem[4].options = YT.value;
 		formList.value[0].formData[0].formItem[5].options = MT.value;
 		formList.value[0].formData[0].formItem[6].options = LX.value;
+		formList.value[0].formData[0].formItem[8].options = SJ.value;
 		formList.value[0].formData[0].formItem[13].options = CHD.value;
 		formListBox.value = JSON.parse(JSON.stringify(formList.value));
 		
@@ -406,7 +409,7 @@
 						{ labelWidth:'auto',type: 'select',value: '',label: '提箱码头',placeholder: '请选择提箱码头',key: 'wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '落箱',placeholder: '请选择落箱',key: 'drop_off_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true, remark: '' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '是否进港',placeholder: '请选择是否进港',key: 'is_entered_port',options: optionsComm['是否进港'], clearable: true, filterable: true,defaultValue: '0' },
-						{ labelWidth:'auto',type: 'input',value: '',label: '司机信息',placeholder: '请输入司机信息',key: 'driver', popover: true },
+						{ labelWidth:'auto',type: 'select',value: '',label: '司机信息',placeholder: '请选择司机信息',key: 'driver', popover: true, options: [],labelName: 'name', valueName: 'id' },
 						{ label: '进港数据', soltName: 'arrivalPort' },
 						{ label: '件毛体', soltName: 'containerItemsBtn' },
 						{ labelWidth:'auto',type: 'select',value: '',label: '运费情况',placeholder: '请选择运费情况',key: 'freight_status',options: optionsComm['运费情况'] },

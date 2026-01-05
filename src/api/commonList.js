@@ -139,6 +139,26 @@ export async function getFYLX(data={}) {
 	return res.data||[]
 }
 
+//港口
+export async function getGK(data={}) {
+	var params = {
+		is_paginate: 0,
+		...data
+	}
+	let res = await httpGet('/harbors', params);
+	return res.data||[]
+}
+
+//司机
+export async function getSJ(data={}) {
+	var params = {
+		is_paginate: 0,
+		...data
+	}
+	let res = await httpGet('/drivers', params);
+	return res.data||[]
+}
+
 
 //其他选项
 export const optionsComm = {

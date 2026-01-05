@@ -19,7 +19,7 @@ export const detailInfo = (formList, data) => {
 }
 
 import userStore from "@/store/modules/user";
-import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT, getXZLX,getLX,getFYLX } from '@/api/commonList';
+import { getYWY, getCZY, getYWLX, getTT, getCGS, getDZY, getSW, getXHDW, getMT, getXZLX,getLX,getFYLX,getGK,getSJ } from '@/api/commonList';
 const role = userStore().roles;
 //权限限制
 export const commonParam = () => {
@@ -54,6 +54,8 @@ export const getSelect = async (callBack) => {
 		LX: await getLX({type: 1}),  //落箱堆场
 		YT: await getLX({type: '0'}),  //预提
 		FYLX: await getFYLX(),  //预提
+		GK: await getGK(),  //港口
+		SJ: await getSJ(),  //司机
 	}
 	callBack(data);
 }
@@ -88,6 +90,8 @@ export const keyStatus = (formList, page, callBack) => {
 		form[0].formData[0].formItem[6].options = seletData.DZY;
 		form[0].formData[0].formItem[7].options = seletData.SW;
 		form[0].formData[0].formItem[8].options = seletData.CGS;
+		form[0].formData[0].formItem[10].options = seletData.GK;
+		form[0].formData[0].formItem[11].options = seletData.GK;
 		form[1].formData[0].formItem[0].options = seletData.XHDW;
 		form[1].formData[0].formItem[1].options = seletData.WTTT;
 		form[2].formData[0].formItem[10].options = seletData.MT;

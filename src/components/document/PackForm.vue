@@ -757,13 +757,15 @@
 		var txmt = boxInfo.wharf_id&&options.MT?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
 		var shipping_company = data.shipping_company_id&&options.CGS?options.CGS.find(v=>{return v.id==data.shipping_company_id}):{};  //船公司
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
+		var origin_harbor = boxInfo.origin_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.origin_harbor_id}):{};  //起运港
+		var destination_harbor = boxInfo.destination_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.destination_harbor_id}):{};  //目的港
 		
 		form.value.ship_info = (data.ship_name||'')+'/'+(data.ship_no||'');  //船名/航次
 		form.value.startTime = data.port_open_at;  //开港时间
 		form.value.endTime = data.port_close_at;  //进港时间
-		form.value.port = data.origin_port;  //起运港
+		form.value.port = origin_harbor.name||'';  //起运港
 		form.value.wharf = entered_port_wharf.name||'';  //进港码头
-		form.value.value2 = data.destination_port;  //目的港
+		form.value.value2 = destination_harbor.name||'';  //目的港
 		form.value.value4 = shipping_company.name||'';  //船公司
 		form.value.value7 = txmt.name||'';  //提箱码头
 		form.value.value8 = boxInfo.no;  //箱号

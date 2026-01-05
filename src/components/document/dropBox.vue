@@ -85,13 +85,15 @@
 		var shipping_company = val.shipping_company_id?options.CGS.find(v=>{return v.id==val.shipping_company_id}):{};  //船公司
 		var cutoff_status = val.cutoff_status?optionsComm['截单状态'].find(v=>{return v.value==val.cutoff_status}):{};  //截单状态
 		var booking_info = val.booking_info?val.booking_info.join(','):'';  //订舱备注
+		var origin_harbor = boxInfo.origin_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.origin_harbor_id}):{};  //起运港
+		var destination_harbor = boxInfo.destination_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.destination_harbor_id}):{};  //目的港
 		console.log('cutoff_status', cutoff_status)
 		
 		data.value = `提单号：${val.bl_no||''}`
 					  + '\n' + `船公司：${shipping_company.name||''}`
 					  + '\n' + `船名/航次：${val.ship_name}/${val.ship_no}`
-					  + '\n' + `起运港：${val.origin_port||''}`
-					  + '\n' + `目的港：${val.destination_port||''}`
+					  + '\n' + `起运港：${origin_harbor.name||''}`
+					  + '\n' + `目的港：${destination_harbor.name||''}`
 					  + '\n' + `柜型：${val.container_type||''}`
 					  + '\n' + `预计开船日期：${(val.sailing_at&&val.sailing_at.substring(0,11))||''}`
 					  + '\n' + `预计到港日期：${(val.arrival_at&&val.arrival_at.substring(0,11))||''}`
