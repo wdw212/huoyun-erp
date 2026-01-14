@@ -257,4 +257,12 @@ export const optionsComm = {
 		{label: '有发票号', value: '1'},
 		{label: '无发票号', value: '2'},
 	],
+	'是否必选': [
+		{label: '是', value: '1'},
+		{label: '否', value: '0'},
+	],
+	'是否单选': [
+		{label: '单选', value: '1'},
+		{label: '多选', value: '2'},
+	],
 }

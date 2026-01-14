@@ -416,6 +416,33 @@ const routerList = [{
 	path: "/business-management",
 	redirect: "noRedirect",
 },
+// 投票管理
+{
+	alwaysShow: true,
+	children: [{
+		component: "vote-management/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "投票管理",
+		},
+		name: "voteManagementList",
+		path: "vote-management-list",
+	}],
+	component: "Layout",
+	hidden: false,
+	meta: {
+		icon: "edit",
+		link: null,
+		noCache: false,
+		title: "投票管理",
+	},
+	name: "VoteManagement",
+	path: "/vote-management",
+	redirect: "noRedirect",
+},
 {
 	alwaysShow: true,
 	children: [{
