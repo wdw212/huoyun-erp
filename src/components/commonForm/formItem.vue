@@ -61,6 +61,16 @@
 						:value="newItem.valueName?vv[newItem.valueName]:vv.value" />
 					</el-select>
 				</template>
+				<template v-if="newItem.type=='button'">
+					<div style="display: flex;justify-content: center;">
+						<block v-for="(vv, ii) in newItem.options" :key="newItem.valueName?vv[newItem.valueName]:vv.value" >
+							<el-button v-show="(newItem.valueName&&saveData==vv[newItem.valueName])||saveData==vv.value"
+							:disabled="newItem.disabled||vv.disabled" 
+							:type="vv.btnType" :size="vv.size||'small'"
+							@click="changeButton(ii)" >{{ newItem.labelName?vv[newItem.labelName]:vv.label }}</el-button>
+						</block>
+					</div>
+				</template>
 				<template v-if="newItem.type=='selectSearch'">
 					<el-select v-model="saveData" filterable
 					:style="newItem.style||'width:100%'"
@@ -162,6 +172,21 @@
 			newItem.value.options = [];
 		}
 	}
+	
+	const changeButton = (index) => {
+		var newItems = {
+			...newItem.value
+		};
+		var key = newItems.valueName||'value';
+		if(index==newItems.options.length-1){
+			newItems.value = newItems.options[0][key];
+		}else{
+			newItems.value = newItems.options[index+1][key];
+		}
+		saveData.value = newItems.value
+		console.log('按钮数据', saveData.value, index)
+		emit('changeButton', newItems);
+	}
 
 	const showContent = ref('');
 	const changeValue = (val) => {
@@ -207,7 +232,7 @@
 		resetKey()
 	})
 
-	const emit = defineEmits(['changeValue'])
+	const emit = defineEmits(['changeValue','changeButton'])
 	defineExpose({
 		updateItem,
 		updateValue

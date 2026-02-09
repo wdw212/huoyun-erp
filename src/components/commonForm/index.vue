@@ -99,6 +99,16 @@
 																:value="vv.valueName?v[vv.valueName]:v.value" />
 															</el-select>
 														</template>
+														<template v-if="vv.type=='button'">
+															<div style="display: flex;justify-content: center;">
+																<block v-for="(v, i) in vv.options" :key="vv.valueName?v[vv.valueName]:v.value" >
+																	<el-button v-show="(vv.valueName&&saveData==v[vv.valueName])||saveData==v.value"
+																	:disabled="vv.disabled||v.disabled" 
+																	:type="v.btnType" :size="v.size||'small'"
+																	@click="changeButton(vv, i)" >{{ vv.labelName?v[vv.labelName]:v.label }}</el-button>
+																</block>
+															</div>
+														</template>
 														<template v-if="vv.type=='selectSearch'">
 															<el-select v-model="saveData[vv.key]" filterable
 															:style="vv.style||'width:100%'"
@@ -232,7 +242,7 @@
 			})
 		})
 		Object.assign(saveData, data);
-		console.log('saveData', data, saveData);
+		// console.log('saveData', data, saveData);
 	}
 
 	const tabChange = (val) => {
@@ -283,6 +293,20 @@
 		var data = JSON.parse(JSON.stringify(saveData));
 		delete data['undefined'];
 		emit('cancel', data);
+	}
+	
+	const changeButton = (val, index) => {
+		var newVal = '';
+		var key = newVal.valueName||'value';
+		if(index==val.options.length-1){
+			newVal = val.options[0][key];
+		}else{
+			newVal = val.options[index+1][key];
+		}
+		var data = JSON.parse(JSON.stringify(saveData));
+		data[val.key] = newVal;
+		Object.assign(saveData, data);
+		emit('itemChange', data, newVal, val);
 	}
 
 	const changeValue = (val, item) => {

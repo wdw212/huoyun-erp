@@ -392,10 +392,10 @@ export const amountFormFin = ref([
 	{ type: 'textarea', label: '整单备注',key: 'remark', span: 24, placeholder: '' },
 	{ type: 'input', labelWidth: '200px',label: '应付人民币￥',key: 'amountTest1', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '应付美金$',key: 'amountTest2', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
-	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'amountTest3', placeholder: ' ', span: 12,defaultValue: '0.00' },
-	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'amountTest4', placeholder: ' ', span: 12, options: optionsComm['兑付'],clearable: false ,defaultValue: '0' },
-	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'amountTest5', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
-	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'amountTest6', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '特殊费用人民币￥',key: 'special_fee', placeholder: ' ', span: 12,defaultValue: '0.00' },
+	{ type: 'select', labelWidth: '200px',label: '特殊费用人民币兑付情况',key: 'special_fee_cashed_status', placeholder: ' ', span: 12, options: optionsComm['兑付'],clearable: false ,defaultValue: '0' },
+	{ type: 'input', labelWidth: '200px',label: '应收人民币￥',key: 'receipt_total_cny_amount', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'receipt_total_usd_amount', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'amountTest7', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'amountTest8', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'amountTest9', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
@@ -554,7 +554,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
+			type: 'button',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
@@ -569,7 +569,7 @@ export const AccountsColumn = ref([
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
+			type: 'button',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{}
@@ -597,7 +597,7 @@ export const PaymentColumn = ref([
 	},
 	{label: '人民币兑付情况', type: 'edit', prop: 'cny_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
+			type: 'button',key: 'cny_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{label: '美金费用', type: 'edit', prop: 'usd_amount',
@@ -612,7 +612,7 @@ export const PaymentColumn = ref([
 	},
 	{label: '美金兑付情况', type: 'edit', prop: 'usd_is_cashed',noShow:true,
 		form: {
-			type: 'select',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
+			type: 'button',key: 'usd_is_cashed',options: optionsComm['兑付'],clearable: false,showLabel: 'label'
 		}
 	},
 	{}

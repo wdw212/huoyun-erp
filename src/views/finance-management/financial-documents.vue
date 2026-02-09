@@ -126,7 +126,8 @@
 					<!-- 合计结算 -->
 					<template #settlement>
 						<div style="display: flex;justify-content: end">
-							<el-button type="danger" @click="" style="width: 120px;">未结算</el-button>
+							<el-button style="width: 120px;" @click="totelSettlement"
+							type="danger">未结算</el-button>
 						</div>
 					</template>
 					
@@ -184,16 +185,6 @@
 		
 		PaymentColumn.value[3].noShow = false;
 		PaymentColumn.value[6].noShow = false;
-		PaymentColumn.value[7] = {
-			label: '操作',
-			prop: 'actions',
-			actions: [{
-				label: '删除',
-				type: 'danger',
-				onClick: (row, index) => paymentDelete(row, index)
-			}],
-			width: '70px'
-		};
 	}
 	
 	onMounted(async ()=>{
@@ -236,6 +227,16 @@
 		
 		// 应收款
 		PaymentColumns.value = JSON.parse(JSON.stringify(PaymentColumn.value));
+		PaymentColumns.value[7] = {
+			label: '操作',
+			prop: 'actions',
+			actions: [{
+				label: '删除',
+				type: 'danger',
+				onClick: (row, index) => paymentDelete(row, index)
+			}],
+			width: '70px'
+		};
 		console.log('PaymentColumns', PaymentColumns.value)
 	})
 	
@@ -512,10 +513,27 @@
 		tableData.push(data);
 		proxy.$refs.paymentTable.updateTableData(tableData);
 	}
-	const paymentDelete = (row) => {
-		const rowIndex = proxy.$refs.paymentTable.state.tableData.findIndex(item => item === row);
-		proxy.$refs.paymentTable.state.tableData.splice(row.index, 1);
+	const paymentDelete = (row, index) => {
+		proxy.$refs.paymentTable.state.tableData.splice(index, 1);
 		// console.log('paymentDelete', row, rowIndex)
+	}
+	
+	//财务合计结算
+	const totelSettlement = () => {
+		proxy.$modal.confirm('确认结算当前单据合计？').then(function() {
+			httpPut(`/orders/${editId.value}/finish`, {}).then(() => {
+				httpGet(`/orders/${editId.value}`).then(res => {
+					var data = {
+						special_fee: res.special_fee,
+						special_fee_cashed_status: res.special_fee_cashed_status,
+						receipt_total_cny_amount: res.receipt_total_cny_amount,
+						receipt_total_usd_amount: res.receipt_total_usd_amount,
+						// receipt_total_usd_amount: '2500.00',
+					};
+					proxy.$refs.commonForm.changeSave(data);
+				});
+			});
+		}).catch(() => {});
 	}
 	
 </script>

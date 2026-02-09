@@ -1,4 +1,4 @@
-import { optionsComm } from '@/api/commonList';
+import { optionsComm, getYT, getXHDW } from '@/api/commonList';
 import { ElButton, ElInput, ElSelect } from 'element-plus'
 import { httpPost, httpGet } from '@/api/apiCommon';
 
@@ -162,8 +162,8 @@ export const queryParamsBill1 = ref([
 	},
 ])
 
-export const queryParamsPublic = ref([
-	{
+export const getOptions = async () => {
+    return [{
 		type: 'input',
 		value: '',
 		placeholder: '编号、单据号、抬头、发票号、金额',
@@ -193,9 +193,18 @@ export const queryParamsPublic = ref([
 		value: '',
 		placeholder: '选择用途',
 		key: 'order_type_id',
-		options: []
+		options: await getYT()
 	},
-])
+	{
+		type: 'select',
+		value: '',
+		placeholder: '销货单位',
+		key: 'seller',
+		labelName: 'name',
+		valueName: 'id',
+		options: await getXHDW()
+	}]
+}
 
 export const queryParamsReal = ref([
 	{

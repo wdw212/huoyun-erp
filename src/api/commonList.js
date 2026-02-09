@@ -159,6 +159,19 @@ export async function getSJ(data={}) {
 	return res.data||[]
 }
 
+//用途分类
+export async function getYT(data={}) {
+	var params = {
+		...data
+	}
+	let res = await httpGet('/transactions/category', params);
+	var options = [];
+	for(var key in res.data){
+		options.push({value: res.data[key], label: res.data[key]});
+	}
+	return options||[]
+}
+
 
 //其他选项
 export const optionsComm = {
@@ -185,8 +198,8 @@ export const optionsComm = {
 		{label: '不符合比例', value: '2'},
 	],
 	'兑付': [
-		{label: '未兑付', value: '0'},
-		{label: '已兑付', value: 1},
+		{label: '未兑付', value: '0', btnType: 'danger'},
+		{label: '已兑付', value: '1', btnType: 'success'},
 	],
 	'费用完结': [
 		{label: '费用未完结', value: '1'},
