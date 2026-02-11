@@ -211,7 +211,7 @@
 			console.log('formListNew', formListNew, seletData.value)
 			
 			getStatistic(); //统计数据
-			getDollerRate(); //获取当月美金税率
+			// getDollerRate(); //获取当月美金税率
 		})
 		
 		accountInit();
@@ -388,6 +388,7 @@
 				for(var key in proxy.$refs.commonForm.saveData){
 					data[key] = res[key]||proxy.$refs.commonForm.saveData[key];
 				}
+				formListNew.value[5].formData[2].formItem[11].placeholder = '当月美金汇率：'+res.usd_exchange_rate;
 				proxy.$refs.boxInfo.defaultBox(res.containers||[]);
 				proxy.$refs.commonForm.changeSave(data);
 				proxy.$refs.accountTable.updateTableData(res.order_payments||[]);
@@ -408,6 +409,7 @@
 		proxy.$refs.paymentTable.state.tableData = [];
 		order_files.value = [];
 		proxy.$refs.fileInfo.dafultFile([]);
+		formListNew.value[5].formData[2].formItem[11].placeholder = '当月美金汇率：0';
 	}
 	
 	// 当月美金汇率
