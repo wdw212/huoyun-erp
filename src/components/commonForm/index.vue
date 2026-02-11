@@ -102,7 +102,7 @@
 														<template v-if="vv.type=='button'">
 															<div style="display: flex;justify-content: center;">
 																<block v-for="(v, i) in vv.options" :key="vv.valueName?v[vv.valueName]:v.value" >
-																	<el-button v-show="(vv.valueName&&saveData==v[vv.valueName])||saveData==v.value"
+																	<el-button v-show="(vv.valueName&&saveData[vv.key]==v[vv.valueName])||saveData[vv.key]==v.value"
 																	:disabled="vv.disabled||v.disabled" 
 																	:type="v.btnType" :size="v.size||'small'"
 																	@click="changeButton(vv, i)" >{{ vv.labelName?v[vv.labelName]:v.label }}</el-button>

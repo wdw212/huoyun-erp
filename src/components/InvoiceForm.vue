@@ -15,7 +15,7 @@
 											placeholder=""  disabled/>
 									</el-form-item>
 									<el-form-item label="邮箱：" label-width="87px">
-										<el-input v-model="form.email" style="width: 130px" />
+										<el-input v-model="form.email" style="width: 130px" :disabled="editDisabled" />
 									</el-form-item>
 									<el-form-item label="税点：" label-width="87px">
 										<el-input v-model="percentageValue" style="width: 130px" disabled/>
@@ -26,13 +26,13 @@
 							<el-col :span="12">
 								<div class="section">
 									<el-form-item label="发票名称：" label-width="85px">
-										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable filterable>
+										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable filterable  :disabled="editDisabled">
 											<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
 												:value="item.id" />
 										</el-select>
 									</el-form-item>
 									<el-form-item label="备注：" label-width="85px">
-										<el-input v-model="form.remark" style="width: 100%" />
+										<el-input v-model="form.remark" style="width: 100%"  :disabled="editDisabled"/>
 									</el-form-item>
 									<el-form-item label="税额：" label-width="87px">
 										<el-input v-model="calculations.tax_amount" style="width: 100%" disabled/>
@@ -48,9 +48,9 @@
 					<el-col :span="10">
 						<div class="section mb30" style="margin-left: 80px;">
 							<el-form-item label="单子完结">
-								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" />
+								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" :disabled="editDisabled" />
 								<el-input v-model="form.commission" type="number" style="width: 150px; margin-left: 20px"
-									:disabled="!form.is_finish" />
+									:disabled="!form.is_finish||editDisabled" />
 							</el-form-item>
 							<el-form-item label="开票日期：">
 								<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
@@ -68,7 +68,7 @@
 								<div class="flex-1 pt-1" style="box-sizing: border-box;">
 									<div class="section">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable>
+											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled">
 												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
 													:value="item.id" place />
 											</el-select>
@@ -104,7 +104,7 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
 														remote @change="changeFeeTypeCNY()">
 														<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
 															:value="opt.id" />
@@ -113,20 +113,20 @@
 											</el-table-column>
 											<el-table-column label="单位" width="60" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.unit" />
+													<el-input v-model="row.unit" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
 											<el-table-column label="数量" width="60" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.quantity" />
+													<el-input v-model="row.quantity" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
 											<el-table-column label="金额" width="60" align="center">
 												<template #default="{row}">
-													<el-input v-model="row.amount" type="number"></el-input>
+													<el-input v-model="row.amount" type="number" :disabled="editDisabled"></el-input>
 												</template>
 											</el-table-column>
-											<el-table-column width="80" align="center">
+											<el-table-column width="80" align="center" v-if="!editDisabled">
 												<template #header>
 													<el-button type="primary" size="mini" @click="addRow"
 														:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
@@ -144,7 +144,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="人民币发票号：">
 															<el-input v-model="form.cny_invoice_no" style="width: 180px"
-																placeholder="" :disabled="[0,1,2].includes(type) "/>
+																placeholder="" :disabled="[0,1,2].includes(type)&&props.roleType!='finance'"/>
 														</el-form-item>
 													</div>
 												</div>
@@ -162,7 +162,7 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
+													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
 														remote @change="changeFeeTypeUSD()">
 														<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
 															:value="opt.id" />
@@ -171,20 +171,20 @@
 											</el-table-column>
 											<el-table-column label="单位" width="60" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.unit" />
+													<el-input v-model="row.unit" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
 											<el-table-column label="数量" width="60" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.quantity" />
+													<el-input v-model="row.quantity" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
 											<el-table-column label="金额" width="60" align="center">
 												<template #default="{row}">
-													<el-input v-model="row.amount" type="number"></el-input>
+													<el-input v-model="row.amount" type="number" :disabled="editDisabled"></el-input>
 												</template>
 											</el-table-column>
-											<el-table-column width="70" align="center">
+											<el-table-column width="70" align="center" v-if="editDisabled">
 												<template #header>
 													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false">增行</el-button>
 												</template>
@@ -201,7 +201,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="美金发票号：">
 															<el-input v-model="form.usd_invoice_no" style="width: 180px"
-																placeholder="" :disabled="[0,1,2].includes(type)" />
+																placeholder="" :disabled="[0,1,2].includes(type)&&props.roleType!='finance'" />
 														</el-form-item>
 													</div>
 												</div>
@@ -215,14 +215,14 @@
 								<div style="width: 40px;border-right: 1px solid #800;" class="vertical-text flex0">人民币备注</div>
 								<div class="flex-1">
 									<div class="section mt-1 mx-1">
-										<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="" style="color: #000;"/>
+										<el-input v-model="remarkCNY" :rows="6" type="textarea" placeholder="" style="color: #000;" :disabled="editDisabled"/>
 									</div>
 								</div>
 								<!-- 美元备注-->
 								<div style="width: 40px;border-left: 1px solid #800;border-right: 1px solid #800;" class="vertical-text flex0">美元备注</div>
 								<div class="flex-1">
 									<div class="section mt-1 mx-1">
-										<el-input v-model="remarkUSD" :rows="6" type="textarea" placeholder="美元备注" />
+										<el-input v-model="remarkUSD" :rows="6" type="textarea" placeholder="美元备注" :disabled="editDisabled" />
 									</div>
 								</div>
 							</div>
@@ -232,14 +232,14 @@
 				<!-- 模板信息-->
 				<el-row>
 					<el-col :span="12">
-						<div class="section d-flex">
+						<div class="section d-flex" v-if="props.roleType!='finance'">
 							<el-form-item label="模板名称：">
 								<el-input v-model="templatesName" style="width: 150px" />
 							</el-form-item>
 							<el-button type="primary" class="ml20" @click="saveInvoicesTemplates">保存模板</el-button>
 							<!-- <el-button>删除模板</el-button> -->
 						</div>
-						<div class="flex-1 pb-2" style="overflow-y: auto;max-height: 100px;">
+						<div class="flex-1 pb-2" style="overflow-y: auto;max-height: 100px;" v-if="props.roleType!='finance'">
 							<div :class="['b-0','radius10','mr-1','mt-1',invoicesCurrent== index?'colorBlue':'colorBlack']" v-for="(item, index) in invoiceTemplatesList" :key="index" :style="{display: 'inline-block',borderRadius: '5px'}">
 								<span class="px-2 py-1" style="display: inline-block;" @click="selectTemplates(item,index)">{{item.name}}</span>
 								<el-button class="icon-color-black" :style="{background: invoicesCurrent== index?'#409EFF': '#fff'}" icon="Delete" @click="handlePaySureDelete(item,index)"></el-button>
@@ -380,7 +380,8 @@
 		computed,
 		reactive ,
 		onMounted,
-		nextTick
+		nextTick,
+		watch
 	} from 'vue'
 	import {
 		httpPost,
@@ -425,8 +426,13 @@ const Emit= defineEmits(['close'])
 		visible: { 
 			type: Boolean,
 			default: false,
+		},
+		roleType: { 
+			type: String,
+			default: 'normal',
 		}
 	})
+
 	const sellerOptions = ref([])
 	// 表单数据，不包含计算字段
 	const form = ref({
@@ -499,20 +505,18 @@ const Emit= defineEmits(['close'])
 				console.log(form.value,'497')
 				// changeSaleUscCode(form.value.sale_entity_id)
 			}
-			
 		    showDefaultData(newType)
 		  }
-		
 	}, {
 		immediate: true
 	})
+	const editDisabled= ref(false);
 	// 默认的选择
 	function showDefaultData(type){
-		if(type== 0){
+		if(type== 0||type== 3){
 			tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 			tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-		}
-		if (type == 1) {
+		}else if (type == 1) {
 			remarkCNY.value = invoiceFormObj.value.remark?invoiceFormObj.value.remark: ''
 			remarkUSD.value = invoiceFormObj.value.remark? invoiceFormObj.value.remark: ''
 			console.log(form.value.sale_entity_id,'form.value.sale_entity_id')
@@ -545,7 +549,8 @@ const Emit= defineEmits(['close'])
 				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 			}
-		}else if(type == 2){
+		}else if(type == 2|| type == 4){
+			if(type==4){ editDisabled.value= true };
 			remarkCNY.value= invoiceFormObj.value.cny_remark
 			remarkUSD.value= invoiceFormObj.value.usd_remark
 			if(invoiceFormObj.value.cny_invoice_items && invoiceFormObj.value.cny_invoice_items.length> 0){
@@ -556,9 +561,9 @@ const Emit= defineEmits(['close'])
 			}
 		}
 		// 业务的时间新增都清零
-		if(type== 0 || type == 1){
+		if([0,1,3].includes(type)){
 			form.value.invoice_date= ''
-		}else if(type == 2){
+		}else if([2,4].includes(type)){
 			
 		} else{
 			form.value.invoice_date= timeto(new Date().getTime(), 'ymd', '-')

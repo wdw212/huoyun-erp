@@ -52,7 +52,7 @@
 	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
 	import InvoiceForm from '../../../components/InvoiceForm.vue'
 	import {
-		ElButton
+		ElTag
 	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
 	
@@ -123,7 +123,7 @@
 		{label: '单子完结',prop: 'is_finish_name',
 			render: (row, index) => {
 				return [
-					h(ElButton, {
+					h(ElTag, {
 							type: row?.order?.is_finish== 1? 'success' : 'danger',
 							size: 'small',
 							onClick: () => {},

@@ -23,6 +23,18 @@ export default defineConfig(({ mode, command }) => {
       // https://cn.vitejs.dev/config/#resolve-extensions
       extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json", ".vue"],
     },
+    // 打包相关配置
+    build: {
+      // 生产环境打包配置
+      minify: 'terser', // 确保使用 terser 压缩
+      terserOptions: {
+        compress: {
+          drop_console: true, // 移除所有 console
+          drop_debugger: true, // 移除 debugger
+          pure_funcs: ['console.log'] // 只移除 console.log，保留 console.error 等
+        }
+      }
+    },
     // vite 相关配置
     server: {
       port: 80,
