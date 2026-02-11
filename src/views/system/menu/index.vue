@@ -82,9 +82,9 @@
 					</el-col>
 					<el-col :span="12" v-if="form.type != 2">
 						<el-form-item label="菜单图标" prop="icon">
-							<el-popover placement="bottom-start" :width="540" trigger="click">
+							<el-popover placement="bottom-start" :width="500" trigger="click">
 								<template #reference>
-									<el-input v-model="form.icon" placeholder="点击选择图标" @blur="showSelectIcon" readonly>
+									<el-input v-model="form.icon" placeholder="点击选择图标" @blur="showSelectIcon"  clearable>
 										<template #prefix>
 											<svg-icon v-if="form.icon" :icon-class="form.icon" class="el-input__icon"
 												style="height: 32px;width: 16px;" />

@@ -111,28 +111,29 @@
 													</el-select>
 												</template>
 											</el-table-column>
-											<el-table-column label="单位" width="60" align="center">
+											<el-table-column label="单位" width="90" align="center">
 												<template #default="{ row }">
 													<el-input v-model="row.unit" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
-											<el-table-column label="数量" width="60" align="center">
+											<el-table-column label="数量" width="90" align="center">
 												<template #default="{ row }">
 													<el-input v-model="row.quantity" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
-											<el-table-column label="金额" width="60" align="center">
+											<el-table-column label="金额" width="90" align="center">
 												<template #default="{row}">
-													<el-input v-model="row.amount" type="number" :disabled="editDisabled"></el-input>
+													<el-input v-model="row.amount" :formatter="(value) => value.replace(/[^0-9|.]/g, '')"
+    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled"></el-input>
 												</template>
 											</el-table-column>
-											<el-table-column width="80" align="center" v-if="!editDisabled">
+											<el-table-column width="60" align="center" v-if="!editDisabled">
 												<template #header>
-													<el-button type="primary" size="mini" @click="addRow"
+													<el-button type="primary" size="small" @click="addRow"
 														:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
 												</template>
 												<template v-if="tableDataCNY.length>1" #default="{ $index }">
-													<el-button type="text" @click="delRow($index)" class="del">删除</el-button>
+													<el-button type="text" @click="delRow($index)" class="del" size="small">删除</el-button>
 												</template>
 											</el-table-column>
 										</el-table>
@@ -169,27 +170,28 @@
 													</el-select>
 												</template>
 											</el-table-column>
-											<el-table-column label="单位" width="60" align="center">
+											<el-table-column label="单位" width="90" align="center">
 												<template #default="{ row }">
 													<el-input v-model="row.unit" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
-											<el-table-column label="数量" width="60" align="center">
+											<el-table-column label="数量" width="90" align="center">
 												<template #default="{ row }">
 													<el-input v-model="row.quantity" :disabled="editDisabled" />
 												</template>
 											</el-table-column>
-											<el-table-column label="金额" width="60" align="center">
+											<el-table-column label="金额" width="90" align="center">
 												<template #default="{row}">
-													<el-input v-model="row.amount" type="number" :disabled="editDisabled"></el-input>
+													<el-input v-model="row.amount" :formatter="(value) => value.replace(/[^0-9|.]/g, '')"
+    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled"></el-input>
 												</template>
 											</el-table-column>
-											<el-table-column width="70" align="center" v-if="editDisabled">
+											<el-table-column width="60" align="center" v-if="!editDisabled">
 												<template #header>
-													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false">增行</el-button>
+													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false" size="small">增行</el-button>
 												</template>
 												<template v-if="tableDataUSD.length>1" #default="{ $index }">
-													<el-button type="text" @click="delRoww($index)" class="del">删除</el-button>
+													<el-button type="text" @click="delRoww($index)" class="del" size="small">删除</el-button>
 												</template>
 											</el-table-column>
 										</el-table>
@@ -468,12 +470,13 @@ const Emit= defineEmits(['close'])
 	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
 	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
 		  // 只有当弹框显示、数据加载完成且有类型时才执行
+		  console.log('newType', newType)
 		  if (isVisible && loaded) {
 			invoiceType.value= newType
 		    invoicesCurrent.value= 9999
 			templatesName.value= ''
 			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
-			if(newType== 0 || newType== 1){
+			if([0,1,3].includes(newType)){
 				form.value.id = ''
 				form.value.invoice_type_id = ''
 				form.value.email = ''
@@ -498,7 +501,7 @@ const Emit= defineEmits(['close'])
 				remarkUSD.value= ''
 				console.log(form.value,'form.value')		
 				changeSaleUscCode(form.value.sale_entity_id)
-			}else if(newType == 2){
+			}else if([2,4].includes(newType)){
 				form.value= JSON.parse(JSON.stringify(props.invoiceForm))
 				form.value.purchase_entity_id= form.value.purchase_entity_id? Number(form.value.purchase_entity_id): ''
 				form.value.sale_entity_id= form.value.sale_entity_id? Number(form.value.sale_entity_id): ''

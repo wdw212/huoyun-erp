@@ -54,33 +54,32 @@
 	
 	/** 查询列表 */
 	const tableColumn = ref([
-		{label: '开票单据',prop: 'order.job_no'},
-		{label: '名称',prop: 'purchase_entity.name'},
+		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order?.job_no || '无'},
+		{label: '开票抬头',prop: 'purchase_entity.name'},
 		{label: '销货单位',prop: 'sale_entity.name'},
 		{label: '发票类型',prop: 'invoice_type.name'},
-		{label: '单子完结',
-			render: (row) => {
+		{label: '税额',prop: 'tax_rate'},
+		{label: '单子完结',prop: 'is_finish_name',
+			render: (row, index) => {
 				return [
 					h(ElTag, {
 							type: row?.order?.is_finish== 1? 'success' : 'danger',
 							size: 'small',
 							onClick: () => {},
-							style: { margin: '0px' },
+							style: {
+								margin: '0px'
+							},
 							key: row.id
 						},
 						() => (row?.order?.is_finish== 1?'已完结': '未完结')
 					)
 				]
-			}
-		},
+			}},
 		{label: '人民币金额',prop: 'total_cny_amount'},
 		{label: '人民币发票',prop: 'cny_invoice_no'},
 		{label: '美金金额',prop: 'total_usd_amount'},
 		{label: '美金发票',prop: 'usd_invoice_no'},
 		{label: '申请时间',prop: 'created_at'},
-		{label: '需寄发票',prop: ''},
-		{label: '寄件分类',prop: ''},
-		{label: '快递单号',prop: ''},
 		{label: '确认开票时间',prop: 'confirm_at'},
 		{ 
 			label: '操作',
