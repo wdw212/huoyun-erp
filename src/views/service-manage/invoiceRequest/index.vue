@@ -115,7 +115,7 @@
 	
 	/** 查询列表 */
 	const tableColumn = ref([
-		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order.job_no || '无'},
+		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order?.job_no || '无'},
 		{label: '开票抬头',prop: 'purchase_entity.name'},
 		{label: '销货单位',prop: 'sale_entity.name'},
 		{label: '发票类型',prop: 'invoice_type.name'},

@@ -2388,84 +2388,24 @@
 	    });
 	
 	    // 准备导出数据
-		const wordData = {
-		  // 基础信息（普通变量）
-		  delegation_header: "XX国际贸易有限公司",
-		  origin_port: "上海港（CNSHA）",
-		  bl_no: "BL20240601008",
-		  contract_no: "CT-2024-SH-LA-001",
-		  destination_port: "洛杉矶港（USLA）",
-		  ship_name: "COSCO SHIPPING PANAMA",
-		  ship_no: "0123W",
-		  job_no: "JD-SH-20240601",
-		  sailing_at: "2024-06-10",
-		  arrival_at: "2024-06-25",
-		
-		  // 费用明细数组（表格行循环）
-		  orderBillItems: [
-		    {
-		      fee_type_name: "海运费",
-		      currency_name: "USD",
-		      quantity: 1,
-		      price: 1800,
-		      total: 1800, // 提前计算总价，避免模板表达式
-		      remark: "整箱20GP"
-		    },
-		    {
-		      fee_type_name: "码头操作费（THC）",
-		      currency_name: "CNY",
-		      quantity: 1,
-		      price: 1200,
-		      total: 1200,
-		      remark: "上海港本地费用"
-		    }
-		  ],
-		
-		  // 总计金额
-		  totals: {
-		    totalCNY: 1200,
-		    totalUSD: 1800
-		  },
-		
-		  // 集装箱信息数组（表格行循环）
-		  orderBillContainers: [
-		    {
-		      index: 1,
-		      no: "CCLU1234567",
-		      container_type_name: "20GP",
-		      driver: "王师傅 138XXXX8888"
-		    },
-		    {
-		      index: 2,
-		      no: "CCLU7654321",
-		      container_type_name: "40HQ",
-		      driver: "李师傅 139XXXX9999"
-		    }
-		  ],
-		
-		  // 双方信息（普通变量）
-		  cost_share: "海运费由客户承担，THC及报关费由我司垫付后结算",
-		  customer_payment_info: "付款方式：电汇 | 账号：62220812020XXXX1234 | 开户行：中国工商银行上海浦东分行",
-		  company_receipt_info: "收款单位：XX国际物流有限公司 | 税号：91310115MA1G8XXXX | 开户行：中国银行上海外滩支行"
-		};
-	 //    let data = {
-	 //      ...formBill.value,
-	 //      orderBillItems: orderBillItemsData,
-	 //      orderBillContainers: orderBillContainersData,
-	 //      cost_share: cost_share.value,
-	 //      customer_payment_info: customer_payment_info.value,
-		//   company_receipt_info: company_receipt_info.value,
-	 //      remarkBill: remarkBill.value,
-		//   totals: totals.value,
-	 //      exportDate: new Date().toLocaleDateString('zh-CN'), // 添加导出日期
-	 //      totalAmount: orderBillItemsData.reduce((sum, item) => sum + (item.amount || 0), 0) // 计算总金额
-	 //    };
-		// data.sailing_at= data.sailing_at?data.sailing_at.substring(0,10): ''
-		// data.arrival_at= data.arrival_at?data.arrival_at.substring(0,10): ''
+	    let data = {
+	      ...formBill.value,
+	      orderBillItems: orderBillItemsData,
+	      orderBillContainers: orderBillContainersData,
+	      cost_share: cost_share.value,
+	      customer_payment_info: customer_payment_info.value,
+		  company_receipt_info: company_receipt_info.value,
+	      remarkBill: remarkBill.value,
+		  totals: totals.value,
+	      exportDate: new Date().toLocaleDateString('zh-CN'), // 添加导出日期
+	      totalAmount: orderBillItemsData.reduce((sum, item) => sum + (item.amount || 0), 0) // 计算总金额
+	    };
+		data.sailing_at= data.sailing_at?data.sailing_at.substring(0,10): ''
+		data.arrival_at= data.arrival_at?data.arrival_at.substring(0,10): ''
 	    // 调用导出函数 - 使用正确的路径
 	    await exportWordImage(
-	      "/test.docx", // 确保模板文件在public/目录下
-	      wordData,
+	      "/template2.docx", // 确保模板文件在public/目录下
+	      data,
 	      `${formBillTemplates.value.wordName}.docx`,
 	      {
 			  pay_sure_logo:[150,75]
