@@ -68,10 +68,13 @@
 								<div class="flex-1 pt-1" style="box-sizing: border-box;">
 									<div class="section">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled">
-												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
-													:value="item.id" place />
-											</el-select>
+											
+											<el-tooltip effect="dark" :content="COMPANY_HEADERS_LIST.find((v) => v.id == form.purchase_entity_id)?.company_name" placement="top" >
+												<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled">
+													<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
+														:value="item.id" place />
+												</el-select>
+											</el-tooltip>
 										</el-form-item>
 										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
 											<el-input v-model="form.purchase_usc_code" disabled/>
@@ -104,11 +107,13 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
-														remote @change="changeFeeTypeCNY()">
-														<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
-															:value="opt.id" />
-													</el-select>
+													<el-tooltip effect="dark" :content="FEE_TYPES_LIST_CNY.find((v) => v.id == row.fee_type_id)?.name" placement="top" >
+														<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
+															remote @change="changeFeeTypeCNY()">
+															<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+																:value="opt.id" />
+														</el-select>
+													</el-tooltip>
 												</template>
 											</el-table-column>
 											<el-table-column label="单位" width="90" align="center">
@@ -118,13 +123,13 @@
 											</el-table-column>
 											<el-table-column label="数量" width="90" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.quantity" :disabled="editDisabled" />
+													<el-input v-model="row.quantity" :disabled="editDisabled" class="t-c" />
 												</template>
 											</el-table-column>
 											<el-table-column label="金额" width="90" align="center">
 												<template #default="{row}">
 													<el-input v-model="row.amount" :formatter="(value) => value.replace(/[^0-9|.]/g, '')"
-    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled"></el-input>
+    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled" class="t-c"></el-input>
 												</template>
 											</el-table-column>
 											<el-table-column width="60" align="center" v-if="!editDisabled">
@@ -163,11 +168,13 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
-														remote @change="changeFeeTypeUSD()">
-														<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
-															:value="opt.id" />
-													</el-select>
+													<el-tooltip effect="dark" :content="FEE_TYPES_LIST_USD.find((v) => v.id == row.fee_type_id)?.name" placement="top" >
+														<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
+															remote @change="changeFeeTypeUSD()">
+															<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
+																:value="opt.id" />
+														</el-select>
+													</el-tooltip>
 												</template>
 											</el-table-column>
 											<el-table-column label="单位" width="90" align="center">
@@ -177,13 +184,13 @@
 											</el-table-column>
 											<el-table-column label="数量" width="90" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.quantity" :disabled="editDisabled" />
+													<el-input v-model="row.quantity" :disabled="editDisabled" class="t-c" />
 												</template>
 											</el-table-column>
 											<el-table-column label="金额" width="90" align="center">
 												<template #default="{row}">
 													<el-input v-model="row.amount" :formatter="(value) => value.replace(/[^0-9|.]/g, '')"
-    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled"></el-input>
+    :parser="(value) => value.replace(/\$\s?|(,*)/g, '')" :disabled="editDisabled" class="t-c"></el-input>
 												</template>
 											</el-table-column>
 											<el-table-column width="60" align="center" v-if="!editDisabled">
@@ -1247,5 +1254,8 @@ const Emit= defineEmits(['close'])
 	}
 	.wrapper .el-textarea .el-textarea__inner{
 		color: #000 !important;
+	}
+	.t-c .el-input__inner{
+		text-align: center !important;
 	}
 </style>

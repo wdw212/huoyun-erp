@@ -8,7 +8,7 @@
 		
 		<!-- 表格 -->
 		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2" :number="true">
+		class="px-2" :number="true" :multiple="false">
 			<template #headerLeft> </template>
 			<template #headerRight>
 				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1 mr-1">新增</el-button>
