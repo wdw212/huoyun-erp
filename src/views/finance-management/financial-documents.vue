@@ -124,10 +124,10 @@
 					</template> -->
 					
 					<!-- 合计结算 -->
-					<template #settlement>
+					<template #settlement="{saveData,formList}">
 						<div style="display: flex;justify-content: end">
 							<el-button style="width: 120px;" @click="totelSettlement"
-							type="danger">未结算</el-button>
+							:type="saveData.is_finish=== 1? 'success':'danger'">{{saveData.is_finish=== 1?'已结算':'未结算'}}</el-button>
 						</div>
 					</template>
 					
@@ -530,6 +530,7 @@
 						special_fee_cashed_status: res.special_fee_cashed_status,
 						receipt_total_cny_amount: res.receipt_total_cny_amount,
 						receipt_total_usd_amount: res.receipt_total_usd_amount,
+						is_finish: res.is_finish
 						// receipt_total_usd_amount: '2500.00',
 					};
 					proxy.$refs.commonForm.changeSave(data);

@@ -398,7 +398,7 @@ export const amountFormFin = ref([
 	{ type: 'input', labelWidth: '200px',label: '应收美金$',key: 'receipt_total_usd_amount', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '毛利人民币￥',key: 'gross_profit_cny', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ type: 'input', labelWidth: '200px',label: '毛利美金$',key: 'gross_profit_usd', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
-	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'gross_profit', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
+	{ type: 'input', labelWidth: '200px',label: '总利润（以人民币计）￥',key: 'total_profit', placeholder: ' ', span: 12, disabled: true,defaultValue: '0.00' },
 	{ key: 'settlement', span: 6, soltName: 'settlement' },
 	{ type: 'input', labelWidth: '200px',key: '', span: 6, placeholder: '当月美金汇率：0', disabled: true },
 ])
