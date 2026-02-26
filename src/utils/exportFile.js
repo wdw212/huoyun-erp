@@ -134,7 +134,7 @@ export const exportWord = (tempDocxPath, wordData, fileName) => {
 			paragraphLoop: true,
 			linebreaks: true,
 		});
-
+		console.log('wordData', wordData)
 		doc.render(wordData);
 
 		const out = doc.getZip().generate({
