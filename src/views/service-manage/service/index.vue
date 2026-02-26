@@ -808,9 +808,12 @@
 		nextTick
 	} from "vue";
 	import html2canvas from "html2canvas";
+	// import {
+	// 	exportWord
+	// } from "@/utils/exportFile";
 	import {
 		exportWord
-	} from "@/utils/exportFile";
+	} from "@/utils/exportWord";
 	import {jsPDF} from 'jspdf';
 	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
@@ -2403,14 +2406,24 @@
 		data.sailing_at= data.sailing_at?data.sailing_at.substring(0,10): ''
 		data.arrival_at= data.arrival_at?data.arrival_at.substring(0,10): ''
 	    // 调用导出函数 - 使用正确的路径
-	    await exportWord(
-	      "/template2.docx", // 确保模板文件在public/目录下
-	      data,
-	      `${formBillTemplates.value.wordName}.docx`,
-	      {
-			  pay_sure_logo:[150,75]
-		  }
-	    );
+	    // await exportWord(
+	    //   "/template2.docx", // 确保模板文件在public/目录下
+	    //   data,
+	    //   `${formBillTemplates.value.wordName}.docx`,
+	    //   {
+		// 	  pay_sure_logo:[150,75]
+		//   }
+	    // );
+		exportWord({
+			fileName: '多类型数据导出文档',
+			// dataList: exportData,
+			// 可选：自定义样式
+			style: {
+				titleSize: '18px',
+				imgMaxWidth: '500px',
+				tableBorder: '1px solid #666'
+			}
+		})
 	
 	    // 成功提示
 	    // ElMessage.success('导出成功');
