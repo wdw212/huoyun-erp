@@ -474,6 +474,8 @@ const Emit= defineEmits(['close'])
 	    }
 	})
 	const invoiceType= ref(0)
+	const is_lock= ref(0)
+	const editDisabled= ref(false);
 	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
 	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
 		  // 只有当弹框显示、数据加载完成且有类型时才执行
@@ -515,12 +517,14 @@ const Emit= defineEmits(['close'])
 				console.log(form.value,'497')
 				// changeSaleUscCode(form.value.sale_entity_id)
 			}
+			if([0,1,2].includes(newType)){
+				if(props.invoiceForm?.is_lock && props.invoiceForm.is_lock== 1){editDisabled.value= true}
+			}
 		    showDefaultData(newType)
 		  }
 	}, {
 		immediate: true
 	})
-	const editDisabled= ref(false);
 	// 默认的选择
 	function showDefaultData(type){
 		if(type== 0||type== 3){
