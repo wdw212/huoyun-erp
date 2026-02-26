@@ -939,7 +939,7 @@
 		billEntranceType.value= type
 		console.log(res,'res')
 		console.log(type,'type')
-		const delegation_header_id= type== 1 || type== 2? res["order_delegation_header.company_header_id"]:''
+		const delegation_header_id= type== 1?res["order_delegation_header.company_header_id"]: type== 2? res.order_delegation_header?.company_header_id:''
 		const delegation_header= type== 1 || type== 2? seletData.value.WTTT.filter(itemIndex => (itemIndex.id== delegation_header_id))[0]?.company_name: res.delegation_header
 		formBill.value= {
 			id: type== 0?res.id: null,
@@ -1376,7 +1376,7 @@
 		{label: '开票抬头',prop: 'purchase_entity.name'},
 		{label: '销货单位',prop: 'sale_entity.name'},
 		{label: '发票类型',prop: 'invoice_type.name'},
-		{label: '税额',prop: 'tax_rate'},
+		{label: '税额',prop: 'tax_amount'},
 		{label: '单子完结',prop: 'is_finish_name',
 		render: (row, index) => {
 			return [

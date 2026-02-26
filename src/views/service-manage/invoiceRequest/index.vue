@@ -119,7 +119,7 @@
 		{label: '开票抬头',prop: 'purchase_entity.name'},
 		{label: '销货单位',prop: 'sale_entity.name'},
 		{label: '发票类型',prop: 'invoice_type.name'},
-		{label: '税额',prop: 'tax_rate'},
+		{label: '税额',prop: 'tax_amount'},
 		{label: '单子完结',prop: 'is_finish_name',
 			render: (row, index) => {
 				return [
