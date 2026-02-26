@@ -813,7 +813,7 @@
 	// } from "@/utils/exportFile";
 	import {
 		exportWord
-	} from "@/utils/exportWord";
+	} from "@/utils/exportWords";
 	import {jsPDF} from 'jspdf';
 	import SearchTop from "@/components/searchTop/searchTop";
 	import TableList from "@/components/tableList/index";
@@ -2416,13 +2416,7 @@
 	    // );
 		exportWord({
 			fileName: '多类型数据导出文档',
-			// dataList: exportData,
-			// 可选：自定义样式
-			style: {
-				titleSize: '18px',
-				imgMaxWidth: '500px',
-				tableBorder: '1px solid #666'
-			}
+			// data: exportData,
 		})
 	
 	    // 成功提示

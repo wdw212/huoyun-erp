@@ -23,6 +23,7 @@
 		"autofit.js": "^3.2.8",
 		"axios": "0.28.1",
 		"clipboard": "2.0.11",
+		"docx": "^9.6.0",
 		"docx-preview": "^0.3.2",
 		"docxtemplater": "^3.49.1",
 		"docxtemplater-image-module-free": "^1.1.1",
