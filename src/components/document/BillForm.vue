@@ -434,7 +434,7 @@
 	import html2canvas from "html2canvas";
 	import {listData} from "@/api/company/send-and-receive";
 	import {
-		exportWordImage,
+		exportWord,
 		getWordImage
 	} from "@/utils/exportFile";
 	import { Refresh } from '@element-plus/icons-vue'
@@ -699,24 +699,23 @@
 	
 	
 	// 导出文件
-	const startSchemeTemplate = ref({
-		VALUE1: sender_id.value&&SENDER_LIST.value.find(v=> v.id==sender_id.value)&&SENDER_LIST.value.find(v=> v.id==sender_id.value).name,
-		SENDERINFOCONTENT: sender_info.value,
-	});
 	const downLoad = (type) => {
+		const startSchemeTemplate = {
+			VALUE1: sender_id.value&&SENDER_LIST.value.find(v=> v.id==sender_id.value)&&SENDER_LIST.value.find(v=> v.id==sender_id.value).name,
+			SENDERINFOCONTENT: sender_info.value,
+		};
+		console.log('startSchemeTemplate', startSchemeTemplate);
 		if(type==1){
-			exportWordImage(
+			exportWord(
 				"../template1.docx",
-				startSchemeTemplate.value,
-				'订舱托书',
-				''
+				startSchemeTemplate,
+				'订舱托书'
 			);
 		}else{
-			exportWordImage(
+			exportWord(
 				"../template.docx",
-				startSchemeTemplate.value,
-				'提单确认件',
-				''
+				startSchemeTemplate,
+				'提单确认件'
 			);
 		}
 	};

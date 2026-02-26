@@ -809,7 +809,7 @@
 	} from "vue";
 	import html2canvas from "html2canvas";
 	import {
-		exportWordImage
+		exportWord
 	} from "@/utils/exportFile";
 	import {jsPDF} from 'jspdf';
 	import SearchTop from "@/components/searchTop/searchTop";
@@ -2403,7 +2403,7 @@
 		data.sailing_at= data.sailing_at?data.sailing_at.substring(0,10): ''
 		data.arrival_at= data.arrival_at?data.arrival_at.substring(0,10): ''
 	    // 调用导出函数 - 使用正确的路径
-	    await exportWordImage(
+	    await exportWord(
 	      "/template2.docx", // 确保模板文件在public/目录下
 	      data,
 	      `${formBillTemplates.value.wordName}.docx`,
