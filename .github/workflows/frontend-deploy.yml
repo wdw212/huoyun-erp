@@ -1,4 +1,4 @@
-name: Frontend Deploy
+﻿name: Frontend Deploy
 
 on:
   workflow_dispatch:
@@ -66,4 +66,5 @@ jobs:
             if [ -d "$DEPLOY_PATH" ]; then
               tar -czf "$BACKUP_DIR/site_root_$(date +%Y%m%d_%H%M%S).tar.gz" -C "$DEPLOY_PATH" .
             fi
-            rsync -av --delete "$RELEASE_DIR"/ "$DEPLOY_PATH"/
+            rsync -av --delete --exclude=".user.ini" "$RELEASE_DIR"/ "$DEPLOY_PATH"/
+
