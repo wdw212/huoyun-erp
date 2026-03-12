@@ -61,7 +61,7 @@ jobs:
             set -e
             DEPLOY_PATH="/www/wwwroot/124.222.232.138_81"
             BACKUP_DIR="/www/backup/huoyun-erp"
-            RELEASE_DIR="/tmp/huoyun-erp-release/dist"
+            RELEASE_DIR="/tmp/huoyun-erp-release"
             mkdir -p "$BACKUP_DIR"
             if [ -d "$DEPLOY_PATH" ]; then
               tar -czf "$BACKUP_DIR/site_root_$(date +%Y%m%d_%H%M%S).tar.gz" -C "$DEPLOY_PATH" .
