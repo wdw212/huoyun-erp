@@ -1,0 +1,70 @@
+name: Frontend Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.js"
+      - ".env.production"
+      - ".github/workflows/frontend-deploy.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build:prod
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: huoyun-erp-dist
+          path: dist
+
+      - name: Copy dist to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FRONTEND_DEPLOY_HOST }}
+          username: ${{ secrets.FRONTEND_DEPLOY_USER }}
+          port: ${{ secrets.FRONTEND_DEPLOY_PORT || 22 }}
+          key: ${{ secrets.FRONTEND_DEPLOY_SSH_KEY }}
+          source: "dist/*"
+          target: "/tmp/huoyun-erp-release"
+          strip_components: 1
+
+      - name: Publish dist on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.FRONTEND_DEPLOY_HOST }}
+          username: ${{ secrets.FRONTEND_DEPLOY_USER }}
+          port: ${{ secrets.FRONTEND_DEPLOY_PORT || 22 }}
+          key: ${{ secrets.FRONTEND_DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            DEPLOY_PATH="/www/wwwroot/124.222.232.138_81"
+            BACKUP_DIR="/www/backup/huoyun-erp"
+            RELEASE_DIR="/tmp/huoyun-erp-release/dist"
+            mkdir -p "$BACKUP_DIR"
+            if [ -d "$DEPLOY_PATH" ]; then
+              tar -czf "$BACKUP_DIR/site_root_$(date +%Y%m%d_%H%M%S).tar.gz" -C "$DEPLOY_PATH" .
+            fi
+            rsync -av --delete "$RELEASE_DIR"/ "$DEPLOY_PATH"/
