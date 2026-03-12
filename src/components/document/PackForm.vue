@@ -178,9 +178,13 @@
 																	class="address-item">
 																	<li>
 																		<div class="flex gap-4 items-center">
-																			<el-input @input="changeValue" v-model="address.address"
+																			<el-input
+																				:model-value="address?.address || ''"
+																				@update:model-value="(val)=>updateAddressField(index, 'address', val)"
 																				placeholder="装柜地址" />
-																			<el-input @input="changeValue" v-model="address.name"
+																			<el-input
+																				:model-value="address?.name || ''"
+																				@update:model-value="(val)=>updateAddressField(index, 'name', val)"
 																				placeholder="联系人/电话" style="width:300px" />
 																			<el-button @click="deleteAddress(index)"
 																				class="delete-btn" type="primary">删除</el-button>
@@ -444,8 +448,8 @@
 																		class="address-item">
 																		<li>
 																			<div class="flex gap-4 items-center">
-																				{{address.address}}
-																				{{address.name}}
+																				{{address?.address || ''}}
+																				{{address?.name || ''}}
 																			</div>
 																		</li>
 																	</ul>
@@ -658,6 +662,39 @@
 		addresses.value.splice(index, 1);
 	};
 
+	const normalizeAddressItem = (item) => {
+		if (!item || typeof item !== 'object') {
+			return {
+				name: '',
+				address: '',
+			};
+		}
+		return {
+			...item,
+			name: item.name || '',
+			address: item.address || '',
+		};
+	};
+	const resolveLoadingAddressText = (item = {}) => {
+		return (
+			item.loading_address_name
+			|| item.loading_address_detail?.name
+			|| (item.loading_address_id ? '' : item.loading_address)
+			|| item.loading_address
+			|| item.address
+			|| ''
+		).toString().trim();
+	};
+
+	const updateAddressField = (index, key, value) => {
+		if (!Array.isArray(addresses.value)) {
+			addresses.value = [];
+		}
+		addresses.value[index] = normalizeAddressItem(addresses.value[index]);
+		addresses.value[index][key] = value;
+		changeValue();
+	};
+
 	/*字母小写强制转换大写
 	示例：
 	在需要引用的input 加入@input="handleInput"
@@ -748,30 +785,30 @@
 			packFormShow.value = open;
 			return;
 		};
-		var boxInfo = data.boxInfo;
+		var boxInfo = data.boxInfo || {};
 		
-		var entered_port_wharf = data.entered_port_wharf_id?options.MT.find(v=>{return v.id==data.entered_port_wharf_id}):{};  //进港码头
-		var boxType = boxInfo.container_type_id&&options.XZLX?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
-		var lxdc = boxInfo.drop_off_wharf_id&&options.LX?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
-		var yt = boxInfo.pre_pull_wharf_id&&options.YT?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
-		var txmt = boxInfo.wharf_id&&options.MT?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
-		var shipping_company = data.shipping_company_id&&options.CGS?options.CGS.find(v=>{return v.id==data.shipping_company_id}):{};  //船公司
+		var entered_port_wharf = data.entered_port_wharf_id&&options?.MT?options.MT.find(v=>{return v.id==data.entered_port_wharf_id})||{}:{};  //进港码头
+		var boxType = boxInfo.container_type_id&&options?.XZLX?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id})||{}:{};  //箱型
+		var lxdc = boxInfo.drop_off_wharf_id&&options?.LX?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id})||{}:{};  //落箱堆场
+		var yt = boxInfo.pre_pull_wharf_id&&options?.YT?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id})||{}:{};  //预提
+		var txmt = boxInfo.wharf_id&&options?.MT?options.MT.find(v=>{return v.id==boxInfo.wharf_id})||{}:{};  //提箱码头
+		var shipping_company = data.shipping_company_id&&options?.CGS?options.CGS.find(v=>{return v.id==data.shipping_company_id})||{}:{};  //船公司
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
-		var origin_harbor = boxInfo.origin_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.origin_harbor_id}):{};  //起运港
-		var destination_harbor = boxInfo.destination_harbor_id&&options.GK?options.GK.find(v=>{return v.id==boxInfo.destination_harbor_id}):{};  //目的港
+		var origin_harbor = boxInfo.origin_harbor_id&&options?.GK?options.GK.find(v=>{return v.id==boxInfo.origin_harbor_id})||{}:{};  //起运港
+		var destination_harbor = boxInfo.destination_harbor_id&&options?.GK?options.GK.find(v=>{return v.id==boxInfo.destination_harbor_id})||{}:{};  //目的港
 		
 		form.value.ship_info = (data.ship_name||'')+'/'+(data.ship_no||'');  //船名/航次
 		form.value.startTime = data.port_open_at;  //开港时间
 		form.value.endTime = data.port_close_at;  //进港时间
-		form.value.port = origin_harbor.name||'';  //起运港
-		form.value.wharf = entered_port_wharf.name||'';  //进港码头
-		form.value.value2 = destination_harbor.name||'';  //目的港
-		form.value.value4 = shipping_company.name||'';  //船公司
-		form.value.value7 = txmt.name||'';  //提箱码头
+		form.value.port = origin_harbor?.name||'';  //起运港
+		form.value.wharf = entered_port_wharf?.name||'';  //进港码头
+		form.value.value2 = destination_harbor?.name||'';  //目的港
+		form.value.value4 = shipping_company?.name||'';  //船公司
+		form.value.value7 = txmt?.name||'';  //提箱码头
 		form.value.value8 = boxInfo.no;  //箱号
 		form.value.value9 = boxInfo.seal_number;  //封号
-		form.value.value10 = boxType.name||'';  //箱型
-		form.value.value5 = boxType.name||'';  //箱型
+		form.value.value10 = boxType?.name||'';  //箱型
+		form.value.value5 = boxType?.name||'';  //箱型
 		form.value.workNumber = boxInfo.serial_number;  //序列号
 		form.value.endTime2 = boxInfo.loading_at?boxInfo.loading_at+':00':'';  //装柜时间
 		form.value.value14 = boxInfo.driver;  //司机信息
@@ -789,20 +826,22 @@
 			})
 			countQuantity();
 		}else{
-			tableData.value = [[{ name: '', no: '', unit: '', quantity: null, formattedValue: null }]]
+			tableData.value = [{ name: '', no: '', unit: '', quantity: null, formattedValue: null }]
 		}
 		addresses.value = [];
-		if(boxInfo.container_loading_addresses){
+		if(Array.isArray(boxInfo.container_loading_addresses)){
 			boxInfo.container_loading_addresses.forEach((item)=>{
+				const safeItem = normalizeAddressItem(item);
 				addresses.value.push({
-					address: item.loading_address,
-					name: item.contact_name+'/'+item.phone,
-					remark: item.remark
+					address: resolveLoadingAddressText(safeItem),
+					name: [safeItem.contact_name, safeItem.phone].filter(Boolean).join('/'),
+					remark: safeItem.remark || ''
 				})
 			})
 		}else{
 			addresses.value = [{name: '',address: '',}]
 		}
+		addresses.value = addresses.value.map((item) => normalizeAddressItem(item));
 		packFormShow.value = open;
 	}
 	const emit = defineEmits(['changePackForm'])

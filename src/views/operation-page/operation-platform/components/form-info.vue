@@ -94,7 +94,7 @@
 		val.start_sailing_date= val.start_sailing_dates?.[0] ?? ''
 		val.end_sailing_date= val.start_sailing_dates?.[1] ?? ''
 		tableConfig.value.data= val
-		// tableConfig.value.isQuery= true
+		tableConfig.value.isQuery= true
 		
 	}
 	onMounted(async () => {
@@ -107,6 +107,7 @@
 		// 	console.log(seletData.value,'seletData.value')
 		// 	// console.log('formListNew', formListNew, seletData.value)
 		// })
+		tableConfig.value.isQuery = true
 	})
 	/** 查询列表 */
 	const tableColumn = ref([{
@@ -187,7 +188,7 @@
 	const tableConfig = ref({
 		url: '/orders',
 		requestMethod: httpGet,
-		isQuery: false,
+		isQuery: true,
 		// tableRowClassName: (row, rowIndex) => {
 		// 	console.log('列表类名', row.id, rowIndex)
 		// 	// if(row.is_delivery===2){

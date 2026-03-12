@@ -119,6 +119,7 @@
 	import arrivalPort from '@/components/document/arrivalPort.vue'
 	import ContainerLoading from '@/components/document/containerLoading.vue'
 	import { detailInfo, getSelect } from '@/utils/common'
+	import { normalizeSelectSnapshotValue } from '@/utils/selectSnapshot'
 	
 	const { proxy } = getCurrentInstance();
 	const props = defineProps({
@@ -150,12 +151,60 @@
 	const LX = ref([]); //落箱
 	const ZGDZ = ref([]);  //装柜地址
 	const SJ = ref([]);  //司机
+	const loadingAddressSourceLoading = ref(false);
 	const containerTypeSourceLoading = ref(false);
 	const fleetSourceLoading = ref(false);
 	const driverSourceLoading = ref(false);
 	const containerWharfSourceLoading = ref(false);
 
 	const buildNoCacheQuery = () => ({ _t: Date.now() });
+	const formatLoadingAddressOptions = (list = []) => (
+		(Array.isArray(list) ? list : []).map((item) => ({
+			...item,
+			label: item.keyword ? item.keyword + '—' + item.address : item.address,
+		}))
+	);
+
+	const normalizeLoadingAddressId = (value) => {
+		const normalizedValue = normalizeSelectSnapshotValue(value);
+		if (normalizedValue === '' || normalizedValue === null || normalizedValue === undefined) {
+			return null;
+		}
+		return String(normalizedValue);
+	};
+
+	const normalizeLoadingAddressTableRow = (row = {}) => {
+		const rowData = row || {};
+		const loadingAddressId = normalizeLoadingAddressId(rowData.loading_address_id ?? rowData.loading_address);
+		const snapshotName = (rowData.loading_address_name || rowData.loading_address_detail?.name || (loadingAddressId ? '' : rowData.loading_address) || '').toString().trim();
+		return {
+			...rowData,
+			loading_address: loadingAddressId,
+			loading_address_id: loadingAddressId,
+			loading_address_name: snapshotName,
+		};
+	};
+
+	const normalizeLoadingAddressTableRows = (rows = []) => (
+		Array.isArray(rows) ? rows.map((row) => normalizeLoadingAddressTableRow(row)) : []
+	);
+
+	async function refreshLoadingAddressSource() {
+		if (loadingAddressSourceLoading.value) return;
+		loadingAddressSourceLoading.value = true;
+		try {
+			const latestLoadingAddresses = await getZGDZ(buildNoCacheQuery());
+			ZGDZ.value = formatLoadingAddressOptions(latestLoadingAddresses);
+			tableColumn2.value[0].form.options = ZGDZ.value;
+		} finally {
+			loadingAddressSourceLoading.value = false;
+		}
+	}
+
+	async function handleLoadingAddressSelectVisibleChange(visible) {
+		if (!visible) return;
+		await refreshLoadingAddressSource();
+	}
 	
 	const formListBox = ref([]);
 	const FLEET_SNAPSHOT_TOKEN_PREFIX = '__fleet_snapshot__';
@@ -381,6 +430,10 @@
 
 	function getContainerWharfSnapshotMetaKey(fieldKey, suffix) {
 		return `__container_wharf_snapshot_${suffix}_${fieldKey}`;
+	}
+
+	function getContainerWharfSnapshotRefreshPayloadKey(fieldKey) {
+		return fieldKey.replace(/_id$/, '_snapshot_refresh');
 	}
 
 	function clearContainerWharfSnapshotMeta(boxData = {}, fieldKey, clearRefresh = false) {
@@ -824,6 +877,44 @@
 		normalizedBox.pre_pull_wharf_id = normalizeContainerWharfId(normalizedBox.pre_pull_wharf_id, 'pre_pull_wharf_id');
 		normalizedBox.wharf_id = normalizeContainerWharfId(normalizedBox.wharf_id, 'wharf_id');
 		normalizedBox.drop_off_wharf_id = normalizeContainerWharfId(normalizedBox.drop_off_wharf_id, 'drop_off_wharf_id');
+		if (Array.isArray(normalizedBox.container_loading_addresses)) {
+			normalizedBox.container_loading_addresses = normalizedBox.container_loading_addresses
+				.map((item) => {
+				const normalizedRow = normalizeLoadingAddressTableRow(item);
+				return {
+					...normalizedRow,
+					loading_address_id: normalizedRow.loading_address_id === null ? null : Number(normalizedRow.loading_address_id),
+					loading_address: normalizedRow.loading_address_name || '',
+				};
+				})
+				.filter((item) => {
+					return !(
+						item.loading_address_id === null &&
+						!(item.loading_address || '').trim() &&
+						!(item.loading_address_name || '').trim() &&
+						!(item.address || '').trim() &&
+						!(item.contact_name || '').trim() &&
+						!(item.phone || '').trim() &&
+						!(item.remark || '').trim()
+					);
+				});
+		}
+		if (Array.isArray(normalizedBox.container_items)) {
+			normalizedBox.container_items = normalizedBox.container_items
+				.map((item) => ({
+					...item,
+					bl_no: item?.bl_no || normalizedBox.bl_no || normalizedBox.no || '',
+					remark: item?.remark || '',
+				}))
+				.filter((item) => {
+					const quantity = Number(item?.quantity || 0);
+					const grossWeight = Number(item?.gross_weight || 0);
+					const volume = Number(item?.volume || 0);
+					const blNo = (item?.bl_no || '').trim();
+					const remark = (item?.remark || '').trim();
+					return !(blNo === '' && quantity === 0 && grossWeight === 0 && volume === 0 && remark === '');
+				});
+		}
 		if (normalizedBox.__container_type_snapshot_refresh) {
 			normalizedBox.container_type_snapshot_refresh = 1;
 		} else {
@@ -839,6 +930,15 @@
 				const refreshMetaKey = getContainerWharfSnapshotMetaKey(fieldKey, 'refresh');
 				return !!normalizedBox[refreshMetaKey];
 			});
+		CONTAINER_WHARF_REFRESH_FIELDS.forEach((fieldKey) => {
+			const refreshMetaKey = getContainerWharfSnapshotMetaKey(fieldKey, 'refresh');
+			const payloadKey = getContainerWharfSnapshotRefreshPayloadKey(fieldKey);
+			if (normalizedBox[refreshMetaKey]) {
+				normalizedBox[payloadKey] = 1;
+			} else {
+				delete normalizedBox[payloadKey];
+			}
+		});
 		if (hasContainerWharfRefresh) {
 			normalizedBox.container_wharf_snapshot_refresh = 1;
 		} else {
@@ -864,8 +964,42 @@
 		return boxList.map((item) => normalizeFleetSnapshotBox(item));
 	}
 
+	function isBlankSubmitContainer(container = {}) {
+		const boxData = normalizeFleetSnapshotBox(container);
+		const no = (boxData.no || '').trim();
+		const sealNumber = (boxData.seal_number || '').trim();
+		const serialNumber = (boxData.serial_number || '').trim();
+		const driver = (boxData.driver || '').toString().trim();
+		const cargoWeight = (boxData.cargo_weight || '').toString().trim();
+		const freightRemark = (boxData.freight_remark || '').trim();
+		const loadingAt = (boxData.loading_at || '').toString().trim();
+		const hasImages = ['no_image', 'seal_number_image', 'wharf_record_image', 'entered_port_record_image'].some((key) => {
+			const imageValue = boxData[key];
+			return imageValue && typeof imageValue === 'object' && Object.keys(imageValue).length > 0;
+		});
+		return !boxData.container_type_id
+			&& (no === '' || no === '箱号')
+			&& sealNumber === ''
+			&& serialNumber === ''
+			&& driver === ''
+			&& !boxData.pre_pull_wharf_id
+			&& !boxData.wharf_id
+			&& !boxData.drop_off_wharf_id
+			&& !boxData.fleet_id
+			&& cargoWeight === ''
+			&& loadingAt === ''
+			&& freightRemark === ''
+			&& (!Array.isArray(boxData.container_items) || boxData.container_items.length === 0)
+			&& (!Array.isArray(boxData.container_loading_addresses) || boxData.container_loading_addresses.length === 0)
+			&& !hasImages;
+	}
+
+	function getSubmitContainers() {
+		return normalizeFleetSnapshotBoxList(state.boxList).filter((item) => !isBlankSubmitContainer(item));
+	}
+
 	function emitBoxInfoChange() {
-		emit('boxInfoChange', normalizeFleetSnapshotBoxList(state.boxList));
+		emit('boxInfoChange', getSubmitContainers());
 	}
 	
 	onMounted(async () => {
@@ -873,7 +1007,7 @@
 		await refreshContainerWharfSource();
 		await refreshFleetSource();
 		await refreshContainerTypeSource();
-		ZGDZ.value = await getZGDZ();
+		await refreshLoadingAddressSource();
 		SJ.value = await getSJ();
 		formList.value[0].formData[0].formItem[2].options = XZLX.value;
 		formList.value[0].formData[0].formItem[4].options = YT.value;
@@ -887,13 +1021,6 @@
 		refreshCurrentDriverOptions();
 		refreshCurrentContainerWharfOptions();
 
-		ZGDZ.value = ZGDZ.value.map((item,index)=>{
-			return {
-				...item,
-				label: item.keyword?item.keyword+'—'+item.address:item.address
-			}
-		})
-		tableColumn2.value[0].form.options = ZGDZ.value;
 		proxy.$refs.boxInfoForm.resetKey(formListBox.value);
 		syncContainerTypeValueToForm(state.boxList?.[state.boxIndex] || {});
 		syncFleetValueToForm(state.boxList?.[state.boxIndex] || {});
@@ -932,12 +1059,12 @@
 			no: '箱号',
 			pre_pull_wharf_id: null,
 			pre_pull_wharf_name: '',
-			seal_number: null,
+			seal_number: '',
 			serial_number: null,
 			wharf_id: null,
 			wharf_name: '',
 			container_items: [{
-				bl_no: state.saveData.bl_no||null,  //提单号
+				bl_no: state.saveData.bl_no || '',  //提单号
 				quantity: 0, //件数
 				gross_weight: 0, //毛重
 				volume: 0, //体积
@@ -945,6 +1072,8 @@
 			}],
 			container_loading_addresses: [{
 				loading_address: null,
+				loading_address_id: null,
+				loading_address_name: '',
 				address: null,
 				contact_name: '',
 				phone: '',
@@ -968,11 +1097,11 @@
 		proxy.$refs.boxInfoForm.changeSave(currentBox);
 		var timeInter = setInterval(function(){
 			if(isNew){
-				proxy.$refs.packForm.reset(true);
+				proxy.$refs.packForm?.reset?.(true);
 			}
 			if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
 				proxy.$refs.tableListJMT.state.tableData = data.container_items||[];
-				proxy.$refs.tableListZGDZ.state.tableData = data.container_loading_addresses||[];
+				proxy.$refs.tableListZGDZ.state.tableData = normalizeLoadingAddressTableRows(data.container_loading_addresses||[]);
 				clearInterval(timeInter);
 			}
 		}, 500)
@@ -995,7 +1124,7 @@
 		// proxy.$refs.boxInfoForm.resetKey(formListBox.value, true);
 		proxy.$refs.boxInfoForm.changeSave(val);
 		proxy.$refs.tableListJMT.state.tableData = val.container_items;
-		proxy.$refs.tableListZGDZ.state.tableData = val.container_loading_addresses;
+		proxy.$refs.tableListZGDZ.state.tableData = normalizeLoadingAddressTableRows(val.container_loading_addresses);
 		updateKeyRemark(val);
 		openPackForm(false);
 	}
@@ -1021,7 +1150,7 @@
 			var timeInter = setInterval(function(){
 				if(proxy.$refs.tableListJMT&&proxy.$refs.tableListZGDZ){
 					proxy.$refs.tableListJMT.state.tableData = val[0].container_items;
-					proxy.$refs.tableListZGDZ.state.tableData = val[0].container_loading_addresses;
+					proxy.$refs.tableListZGDZ.state.tableData = normalizeLoadingAddressTableRows(val[0].container_loading_addresses);
 					openPackForm(false);
 					clearInterval(timeInter);
 				}
@@ -1270,7 +1399,7 @@
 	]);
 	const addTableList1 = () => {
 		proxy.$refs.tableListJMT.state.tableData.push({
-			bl_no: state.saveData.bl_no||null,  //提单号
+			bl_no: state.saveData.bl_no || '',  //提单号
 			quantity: 0, //件数
 			gross_weight: 0, //毛重
 			volume: 0, //体积
@@ -1303,8 +1432,8 @@
 		{
 			label: '装柜地址', prop: 'loading_address',type: 'edit',width: '400px',
 			form: {
-				type: 'select',key: 'loading_address',options: [], labelName: 'label', valueName: 'address',
-				popover:true, clearable: true, filterable: true, placeholder: '输入关键字查询地址信息',
+				type: 'select',key: 'loading_address',options: [], labelName: 'label', valueName: 'id', showLabel: 'label', snapshotLabelKey: 'loading_address_name',
+				popover:true, clearable: true, filterable: true, placeholder: '输入关键字查询地址信息', onVisibleChange: handleLoadingAddressSelectVisibleChange,
 				// url: '/loading-addresses', method: 'get'
 			}
 		},
@@ -1329,21 +1458,36 @@
 		}
 	]);
 	const tableItemChangeZGDZ = (item, index) => {
-		var dataNew = item.options?item.options.find(v=>{return v.address == item.value}):{};
+		var dataNew = item.options ? item.options.find(v=>{return String(v.id) == String(item.value)}):{};
 		var tableDataNew = proxy.$refs.tableListZGDZ.state.tableData;
 		if(item.key=='loading_address'){
-			var data = {
-				loading_address: dataNew?.address||'',
-				address: dataNew?.region?.name||'',
-				contact_name: dataNew?.contact_name||'',
-				phone: dataNew?.phone||'',
-				remark: dataNew?.remark||''
+			if(dataNew && dataNew.id){
+				var data = {
+					...tableDataNew[index],
+					loading_address: dataNew.id,
+					loading_address_id: dataNew.id,
+					loading_address_name: dataNew?.address||'',
+					address: dataNew?.region?.name||'',
+					contact_name: dataNew?.contact_name||'',
+					phone: dataNew?.phone||'',
+					remark: dataNew?.remark||''
+				}
+				proxy.$refs.tableListZGDZ.state.tableData[index] = normalizeLoadingAddressTableRow(data);
+				proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
+				state.boxList[state.boxIndex].freight_remark = dataNew?.freight||'';
+			}else{
+				proxy.$refs.tableListZGDZ.state.tableData[index] = normalizeLoadingAddressTableRow({
+					loading_address: null,
+					loading_address_id: null,
+					loading_address_name: '',
+					address: null,
+					contact_name: '',
+					phone: '',
+					remark: null
+				});
 			}
-			proxy.$refs.tableListZGDZ.state.tableData[index] = data;
-			proxy.$refs.boxInfoForm.changeSave({freight_remark: dataNew?.freight||''});
-			state.boxList[state.boxIndex].freight_remark = dataNew?.freight||'';
 		}
-		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses = normalizeLoadingAddressTableRows(proxy.$refs.tableListZGDZ.state.tableData);
 		emitBoxInfoChange();
 		// console.log('表格数据', proxy.$refs.tableListZGDZ.state.tableData, proxy.$refs.boxInfoForm.saveData)
 	}
@@ -1351,19 +1495,21 @@
 		if(!proxy.$refs.tableListZGDZ.state.tableData){
 			proxy.$refs.tableListZGDZ.state.tableData = [];
 		}
-		proxy.$refs.tableListZGDZ.state.tableData.push({
+		proxy.$refs.tableListZGDZ.state.tableData.push(normalizeLoadingAddressTableRow({
 			loading_address: null,
+			loading_address_id: null,
+			loading_address_name: '',
 			address: null,
 			contact_name: '',
 			phone: '',
 			remark: null
-		});
-		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
+		}));
+		state.boxList[state.boxIndex].container_loading_addresses = normalizeLoadingAddressTableRows(proxy.$refs.tableListZGDZ.state.tableData);
 		emitBoxInfoChange();
 	}
 	const delete2 = (row, index) => {
 		proxy.$refs.tableListZGDZ.state.tableData.splice(index, 1)
-		state.boxList[state.boxIndex].container_loading_addresses = proxy.$refs.tableListZGDZ.state.tableData;
+		state.boxList[state.boxIndex].container_loading_addresses = normalizeLoadingAddressTableRows(proxy.$refs.tableListZGDZ.state.tableData);
 		emitBoxInfoChange();
 		// console.log('paymentDelete', row, index)
 	}
@@ -1382,7 +1528,8 @@
 	defineExpose({
 		defaultBox,
 		addBox,
-		updateSaveData
+		updateSaveData,
+		getSubmitContainers
 	})
 </script>
 

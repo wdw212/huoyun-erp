@@ -81,6 +81,16 @@
 	const data = ref('');
 	const data2 = ref('');
 	const data3 = ref('');
+	const resolveLoadingAddressText = (item = {}) => {
+		return (
+			item.loading_address_name
+			|| item.loading_address_detail?.name
+			|| (item.loading_address_id ? '' : item.loading_address)
+			|| item.loading_address
+			|| item.address
+			|| ''
+		).toString().trim();
+	};
 	const openLoading = (val, options) => {
 		// console.log('openLoading哈哈哈H', val, options)
 		saveData.value = val;
@@ -88,11 +98,11 @@
 		var boxInfo = val.boxInfo||{};
 		var packInfo = val.packInfo||{};
 		
-		var entered_port_wharf = val.entered_port_wharf_id?options.MT.find(v=>{return v.id==val.entered_port_wharf_id}):{};  //进港码头
-		var boxType = boxInfo.container_type_id?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id}):{};  //箱型
-		var lxdc = boxInfo.drop_off_wharf_id?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id}):{};  //落箱堆场
-		var yt = boxInfo.pre_pull_wharf_id?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id}):{};  //预提
-		var txmt = boxInfo.wharf_id?options.MT.find(v=>{return v.id==boxInfo.wharf_id}):{};  //提箱码头
+		var entered_port_wharf = val.entered_port_wharf_id&&options?.MT?options.MT.find(v=>{return v.id==val.entered_port_wharf_id})||{}:{};  //进港码头
+		var boxType = boxInfo.container_type_id&&options?.XZLX?options.XZLX.find(v=>{return v.id==boxInfo.container_type_id})||{}:{};  //箱型
+		var lxdc = boxInfo.drop_off_wharf_id&&options?.LX?options.LX.find(v=>{return v.id==boxInfo.drop_off_wharf_id})||{}:{};  //落箱堆场
+		var yt = boxInfo.pre_pull_wharf_id&&options?.YT?options.YT.find(v=>{return v.id==boxInfo.pre_pull_wharf_id})||{}:{};  //预提
+		var txmt = boxInfo.wharf_id&&options?.MT?options.MT.find(v=>{return v.id==boxInfo.wharf_id})||{}:{};  //提箱码头
 		var freight_status = boxInfo.freight_status?optionsComm['运费情况'].find(v=>{return v.value==boxInfo.freight_status}):{};  //运费情况
 		// console.log('运费情况', yt)
 		
@@ -121,12 +131,13 @@
 		}
 		if(boxInfo.container_loading_addresses&&boxInfo.container_loading_addresses.length>0){
 			boxInfo.container_loading_addresses.forEach((vv,ii)=>{
+				const loadingAddressText = resolveLoadingAddressText(vv);
 				if(ii==0){
-					data.value = data.value + `装箱地点：${vv.address||''}`+ '\n'
+					data.value = data.value + `装箱地点：${loadingAddressText}`+ '\n'
 				}
-				data2.value = data2.value + `${ii+1}.地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
-				data3.value = data3.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
-				data.value = data.value + `${ii+1}.装箱地址：${vv.loading_address||''}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data2.value = data2.value + `${ii+1}.地址：${loadingAddressText}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data3.value = data3.value + `${ii+1}.装箱地址：${loadingAddressText}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
+				data.value = data.value + `${ii+1}.装箱地址：${loadingAddressText}，${vv.contact_name||''}--${vv.phone||''}`+ '\n' +`备注：${vv.remark||''}`+ '\n'+ '\n'
 			})
 		}
 		
@@ -139,7 +150,7 @@
 					  `箱子已预提 预提费月结`+ '\n' +
 					  `箱号：${packInfo.value8||''} `+ '\n' +
 					  `封号：${packInfo.value9||''} `+ '\n' +
-					  `预提堆场地址：${yt.address||''}`+ '\n'
+					  `预提堆场地址：${yt?.address||''}`+ '\n'
 
 	}
 

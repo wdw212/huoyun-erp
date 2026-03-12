@@ -28,7 +28,7 @@
 				<el-table-column v-if="item.type=='edit'&&!item.noShow" :fixed="item.fixed" :label="item.label"
 					:align="item.align||'center'" :width="item.width">
 					<template #default="{row,$index}">
-						<common-form-item :item="item.form" v-model:formValue="row[item.prop]"
+						<common-form-item :item="item.form" :rowData="row" v-model:formValue="row[item.prop]"
 							@changeValue="(val)=>itemChange(val, $index)"></common-form-item>
 					</template>
 					<template #header>

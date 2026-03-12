@@ -22,3 +22,10 @@ selenium-debug.log
 package-lock.json
 yarn.lock
 dist.zip
+/.serena/
+/.tmp*
+/.deploy_ts
+/.deploy_ts_fix.txt
+/dist_*.tar.gz
+/site_root_*.tar.gz
+/site_root_fix_*.tar.gz

@@ -49,7 +49,15 @@
 	// import { queryParamsBusiness, formList, statistic,rulesInit } from '@/utils/business';
 	import { queryParamsInvoice, formList, rulesInit,statistic } from '@/utils/services';
 	import { detailInfo, keyStatus, commonParam } from '@/utils/common'
-	import { getYWY, getCZY, getYWLX, getTT, getXHDW,optionsComm } from '@/api/commonList';
+	import { getYWY, getCZY, getYWLX, getTT, getXHDW, getCGS, getMT, optionsComm } from '@/api/commonList';
+	import {
+		applyOrderSnapshotDisplay,
+		bindOrderSnapshotSelectVisibleRefresh,
+		normalizeOrderSnapshotSubmitData,
+		normalizeOrderSnapshotValue,
+		resetOrderSnapshotState,
+		trackOrderSnapshotFieldChange
+	} from '@/utils/orderSnapshotSelect';
 	import InvoiceForm from '../../../components/InvoiceForm.vue'
 	import {
 		ElTag
@@ -61,6 +69,14 @@
 	const formListNew = ref([]);
 	const loading = ref(true);
 	const seletData = ref({});
+	const snapshotSelectState = ref({});
+	const snapshotSourceData = ref({});
+	const snapshotRefreshFlags = ref({
+		shipping_company_snapshot_refresh: false,
+		entered_port_wharf_snapshot_refresh: false,
+		delegation_header_snapshot_refresh: false,
+	});
+	const buildNoCacheQuery = () => ({ _t: Date.now() });
 	
 	const YWY = ref([]);  //业务员
 	const CZY = ref([]);  //操作员
@@ -69,6 +85,65 @@
 	const XHDW = ref([]); //销货单位
 	const containers = ref([]); //箱子信息
 	
+	const refreshSnapshotSelectData = async () => {
+		const [shippingCompanies, enteredPortWharves, companyHeaders] = await Promise.all([
+			getCGS(buildNoCacheQuery()),
+			getMT(buildNoCacheQuery()),
+			getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() }),
+		]);
+		seletData.value.CGS = shippingCompanies;
+		seletData.value.MT = enteredPortWharves;
+		seletData.value.WTTT = companyHeaders;
+	}
+
+	const bindSnapshotSelectVisibleRefresh = () => {
+		bindOrderSnapshotSelectVisibleRefresh({
+			formList: formListNew.value,
+			getSourceData: () => snapshotSourceData.value,
+			getSelectData: () => seletData.value,
+			getState: () => snapshotSelectState.value,
+			refreshers: {
+				shipping_company_id: async () => {
+					seletData.value.CGS = await getCGS(buildNoCacheQuery());
+				},
+				entered_port_wharf_id: async () => {
+					seletData.value.MT = await getMT(buildNoCacheQuery());
+				},
+				'order_delegation_header.company_header_id': async () => {
+					seletData.value.WTTT = await getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() });
+				},
+			},
+		});
+	}
+
+	const resetSnapshotRefreshFlags = () => {
+		snapshotRefreshFlags.value.shipping_company_snapshot_refresh = false;
+		snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = false;
+		snapshotRefreshFlags.value.delegation_header_snapshot_refresh = false;
+	}
+
+	const markSnapshotRefreshFlag = (fieldKey, rawValue) => {
+		const fieldState = snapshotSelectState.value?.[fieldKey];
+		if (!fieldState) return;
+		if (rawValue === fieldState.snapshotToken) {
+			if (fieldKey === 'shipping_company_id') {
+				snapshotRefreshFlags.value.shipping_company_snapshot_refresh = false;
+			} else if (fieldKey === 'entered_port_wharf_id') {
+				snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = false;
+			} else if (fieldKey === 'order_delegation_header.company_header_id') {
+				snapshotRefreshFlags.value.delegation_header_snapshot_refresh = false;
+			}
+			return;
+		}
+		if (fieldKey === 'shipping_company_id') {
+			snapshotRefreshFlags.value.shipping_company_snapshot_refresh = true;
+		} else if (fieldKey === 'entered_port_wharf_id') {
+			snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = true;
+		} else if (fieldKey === 'order_delegation_header.company_header_id') {
+			snapshotRefreshFlags.value.delegation_header_snapshot_refresh = true;
+		}
+	}
+
 	onMounted(async ()=>{
 		// // console.log('onMounted', queryParams);
 		// statistic.value.forEach((item,index)=>{
@@ -122,9 +197,10 @@
 		{label: '税额',prop: 'tax_amount'},
 		{label: '单子完结',prop: 'is_finish_name',
 			render: (row, index) => {
+				const isFinish = Number(row?.is_finish ?? row?.order?.is_finish ?? 0) === 1
 				return [
 					h(ElTag, {
-							type: row?.order?.is_finish== 1? 'success' : 'danger',
+							type: isFinish ? 'success' : 'danger',
 							size: 'small',
 							onClick: () => {},
 							style: {
@@ -132,7 +208,7 @@
 							},
 							key: row.id
 						},
-						() => (row?.order?.is_finish== 1?'已完结': '未完结')
+						() => (isFinish ? '已完结' : '未完结')
 					)
 				]
 			}},
@@ -206,10 +282,11 @@
 	const handleEdit = (row) => {
 		httpGet(`/invoices/${row.id}`).then(res => {
 			console.log(row,'invoiceForm.value1')
+			const resolvedJobNo = row?.order?.job_no || res?.order?.job_no || res?.job_no || row?.job_no || ''
 			invoiceType.value= 2
 			invoiceForm.value = {
 			  ...res,
-			  job_no: row.order.job_no,
+			  job_no: resolvedJobNo,
 			};
 			console.log(invoiceForm.value,'invoiceForm.value2')
 			dialogFormVisibleInvoiceFormDetails.value = true
@@ -218,27 +295,35 @@
 	}
 	function closeInvoiceFormBtn(){
 		dialogFormVisibleInvoiceFormDetails.value= false
+		proxy.$refs.tableList?.getList()
 		console.log(proxy.$refs.invoiceFormRef,'proxy.$refs.invoiceForm2195')
 	}
 	const closeInvoiceForm = () =>{
 		console.log(proxy.$refs.invoiceForm,'proxy.$refs.invoiceForm2183')
 		dialogFormVisibleInvoiceFormDetails.value= false
 		invoiceForm.value= null
+		proxy.$refs.tableList?.getList()
 		
 		
 	}
 	//单据复制
-	function handleCopy(row) {
-		httpGet(`/orders/${row.id}`).then(res => {
-			dialogFormVisible.value = true;
-			editId.value = '';
-			setTimeout(function() {
-				saveDataShow(res, 2);
-			}, 500)
-		});
+	async function handleCopy(row) {
+		const [res] = await Promise.all([
+			httpGet(`/orders/${row.id}`),
+			refreshSnapshotSelectData()
+		]);
+		if (!res) return;
+		dialogFormVisible.value = true;
+		editId.value = '';
+		setTimeout(function() {
+			saveDataShow(res, 2);
+		}, 500)
 	}
 	
 	function resetInfo() {
+		resetOrderSnapshotState(snapshotSelectState.value);
+		resetSnapshotRefreshFlags();
+		snapshotSourceData.value = {};
 		payment_status.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
 		containers.value = [];
@@ -252,7 +337,8 @@
 	
 	function saveDataShow(res, type) {
 		resetInfo();
-	
+		snapshotSourceData.value = res || {};
+
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
 		var defaultKey = ['insurance', 'is_delivery', 'is_finish', 'is_allowed'];  //保持默认不变的值
@@ -271,13 +357,21 @@
 			}
 		}
 		// console.log('单据数据', data)
-		formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
-		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
-		if (data.shipping_company_id) {
+		const shippingCompanyId = data.shipping_company_id;
+		formListNew.value[2].formData[0].formItem[1].value = data.ship_name && data.ship_no ? data.ship_name + '/' + data.ship_no : '';
+		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name && data.ship_no ? data.ship_name + '/' + data.ship_no : '';
+		if (shippingCompanyId) {
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id) || {}; //船公司
 		}
+		applyOrderSnapshotDisplay({
+			formList: formListNew.value,
+			formData: data,
+			sourceData: res,
+			selectData: seletData.value,
+			state: snapshotSelectState.value,
+		});
 		payment_status.value = res.payment_status || 0;
-		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(data), seletData.value);
 		
 		//提单信息
 		billInfo.value = res.bl_info || {};
@@ -319,12 +413,26 @@
 		}
 		for (var key in remarkList) {
 			var item = formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]];
+			const fieldValue = normalizeOrderSnapshotValue(key, data[key], snapshotSelectState.value);
 			var dataNew = item.options ? item.options.find(v => {
-				return v.id == data[key]
+				return v.id == fieldValue
 			}) : {};
 			formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]].remark = dataNew ? dataNew
 				.remark : '';
 		}
+	}
+	function buildSnapshotNormalizedChildData(source) {
+		const sourceData = source || {};
+		return {
+			...sourceData,
+			shipping_company_id: normalizeOrderSnapshotValue('shipping_company_id', sourceData.shipping_company_id, snapshotSelectState.value),
+			entered_port_wharf_id: normalizeOrderSnapshotValue('entered_port_wharf_id', sourceData.entered_port_wharf_id, snapshotSelectState.value),
+			'order_delegation_header.company_header_id': normalizeOrderSnapshotValue(
+				'order_delegation_header.company_header_id',
+				sourceData['order_delegation_header.company_header_id'],
+				snapshotSelectState.value
+			),
+		};
 	}
 	//单据删除
 	const deleteIds = ref([]);
@@ -352,7 +460,7 @@
 		});
 	}
 	async function refreshCompanyHead() {
-		var WTTT = await getTT(commonParam().WTTT_params); //委托公司抬头
+		var WTTT = await getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() }); //委托公司抬头
 		formListNew.value[1].formData[0].formItem[1].options = WTTT;
 	}
 	const addDelegation = () => {
@@ -464,8 +572,9 @@
 	}
 	//落箱数据生成
 	function createDrop() {
+		const normalizedSaveData = buildSnapshotNormalizedChildData(proxy.$refs.commonForm.saveData);
 		var saveData = {
-			...proxy.$refs.commonForm.saveData,
+			...normalizedSaveData,
 			boxInfo: containers.value
 		};
 		proxy.$refs.dropBox.openDrop(saveData, seletData.value);
@@ -474,8 +583,9 @@
 	const tabsChange = (tab) => {
 		if (tab == '提单信息') {
 			setTimeout(function() {
+				const normalizedSaveData = buildSnapshotNormalizedChildData(proxy.$refs.commonForm.saveData);
 				var saveData = {
-					...proxy.$refs.commonForm.saveData,
+					...normalizedSaveData,
 					boxInfo: containers.value,
 					shipCompany: shipCompany.setTime
 				};
@@ -492,13 +602,15 @@
 	//单独字段操作
 	const itemChange = (data, val, item) => {
 		var saveData = proxy.$refs.commonForm.saveData;
+		markSnapshotRefreshFlag(item.key, val);
+		const currentValue = trackOrderSnapshotFieldChange(item.key, val, snapshotSelectState.value);
 		var dataNew = item.options ? item.options.find(v => {
-			return v.id == val
+			return v.id == currentValue
 		}) : {};
 		var updateData = {};
 		if (item.key == 'shipping_company_id') {
 			shipCompany.value = item.options.find(v => {
-				return v.id == val
+				return v.id == currentValue
 			})
 		} else if (item.key == 'cutoff_status') {
 			formListNew.value[0].formData[0].formItem[17].disabled = val == 3 ? true : false;
@@ -521,8 +633,8 @@
 			updateData['order_delegation_header.contact_person'] = dataNew.contact_person;
 			updateData['order_delegation_header.contact_phone'] = dataNew.contact_phone;
 		} else if (item.key == 'ship_name' || item.key == 'ship_no') {
-			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name + '/' + saveData.ship_no;
-			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name + '/' + saveData.ship_no;
+			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name && saveData.ship_no ? saveData.ship_name + '/' + saveData.ship_no : '';
+			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name && saveData.ship_no ? saveData.ship_name + '/' + saveData.ship_no : '';
 		} else if (item.key == 'entered_port_wharf_id') { //进港码头
 			formListNew.value[2].formData[0].formItem[10].remark = dataNew ? dataNew.remark : '';
 		} else if (item.key == 'port_open_at') { //开港时间
@@ -534,13 +646,23 @@
 			formListNew.value[0].formData[0].formItem[21].disabled = val ? true : false;
 			updateData.arrival_at = val ? val : saveData.arrival_at;
 		}
-		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
+		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(saveData), seletData.value);
 		proxy.$refs.commonForm.changeSave(updateData);
 		// console.log('编辑字段:cutoff_at', data, proxy.$refs.commonForm.saveData)
 	}
 	
 	// 单据信息提交
 	const confirmSubmit = (data) => {
+		normalizeOrderSnapshotSubmitData(data, snapshotSelectState.value);
+		if (snapshotRefreshFlags.value.shipping_company_snapshot_refresh) {
+			data.shipping_company_snapshot_refresh = 1;
+		}
+		if (snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh) {
+			data.entered_port_wharf_snapshot_refresh = 1;
+		}
+		if (snapshotRefreshFlags.value.delegation_header_snapshot_refresh) {
+			data.delegation_header_snapshot_refresh = 1;
+		}
 		// console.log('单据信息提交:', data)
 		if(containers.value.findIndex(v=>{return !v.container_type_id})>-1){
 			proxy.$modal.msgWarning("请完善箱子信息!");

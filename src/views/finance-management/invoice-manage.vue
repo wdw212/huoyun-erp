@@ -61,9 +61,10 @@
 		{label: '税额',prop: 'tax_rate'},
 		{label: '单子完结',prop: 'is_finish_name',
 			render: (row, index) => {
+				const isFinish = Number(row?.is_finish ?? row?.order?.is_finish ?? 0) === 1
 				return [
 					h(ElTag, {
-							type: row?.order?.is_finish== 1? 'success' : 'danger',
+							type: isFinish ? 'success' : 'danger',
 							size: 'small',
 							onClick: () => {},
 							style: {
@@ -71,7 +72,7 @@
 							},
 							key: row.id
 						},
-						() => (row?.order?.is_finish== 1?'已完结': '未完结')
+						() => (isFinish ? '已完结' : '未完结')
 					)
 				]
 			}},
@@ -107,10 +108,11 @@
 
 	const handleEdit = (row) => {
 		httpGet(`/invoices/${row.id}`).then(res => {
+			const resolvedJobNo = row?.order?.job_no || res?.order?.job_no || res?.job_no || row?.job_no || '';
 			invoiceType.value = 4;
 			invoiceForm.value = {
 			  ...res,
-			  job_no: row.order.job_no,
+			  job_no: resolvedJobNo,
 			};
 			dialogFormVisible.value = true;
 		});

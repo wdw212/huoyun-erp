@@ -507,10 +507,10 @@
 											type="date"></el-date-picker>
 									</el-form-item>
 
-									<el-form-item label="进港码头" prop="template8" style="width: 300px">
+									<el-form-item label="进港码头" prop="entered_port_wharf_id" style="width: 300px">
 										<el-tooltip class="box-item" effect="dark"
-											:content="form.template8 ? form.template8 :'暂无'" placement="top">
-											<el-select v-model="form.template8" placeholder="请选择" clearable filterable>
+											:content="WHARVES_COMPANY.find(v => v.id == form.entered_port_wharf_id)?.name || '暂无'" placement="top">
+											<el-select v-model="form.entered_port_wharf_id" placeholder="请选择" clearable filterable>
 												<el-option v-for="item in WHARVES_COMPANY" :key="item.id"
 													:label="item.name" :value="item.id" />
 											</el-select>
@@ -1338,6 +1338,7 @@
 			is_delivery: null,
 			payment_method: null,
 			cutoff_status: null,
+			entered_port_wharf_id: null,
 			cutoff_at: null,
 			remark: [],
 
@@ -1384,7 +1385,6 @@
 			template5: null,
 			template6: null,
 			template7: null,
-			template8: null,
 			template9: null,
 			template10: null,
 			template11: null,
@@ -1394,6 +1394,7 @@
 			template15: null,
 
 		};
+		order_files.value = []
 		proxy.resetForm("formRef");
 
 		caseNumberActive.value = {
@@ -1455,6 +1456,14 @@
 			// form.value = response;
 			form.value = Object.assign({}, form.value, response);
 			form.value.orderPaymentsList = response.order_payments || []
+			form.value.order_files = Array.isArray(response.order_files) ? response.order_files : []
+			order_files.value = form.value.order_files.map(item => ({
+				name: item.name || item.file || '',
+				size: item.size || 0,
+				status: 'success',
+				file: item.file || '',
+				url: item.url || ''
+			}))
 
 			caseNumberActive.value.caseNumber11[0].maotiyi1 = form.value.bl_no
 
@@ -1489,6 +1498,14 @@
 			// form.value = response;
 			form.value = Object.assign({}, form.value, response);
 			form.value.id = null;
+			form.value.order_files = Array.isArray(response.order_files) ? response.order_files : []
+			order_files.value = form.value.order_files.map(item => ({
+				name: item.name || item.file || '',
+				size: item.size || 0,
+				status: 'success',
+				file: item.file || '',
+				url: item.url || ''
+			}))
 
 			caseNumberActive.value.caseNumber11[0].maotiyi1 = form.value.bl_no
 
@@ -1668,15 +1685,27 @@
 
 	// 手动触发上传
 	const submitUploadFiles = () => {
-		uploadRef.value.submit()
+		uploadRef.value?.submit?.()
 	}
 
-	const handleUploadSuccess = (response) => {
+	const handleUploadSuccess = (response, uploadFile, uploadFiles) => {
 		console.log('上传成功:', response);
-		form.value.order_files.push({
+		if (!Array.isArray(form.value.order_files)) {
+			form.value.order_files = []
+		}
+		const savedFile = {
 			file: response.path,
-			url: response.url
-		})
+			url: response.url,
+			size: uploadFile?.size || 0
+		}
+		form.value.order_files.push(savedFile)
+		order_files.value = (Array.isArray(uploadFiles) ? uploadFiles : []).map(item => ({
+			name: item.name || savedFile.file,
+			size: item.size || savedFile.size || 0,
+			status: item.status || 'success',
+			file: item.response?.path || savedFile.file,
+			url: item.response?.url || savedFile.url
+		}))
 	};
 
 	const handleUploadError = (error) => {

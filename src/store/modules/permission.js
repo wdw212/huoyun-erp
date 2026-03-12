@@ -458,6 +458,18 @@ const routerList = [{
 		path: "service-management-index",
 	},
 	{
+		component: "service-manage/order-bill-list/index",
+		hidden: false,
+		meta: {
+			icon: "edit",
+			link: null,
+			noCache: false,
+			title: "账单列表",
+		},
+		name: "OrderBillList",
+		path: "order-bill-list",
+	},
+	{
 		component: "service-manage/invoiceRequest/index",
 		hidden: false,
 		meta: {

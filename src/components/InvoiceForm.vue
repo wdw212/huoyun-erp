@@ -26,9 +26,34 @@
 							<el-col :span="12">
 								<div class="section">
 									<el-form-item label="发票名称：" label-width="85px">
-										<el-select v-model="form.invoice_type_id" placeholder="专用电子发票" style="width:100%" @change="changeInvoiceType($event)" clearable filterable  :disabled="editDisabled">
-											<el-option v-for="item in invoiceTypeList" :key="item.id" :label="item.label"
-												:value="item.id" />
+										<el-select
+											v-model="form.invoice_type_id"
+											placeholder="请选择发票名称"
+											style="width:100%"
+											@change="changeInvoiceType($event)"
+											clearable
+											filterable
+											:disabled="editDisabled"
+										>
+											<el-option
+												v-for="item in invoiceTypeListWithSnapshot"
+												:key="item.id"
+												:label="item.label"
+												:value="item.id"
+											>
+												<div :class="['invoice-type-option', { 'is-snapshot': item.__snapshot }]">
+													<span class="invoice-type-option__name">{{ item.label }}</span>
+													<span
+														v-if="item.__snapshot"
+														class="invoice-type-option__tag is-snapshot"
+													>
+														历史快照
+													</span>
+													<span v-else class="invoice-type-option__tag">
+														{{ item.typeLabel }}
+													</span>
+												</div>
+											</el-option>
 										</el-select>
 									</el-form-item>
 									<el-form-item label="备注：" label-width="85px">
@@ -52,8 +77,14 @@
 								<el-input v-model="form.commission" type="number" style="width: 150px; margin-left: 20px"
 									:disabled="!form.is_finish||editDisabled" />
 							</el-form-item>
+							<el-form-item v-if="canConfirmInvoice" label="确认开票：">
+								<el-switch v-model="confirmInvoice" inline-prompt :disabled="confirmInvoiceDisabled" />
+							</el-form-item>
 							<el-form-item label="开票日期：">
 								<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
+							</el-form-item>
+							<el-form-item label="确认开票时间：">
+								<el-input :model-value="form.confirm_at || ''" style="width: 210px" disabled />
 							</el-form-item>
 						</div>
 					</el-col>
@@ -69,10 +100,20 @@
 									<div class="section">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
 											
-											<el-tooltip effect="dark" :content="COMPANY_HEADERS_LIST.find((v) => v.id == form.purchase_entity_id)?.company_name" placement="top" >
+											<el-tooltip effect="dark" :content="purchaseEntityDisplayName" placement="top" >
 												<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled">
-													<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
-														:value="item.id" place />
+													<el-option v-for="item in purchaseEntityOptionsWithSnapshot" :key="item.id" :label="item.company_name"
+														:value="item.id" place>
+														<div :class="['invoice-type-option', { 'is-snapshot': item.__snapshot }]">
+															<span class="invoice-type-option__name">{{ item.company_name }}</span>
+															<span
+																v-if="item.__snapshot"
+																class="invoice-type-option__tag is-snapshot"
+															>
+																历史快照
+															</span>
+														</div>
+													</el-option>
 												</el-select>
 											</el-tooltip>
 										</el-form-item>
@@ -107,10 +148,10 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-tooltip effect="dark" :content="FEE_TYPES_LIST_CNY.find((v) => v.id == row.fee_type_id)?.name" placement="top" >
-														<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
-															remote @change="changeFeeTypeCNY()">
-															<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
+													<el-tooltip effect="dark" :content="getFeeTypeOptionsWithSnapshot(FEE_TYPES_LIST_CNY, row).find((v) => v.id == row.fee_type_id)?.name" placement="top" >
+														<el-select v-model="row.fee_type_id" placeholder="请选择费用类型" :disabled="editDisabled"
+															@change="changeFeeTypeCNY()">
+															<el-option v-for="opt in getFeeTypeOptionsWithSnapshot(FEE_TYPES_LIST_CNY, row)" :key="opt.id" :label="opt.name"
 																:value="opt.id" />
 														</el-select>
 													</el-tooltip>
@@ -135,7 +176,7 @@
 											<el-table-column width="60" align="center" v-if="!editDisabled">
 												<template #header>
 													<el-button type="primary" size="small" @click="addRow"
-														:disabled="tableDataCNY.length == 10 ? true : false">增行</el-button>
+														:disabled="tableDataCNY.length >= 10">增行</el-button>
 												</template>
 												<template v-if="tableDataCNY.length>1" #default="{ $index }">
 													<el-button type="text" @click="delRow($index)" class="del" size="small">删除</el-button>
@@ -150,7 +191,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="人民币发票号：">
 															<el-input v-model="form.cny_invoice_no" style="width: 180px"
-																placeholder="" :disabled="[0,1,2].includes(type)&&props.roleType!='finance'"/>
+																placeholder="" :disabled="invoiceNumberDisabled"/>
 														</el-form-item>
 													</div>
 												</div>
@@ -168,10 +209,10 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<el-tooltip effect="dark" :content="FEE_TYPES_LIST_USD.find((v) => v.id == row.fee_type_id)?.name" placement="top" >
-														<el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable :disabled="editDisabled"
-															remote @change="changeFeeTypeUSD()">
-															<el-option v-for="opt in FEE_TYPES_LIST_USD" :key="opt.id" :label="opt.name"
+													<el-tooltip effect="dark" :content="getFeeTypeOptionsWithSnapshot(FEE_TYPES_LIST_USD, row).find((v) => v.id == row.fee_type_id)?.name" placement="top" >
+														<el-select v-model="row.fee_type_id" placeholder="请选择费用类型" :disabled="editDisabled"
+															@change="changeFeeTypeUSD()">
+															<el-option v-for="opt in getFeeTypeOptionsWithSnapshot(FEE_TYPES_LIST_USD, row)" :key="opt.id" :label="opt.name"
 																:value="opt.id" />
 														</el-select>
 													</el-tooltip>
@@ -195,7 +236,7 @@
 											</el-table-column>
 											<el-table-column width="60" align="center" v-if="!editDisabled">
 												<template #header>
-													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length == 10 ? true : false" size="small">增行</el-button>
+													<el-button type="primary" @click="addRoww" :disabled="tableDataUSD.length >= 10" size="small">增行</el-button>
 												</template>
 												<template v-if="tableDataUSD.length>1" #default="{ $index }">
 													<el-button type="text" @click="delRoww($index)" class="del" size="small">删除</el-button>
@@ -210,7 +251,7 @@
 														<!-- <el-input v-model="total.number" style="width: 100px" /> -->
 														<el-form-item label="美金发票号：">
 															<el-input v-model="form.usd_invoice_no" style="width: 180px"
-																placeholder="" :disabled="[0,1,2].includes(type)&&props.roleType!='finance'" />
+																placeholder="" :disabled="invoiceNumberDisabled" />
 														</el-form-item>
 													</div>
 												</div>
@@ -260,7 +301,7 @@
 						<div class="action-btns">
 							<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
 							<el-button  @click="exportImg(2)">美元发票预览</el-button>
-							<el-button type="success" @click="submit" v-if="!form.is_lock || form.is_lock== 0 || userStore.userRoleCode== 'SUPER_ADMIN'">保存</el-button>
+							<el-button type="success" @click="submit" v-if="!form.is_lock || form.is_lock== 0 || isFinanceRole || isSuperAdmin">保存</el-button>
 							<el-button @click="openDetails">业务单据</el-button>
 						</div>
 					</el-col>
@@ -289,7 +330,7 @@
 								<div class="flex-1 pt-1" style="box-sizing: border-box;">
 									<div class="section">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<p>{{form.purchase_entity_id?COMPANY_HEADERS_LIST.filter(itemIndex => (itemIndex.id== form.purchase_entity_id))[0]?.company_name: ''}}</p>
+											<p>{{ purchaseEntityDisplayName }}</p>
 											<!-- <el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)">
 												<el-option v-for="item in COMPANY_HEADERS_LIST" :key="item.id" :label="item.company_name"
 													:value="item.id" place />
@@ -328,7 +369,7 @@
 											<el-table-column type="index" width="50" align="center"></el-table-column>
 											<el-table-column prop="name" label="项目名称" width="" align="center">
 												<template #default="{row}">
-													<p>{{row.fee_type_id?FEE_TYPES_LIST_CNY.filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
+													<p>{{row.fee_type_id?getFeeTypeOptionsWithSnapshot(FEE_TYPES_LIST_CNY, row).filter(itemIndex => (itemIndex.id== row.fee_type_id))[0]?.name: ''}}</p>
 													<!-- <el-select v-model="row.fee_type_id" placeholder="我要显示七个字" filterable
 														remote @change="changeFeeTypeCNY()">
 														<el-option v-for="opt in FEE_TYPES_LIST_CNY" :key="opt.id" :label="opt.name"
@@ -401,23 +442,30 @@
 	import {
 		getXHDW
 	} from '@/api/commonList';
+	import {
+		buildSelectSnapshotOption,
+		normalizeSelectSnapshotValue
+	} from '@/utils/selectSnapshot';
 	const {
 		proxy
 	} = getCurrentInstance();
-import { find } from 'lodash';
-const Emit= defineEmits(['close'])
+	const Emit= defineEmits(['close'])
 	const userStore = useUserStore()  //vuex缓存的用户信息
 	// 添加加载状态
 	const isSellerOptionsLoaded = ref(false)
 	const templatesName= ref('')
 	const remarkCNY = ref('')
 	const remarkUSD = ref('')
-	const tableDataCNY = ref([{fee_type_id: '',unit: '',quantity: null,amount: 0}])
-	const tableDataUSD = ref([{fee_type_id: '',unit: '',quantity: null,amount: 0}])
+	const INVOICE_ITEM_MAX_COUNT = 10
+	const createEmptyInvoiceItem = () => ({ fee_type_id: '', unit: '', quantity: null, amount: 0 })
+	const tableDataCNY = ref([createEmptyInvoiceItem()])
+	const tableDataUSD = ref([createEmptyInvoiceItem()])
 	const invoiceFormObj = ref(null) //备注
 	// 模板
 	const invoiceTemplatesList = ref([])
 	const invoicesCurrent = ref(9999)
+	const invoiceTypeSnapshotApplied = ref(false)
+	const purchaseEntitySnapshotApplied = ref(false)
 	const rolesListYW= ['SUPER_ADMIN','BUSINESS']
 	const rolesListCW= ['SUPER_ADMIN','FINANCE']
 	const disabledYWEdit= ref(false) 
@@ -461,9 +509,22 @@ const Emit= defineEmits(['close'])
 	    usd_remark: '',
 	    invoice_date: '',
 	    tax_amount: 0,
+		confirm_at: '',
 		cny_invoice_no: '',
 		usd_invoice_no: ''
 	})
+	// ========= 快照防追改 =========
+	const SNAP_PREFIX = '__snap_'
+	const toSnapToken = (id) => SNAP_PREFIX + id
+	const isSnapToken = (val) => typeof val === 'string' && val.startsWith(SNAP_PREFIX)
+	const parseSnapId = (val) => isSnapToken(val) ? Number(val.slice(SNAP_PREFIX.length)) : val
+	const normalizeInvoiceTypeValue = (val) => {
+		const real = parseSnapId(val)
+		if (real === null || real === undefined || real === '') return ''
+		const numberValue = Number(real)
+		if (Number.isFinite(numberValue) && numberValue > 0) return numberValue
+		return real
+	}
 	onMounted(async () => {
 	    try {
 			console.log(userStore.userRoleCode,'setKeyInfo454')
@@ -476,12 +537,34 @@ const Emit= defineEmits(['close'])
 	const invoiceType= ref(0)
 	const is_lock= ref(0)
 	const editDisabled= ref(false);
+	const confirmInvoice = ref(false)
+	const isSuperAdmin = computed(() => userStore.userRoleCode === 'SUPER_ADMIN')
+	const isFinanceRole = computed(() => props.roleType === 'finance')
+	const canConfirmInvoice = computed(() => isFinanceRole.value || isSuperAdmin.value)
+	const isConfirmed = computed(() => !!form.value.confirm_at)
+	const confirmInvoiceDisabled = computed(() => !canConfirmInvoice.value || isConfirmed.value)
+	const invoiceNumberDisabled = computed(() => {
+		if (isSuperAdmin.value) {
+			return false
+		}
+		if (isFinanceRole.value) {
+			return isConfirmed.value
+		}
+		return true
+	})
+	const resetInvoiceTypeSnapshotState = () => {
+		invoiceTypeSnapshotApplied.value = false
+		purchaseEntitySnapshotApplied.value = false
+	}
 	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
 	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
 		  // 只有当弹框显示、数据加载完成且有类型时才执行
 		  console.log('newType', newType)
 		  if (isVisible && loaded) {
 			invoiceType.value= newType
+			editDisabled.value = false
+			confirmInvoice.value = false
+			resetInvoiceTypeSnapshotState()
 		    invoicesCurrent.value= 9999
 			templatesName.value= ''
 			invoiceFormObj.value = JSON.parse(JSON.stringify(props.invoiceForm))
@@ -501,6 +584,7 @@ const Emit= defineEmits(['close'])
 				form.value.usd_remark = ''
 				form.value.invoice_date = ''
 				form.value.tax_amount = 0
+				form.value.confirm_at = ''
 				form.value.cny_invoice_no = ''
 				form.value.usd_invoice_no = ''
 				form.value.order_id= invoiceFormObj.value.order_id
@@ -510,15 +594,19 @@ const Emit= defineEmits(['close'])
 				remarkUSD.value= ''
 				console.log(form.value,'form.value')		
 				changeSaleUscCode(form.value.sale_entity_id)
-			}else if([2,4].includes(newType)){
-				form.value= JSON.parse(JSON.stringify(props.invoiceForm))
-				form.value.purchase_entity_id= form.value.purchase_entity_id? Number(form.value.purchase_entity_id): ''
-				form.value.sale_entity_id= form.value.sale_entity_id? Number(form.value.sale_entity_id): ''
-				console.log(form.value,'497')
+		}else if([2,4].includes(newType)){
+			form.value= JSON.parse(JSON.stringify(props.invoiceForm))
+			form.value.invoice_type_id = normalizeInvoiceTypeValue(form.value.invoice_type_id)
+			form.value.purchase_entity_id= form.value.purchase_entity_id? Number(form.value.purchase_entity_id): ''
+			form.value.sale_entity_id= form.value.sale_entity_id? Number(form.value.sale_entity_id): ''
+			form.value.is_finish = Number(props.invoiceForm?.order?.is_finish ?? props.invoiceForm?.is_finish ?? 0) === 1
+			form.value.commission = props.invoiceForm?.order?.commission ?? props.invoiceForm?.commission ?? ''
+			confirmInvoice.value = !!form.value.confirm_at
+			console.log(form.value,'497')
 				// changeSaleUscCode(form.value.sale_entity_id)
 			}
 			if([0,1,2].includes(newType)){
-				if(props.invoiceForm?.is_lock && props.invoiceForm.is_lock== 1){editDisabled.value= true}
+				if(props.invoiceForm?.is_lock && props.invoiceForm.is_lock== 1 && !isSuperAdmin.value){editDisabled.value= true}
 			}
 		    showDefaultData(newType)
 		  }
@@ -526,6 +614,17 @@ const Emit= defineEmits(['close'])
 		immediate: true
 	})
 	// 默认的选择
+	const ensureTableItems = (tableRef) => {
+		const raw = Array.isArray(tableRef.value) ? tableRef.value : []
+		tableRef.value = raw.filter(item => item && typeof item === 'object')
+	}
+	const ensureTableHasAtLeastOne = (tableRef) => {
+		ensureTableItems(tableRef)
+		if (tableRef.value.length === 0) {
+			tableRef.value = [createEmptyInvoiceItem()]
+		}
+	}
+
 	function showDefaultData(type){
 		if(type== 0||type== 3){
 			tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
@@ -534,23 +633,16 @@ const Emit= defineEmits(['close'])
 			remarkCNY.value = invoiceFormObj.value.remark?invoiceFormObj.value.remark: ''
 			remarkUSD.value = invoiceFormObj.value.remark? invoiceFormObj.value.remark: ''
 			console.log(form.value.sale_entity_id,'form.value.sale_entity_id')
-			if (invoiceFormObj.value.orderBillItems.length > 0) {
+			const orderBillItems = Array.isArray(invoiceFormObj.value.orderBillItems) ? invoiceFormObj.value.orderBillItems : []
+			if (orderBillItems.length > 0) {
 				
-				const hasCNY = invoiceFormObj.value.orderBillItems.some(item => item.currency === 'cny');
-				const hasUSD = invoiceFormObj.value.orderBillItems.some(item => item.currency === 'usd');
-				if(hasCNY){
-					tableDataCNY.value = []
-					tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-				}else if(hasUSD){
-					tableDataUSD.value = []
-					tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-				}else{
-					tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-					tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-				}
+				const hasCNY = orderBillItems.some(item => item.currency === 'cny');
+				const hasUSD = orderBillItems.some(item => item.currency === 'usd');
+				tableDataCNY.value = hasCNY ? [] : [createEmptyInvoiceItem()]
+				tableDataUSD.value = hasUSD ? [] : [createEmptyInvoiceItem()]
 				console.log(hasCNY); // true
 				console.log(tableDataCNY.value,'tableDataCNY.value'); // true
-				invoiceFormObj.value.orderBillItems.forEach(item => {
+				orderBillItems.forEach(item => {
 					if (item.currency == 'cny') {
 						item.amount = item.quantity * item.price
 						tableDataCNY.value.push(item)
@@ -560,20 +652,26 @@ const Emit= defineEmits(['close'])
 					}
 				})
 			}else{
-				tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
-				tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
+				tableDataCNY.value= [createEmptyInvoiceItem()]
+				tableDataUSD.value= [createEmptyInvoiceItem()]
 			}
 		}else if(type == 2|| type == 4){
 			if(type==4){ editDisabled.value= true };
 			remarkCNY.value= invoiceFormObj.value.cny_remark
 			remarkUSD.value= invoiceFormObj.value.usd_remark
-			if(invoiceFormObj.value.cny_invoice_items && invoiceFormObj.value.cny_invoice_items.length> 0){
-				tableDataCNY.value= invoiceFormObj.value.cny_invoice_items
-			}
-			if(invoiceFormObj.value.usd_invoice_items && invoiceFormObj.value.usd_invoice_items.length> 0){
-				tableDataUSD.value= invoiceFormObj.value.usd_invoice_items
-			}
+			const cnyItems = Array.isArray(invoiceFormObj.value.cny_invoice_items) ? invoiceFormObj.value.cny_invoice_items : []
+			const usdItems = Array.isArray(invoiceFormObj.value.usd_invoice_items) ? invoiceFormObj.value.usd_invoice_items : []
+			tableDataCNY.value = cnyItems.length > 0 ? cnyItems : [createEmptyInvoiceItem()]
+			tableDataUSD.value = usdItems.length > 0 ? usdItems : [createEmptyInvoiceItem()]
+			// 快照防追改：表单数据已就绪，应用 token
+			nextTick(() => {
+				applyInvoiceTypeSnapshotToken()
+				applyPurchaseEntitySnapshotToken()
+				applySnapshotTokens()
+			})
 		}
+		ensureTableHasAtLeastOne(tableDataCNY)
+		ensureTableHasAtLeastOne(tableDataUSD)
 		// 业务的时间新增都清零
 		if([0,1,3].includes(type)){
 			form.value.invoice_date= ''
@@ -649,23 +747,15 @@ const Emit= defineEmits(['close'])
 	// })
 
 	const addRow = () => {
-		if (tableDataCNY.value.length < 8) {
-			tableDataCNY.value.push({
-				fee_type_id: '',
-				unit: '',
-				quantity: null,
-				amount: 0,
-			})
+		ensureTableItems(tableDataCNY)
+		if (tableDataCNY.value.length < INVOICE_ITEM_MAX_COUNT) {
+			tableDataCNY.value = [...tableDataCNY.value, createEmptyInvoiceItem()]
 		}
 	}
 	const addRoww = () => {
-		if (tableDataUSD.value.length < 8) {
-			tableDataUSD.value.push({
-				fee_type_id: '',
-				unit: '',
-				quantity: null,
-				amount: 0
-			})
+		ensureTableItems(tableDataUSD)
+		if (tableDataUSD.value.length < INVOICE_ITEM_MAX_COUNT) {
+			tableDataUSD.value = [...tableDataUSD.value, createEmptyInvoiceItem()]
 		}
 	}
 	const delRow = (index) => {
@@ -738,22 +828,236 @@ const Emit= defineEmits(['close'])
 	}
 	// 发票名称
 	const invoiceTypeList = ref([])
+	const COMPANY_HEADERS_LIST= ref([])
+	const originalInvoiceTypeId = computed(() => {
+		return normalizeInvoiceTypeValue(
+			invoiceFormObj.value?.invoice_type_id ||
+			props.invoiceForm?.invoice_type_id ||
+			''
+		)
+	})
+	const invoiceTypeSnapshotName = computed(() => {
+		return (
+			invoiceFormObj.value?.invoice_type_name ||
+			props.invoiceForm?.invoice_type_name ||
+			props.invoiceForm?.invoice_type?.name ||
+			''
+		).trim()
+	})
+	const normalizeInvoiceTypeOption = (item) => ({
+		...item,
+		label: item?.name || '',
+		typeLabel: item?.type === 0 ? '普通发票' : '专用发票',
+	})
+	const invoiceTypeSnapshotOption = computed(() => {
+		const realId = normalizeInvoiceTypeValue(form.value.invoice_type_id)
+		const originalId = originalInvoiceTypeId.value
+		const snapshotName = invoiceTypeSnapshotName.value
+		if (!realId || !snapshotName || !originalId || String(realId) !== String(originalId)) {
+			return null
+		}
+
+		const currentOption = invoiceTypeList.value.find(item => item.id == realId)
+		if (currentOption && (currentOption.name || '').trim() === snapshotName) {
+			return null
+		}
+
+		return {
+			id: toSnapToken(realId),
+			label: snapshotName,
+			name: snapshotName,
+			type: currentOption?.type ?? props.invoiceForm?.invoice_type?.type ?? null,
+			typeLabel: currentOption?.type === 0 ? '普通发票' : '专用发票',
+			__snapshot: true,
+		}
+	})
+	const applyInvoiceTypeSnapshotToken = () => {
+		if (invoiceTypeSnapshotApplied.value) {
+			return
+		}
+
+		const snapshotOption = invoiceTypeSnapshotOption.value
+		if (!snapshotOption) {
+			invoiceTypeSnapshotApplied.value = true
+			return
+		}
+
+		form.value.invoice_type_id = snapshotOption.id
+		invoiceTypeSnapshotApplied.value = true
+	}
+	const purchaseEntitySnapshotName = computed(() => {
+		return (
+			invoiceFormObj.value?.purchase_entity?.name ||
+			props.invoiceForm?.purchase_entity?.name ||
+			''
+		).trim()
+	})
+	const originalPurchaseEntityId = computed(() => {
+		const rawValue = invoiceFormObj.value?.purchase_entity_id || props.invoiceForm?.purchase_entity_id || ''
+		const normalizedValue = normalizeSelectSnapshotValue(rawValue)
+		if (normalizedValue === '' || normalizedValue === null || normalizedValue === undefined) {
+			return ''
+		}
+		const numberValue = Number(normalizedValue)
+		return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : normalizedValue
+	})
+	const purchaseEntitySnapshotOption = computed(() => {
+		const rawValue = normalizeSelectSnapshotValue(form.value.purchase_entity_id)
+		const realId = rawValue === '' || rawValue === null || rawValue === undefined
+			? ''
+			: (Number.isFinite(Number(rawValue)) && Number(rawValue) > 0 ? Number(rawValue) : rawValue)
+		const originalId = originalPurchaseEntityId.value
+		const snapshotName = purchaseEntitySnapshotName.value
+		if (!realId || !snapshotName || !originalId || String(realId) !== String(originalId)) {
+			return null
+		}
+
+		const currentOption = COMPANY_HEADERS_LIST.value.find(item => item.id == realId)
+		const snapshotMeta = buildSelectSnapshotOption({
+			fieldKey: 'purchase_entity_id',
+			originValue: realId,
+			snapshotLabel: snapshotName,
+			options: COMPANY_HEADERS_LIST.value,
+			valueKey: 'id',
+			labelKey: 'company_name',
+		})
+		if (!snapshotMeta) {
+			return null
+		}
+
+		return {
+			...(currentOption || {}),
+			id: snapshotMeta.token,
+			company_name: snapshotName,
+			__snapshot: true,
+		}
+	})
+	const purchaseEntityOptionsWithSnapshot = computed(() => {
+		const snapshotOption = purchaseEntitySnapshotOption.value
+		if (!snapshotOption) {
+			return COMPANY_HEADERS_LIST.value
+		}
+		return [
+			snapshotOption,
+			...COMPANY_HEADERS_LIST.value,
+		]
+	})
+	const purchaseEntityDisplayName = computed(() => {
+		const currentOption = purchaseEntityOptionsWithSnapshot.value.find(
+			item => item.id == form.value.purchase_entity_id
+		)
+		return currentOption?.company_name || ''
+	})
+	const applyPurchaseEntitySnapshotToken = () => {
+		if (purchaseEntitySnapshotApplied.value) {
+			return
+		}
+
+		const snapshotOption = purchaseEntitySnapshotOption.value
+		if (!snapshotOption) {
+			purchaseEntitySnapshotApplied.value = true
+			return
+		}
+
+		form.value.purchase_entity_id = snapshotOption.id
+		purchaseEntitySnapshotApplied.value = true
+	}
 
 	function getInvoiceTypeList() {
 		httpGet(`/invoice-types`, {
 			is_paginate: 0
 		}).then(res => {
 			if (res.data.length > 0) {
-				invoiceTypeList.value = res.data
-				invoiceTypeList.value.forEach(item => {
-					item.label = `${item.type===0?'普':'专'}---${item.name}`
-				})
+				invoiceTypeList.value = res.data.map(normalizeInvoiceTypeOption)
 			}
 		});
 	}
 	getInvoiceTypeList()
 	const FEE_TYPES_LIST_CNY=ref([])
 	const FEE_TYPES_LIST_USD=ref([])
+
+	const invoiceTypeListWithSnapshot = computed(() => {
+		const snapshotOption = invoiceTypeSnapshotOption.value
+		if (!snapshotOption) {
+			return invoiceTypeList.value
+		}
+
+		return [
+			snapshotOption,
+			...invoiceTypeList.value,
+		]
+	})
+
+	// 费用类型：按行返回含快照的选项列表
+	const resolveFeeTypeList = (listSource) => {
+		if (Array.isArray(listSource)) return listSource
+		if (Array.isArray(listSource?.value)) return listSource.value
+		return []
+	}
+	const getFeeTypeOptionsWithSnapshot = (listSource, row) => {
+		const list = resolveFeeTypeList(listSource)
+		const rawId = row.fee_type_id
+		const realId = parseSnapId(rawId)
+		if (!realId) return list
+		const cnyList = Array.isArray(FEE_TYPES_LIST_CNY.value) ? FEE_TYPES_LIST_CNY.value : []
+		const usdList = Array.isArray(FEE_TYPES_LIST_USD.value) ? FEE_TYPES_LIST_USD.value : []
+		const inferredName = cnyList.find(item => item.id == realId)?.name || usdList.find(item => item.id == realId)?.name || ''
+		const snapshotName = (row.fee_type_name || inferredName || '').trim()
+		if (!snapshotName) return list
+		const matched = list.find(item => item.id == realId)
+		if (matched && (matched.name || '') === snapshotName && !isSnapToken(rawId)) return list
+		const token = isSnapToken(rawId) ? rawId : toSnapToken(realId)
+		const snapshotOption = { id: token, name: snapshotName, __snapshot: true }
+		return [snapshotOption, ...list]
+	}
+
+	// 编辑模式：费用类型需要快照 token 防追改（发票类型不再转 token）
+	const applySnapshotTokens = () => {
+		// 费用类型（CNY 行）
+		const cnyList = Array.isArray(FEE_TYPES_LIST_CNY.value) ? FEE_TYPES_LIST_CNY.value : []
+		tableDataCNY.value.forEach(row => {
+			if (row.fee_type_id && !isSnapToken(row.fee_type_id) && row.fee_type_name) {
+				const matched = cnyList.find(item => item.id == row.fee_type_id)
+				if (!matched || (matched.name || '') !== row.fee_type_name) {
+					row.fee_type_id = toSnapToken(row.fee_type_id)
+				}
+			}
+		})
+		// 费用类型（USD 行）
+		const usdList = Array.isArray(FEE_TYPES_LIST_USD.value) ? FEE_TYPES_LIST_USD.value : []
+		tableDataUSD.value.forEach(row => {
+			if (row.fee_type_id && !isSnapToken(row.fee_type_id) && row.fee_type_name) {
+				const matched = usdList.find(item => item.id == row.fee_type_id)
+				if (!matched || (matched.name || '') !== row.fee_type_name) {
+					row.fee_type_id = toSnapToken(row.fee_type_id)
+				}
+			}
+		})
+	}
+	// 列表加载完毕后应用 token
+	watch([invoiceTypeList, FEE_TYPES_LIST_CNY, FEE_TYPES_LIST_USD, COMPANY_HEADERS_LIST], () => {
+		nextTick(() => {
+			applyInvoiceTypeSnapshotToken()
+			applyPurchaseEntitySnapshotToken()
+			applySnapshotTokens()
+		})
+	})
+
+	// 提交时还原快照 token 为真实 ID
+	const normalizeSnapshotData = (data) => {
+		data.invoice_type_id = normalizeInvoiceTypeValue(data.invoice_type_id)
+		data.purchase_entity_id = normalizeInvoiceTypeValue(
+			normalizeSelectSnapshotValue(data.purchase_entity_id)
+		)
+		const normItems = (jsonStr) => {
+			const items = JSON.parse(jsonStr || '[]')
+			items.forEach(item => { item.fee_type_id = parseSnapId(item.fee_type_id) })
+			return JSON.stringify(items)
+		}
+		data.cny_invoice_items = normItems(data.cny_invoice_items)
+		data.usd_invoice_items = normItems(data.usd_invoice_items)
+		return data
+	}
 	// 项目名称RMB/USD
 	function getfeeTypesList(type) {
 		httpGet(`/fee-types`, {
@@ -762,16 +1066,14 @@ const Emit= defineEmits(['close'])
 		}).then(res => {
 			console.log(res,'res509')
 			if(type=== 'cny'){
-				FEE_TYPES_LIST_CNY.value= res.data
+				FEE_TYPES_LIST_CNY.value= Array.isArray(res.data) ? res.data : []
 			}else if(type=== 'usd'){
-				FEE_TYPES_LIST_USD.value= res.data
+				FEE_TYPES_LIST_USD.value= Array.isArray(res.data) ? res.data : []
 			}
 		});
 	}
 	getfeeTypesList('cny')
 	getfeeTypesList('usd')
-	
-	const COMPANY_HEADERS_LIST= ref([])
 	// 委托抬头--购买方单位
 	function getCompanyHeadersList() {
 		httpGet(`/company-headers`, {
@@ -787,14 +1089,16 @@ const Emit= defineEmits(['close'])
 	// 获取税点税额
 	function changeInvoiceType(e){
 		console.log(form.value,'form.value')
-		let itemObj= invoiceTypeList.value.find(item =>item.id=== e)
+		const realId = parseSnapId(e)
+		let itemObj= invoiceTypeList.value.find(item =>item.id == realId)
 		form.value.tax_rate= itemObj?.tax_rate
 		// form.value.tax_amount= itemObj?.tax_number
 	}
 	// 获取购买方信用代码
 	function changePurchaseUscCode(e){
-		console.log(e,'ee')
-		let itemObj= COMPANY_HEADERS_LIST.value.find(item =>item.id=== e)
+		const realId = normalizeInvoiceTypeValue(normalizeSelectSnapshotValue(e))
+		console.log(realId,'ee')
+		let itemObj= COMPANY_HEADERS_LIST.value.find(item =>item.id == realId)
 		console.log(itemObj,'itemObj')
 		form.value.purchase_usc_code= itemObj?.tax_number
 	}
@@ -829,9 +1133,10 @@ const Emit= defineEmits(['close'])
 	}
 	function changeFeeType(Currencys,list){
 		let remarkValue= ''
+		const safeList = Array.isArray(list) ? list : []
 		const remarks= Currencys
 			  .map(item => {
-				const matched = list.find(item1 => item1.id === item.fee_type_id);
+				const matched = safeList.find(item1 => item1.id === parseSnapId(item.fee_type_id));
 				// 检查 remark 是否存在且不为空
 				return matched && matched.remark != null && String(matched.remark).trim() !== '' 
 				  ? String(matched.remark) 
@@ -862,8 +1167,10 @@ const Emit= defineEmits(['close'])
 		form.value.cny_remark= ''
 		form.value.usd_remark= ''
 		form.value.invoice_date= ''
+		form.value.confirm_at= ''
 		form.value.cny_invoice_no= ''
 		form.value.usd_invoice_no= ''
+		confirmInvoice.value = false
 		tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 		tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 		remarkCNY.value= ''
@@ -888,8 +1195,10 @@ const Emit= defineEmits(['close'])
 		  usd_invoice_items: JSON.stringify(tableDataUSD.value),
 		  cny_remark: remarkCNY.value,
 		  usd_remark: remarkUSD.value,
-		  is_finish: form.value.is_finish == true ? 1 : 0
+		  is_finish: form.value.is_finish == true ? 1 : 0,
+		  confirm_invoice: confirmInvoice.value ? 1 : 0
 		}
+		normalizeSnapshotData(data)
 		console.log(data,'data851')
 		if(form.value.id){
 			httpPut(`/invoices/${data.id}`, data).then(res => {
@@ -917,14 +1226,16 @@ const Emit= defineEmits(['close'])
 		}
 		const data= {
 			name: templatesName.value,
-			invoice_type_id: form.value.invoice_type_id,
+			invoice_type_id: normalizeInvoiceTypeValue(form.value.invoice_type_id),
 			email: form.value.email,
 			remark: form.value.remark,
 			cny_remark: remarkCNY.value,
 			usd_remark: remarkUSD.value,
 			cny_invoice_items: JSON.stringify(tableDataCNY.value),
 			usd_invoice_items: JSON.stringify(tableDataUSD.value),
-			purchase_entity_id: form.value.purchase_entity_id,
+			purchase_entity_id: normalizeInvoiceTypeValue(
+				normalizeSelectSnapshotValue(form.value.purchase_entity_id)
+			),
 			purchase_usc_code: form.value.purchase_usc_code,
 		}
 		if(invoicesCurrent.value !== 9999){
@@ -944,7 +1255,10 @@ const Emit= defineEmits(['close'])
 	// 模板列表
 	function invoiceDataList(){
 		httpGet(`/invoice-templates`).then(res => {
-			invoiceTemplatesList.value= res.data
+			invoiceTemplatesList.value= (res.data || []).map(item => ({
+				...item,
+				invoice_type_id: normalizeInvoiceTypeValue(item.invoice_type_id),
+			}))
 		});
 	}
 	invoiceDataList()
@@ -953,7 +1267,7 @@ const Emit= defineEmits(['close'])
 		if(invoicesCurrent.value == 9999 || invoicesCurrent.value!= index){
 			templatesName.value= item.name
 			invoicesCurrent.value= index
-			form.value.invoice_type_id= item.invoice_type_id
+			form.value.invoice_type_id= normalizeInvoiceTypeValue(item.invoice_type_id)
 			form.value.email= item.email
 			form.value.remark= item.remark
 			form.value.purchase_entity_id= item.purchase_entity_id? Number(item.purchase_entity_id):''
@@ -1084,7 +1398,10 @@ const Emit= defineEmits(['close'])
 			  proxy.$modal.msgWarning("请选择发票类型");
 			  return false
 		  }
-		invoiceLogoType.value=  invoiceTypeList.value.filter(itemIndex => (itemIndex.id== form.value.invoice_type_id))[0]?.type //0 普  1专
+		const currentInvoiceTypeId = normalizeInvoiceTypeValue(form.value.invoice_type_id)
+		const latestInvoiceType = invoiceTypeList.value.find(itemIndex => itemIndex.id == currentInvoiceTypeId)
+		const fallbackInvoiceType = invoiceTypeListWithSnapshot.value.find(itemIndex => itemIndex.id == form.value.invoice_type_id)
+		invoiceLogoType.value= latestInvoiceType?.type ?? fallbackInvoiceType?.type //0 普  1专
 		console.log(invoiceLogoType.value,'invoiceLogoType.value')
 		if(type== 1){
 			tableData.value= tableDataCNY.value
@@ -1161,6 +1478,42 @@ const Emit= defineEmits(['close'])
 
 	.logo img {
 		max-width: 240px;
+	}
+
+	.invoice-type-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+
+	.invoice-type-option__name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.invoice-type-option__tag {
+		flex: none;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: #f0f9eb;
+		color: #67c23a;
+		font-size: 12px;
+		line-height: 1.2;
+	}
+
+	.invoice-type-option__tag.is-snapshot {
+		background: #fff3cd;
+		color: #c67a00;
+	}
+
+	.invoice-type-option.is-snapshot {
+		color: #c67a00;
+		font-weight: 600;
 	}
 
 	.flex {
@@ -1250,6 +1603,16 @@ const Emit= defineEmits(['close'])
 	
 </style>
 <style>
+	.el-select-dropdown__item:has(.invoice-type-option.is-snapshot) {
+		background: #fff9e8;
+	}
+
+	.el-select-dropdown__item.selected:has(.invoice-type-option.is-snapshot),
+	.el-select-dropdown__item.hover:has(.invoice-type-option.is-snapshot),
+	.el-select-dropdown__item.is-hovering:has(.invoice-type-option.is-snapshot) {
+		background: #ffefc2;
+	}
+
 	.wrapper .el-table .cell{
 		padding: 0 2px  !important;
 	}
@@ -1263,3 +1626,4 @@ const Emit= defineEmits(['close'])
 		text-align: center !important;
 	}
 </style>
+

@@ -185,8 +185,16 @@
 	import {
 		getCZY,
 		getSW,
+		getTT,
+		getCGS,
+		getMT,
 		optionsComm
 	} from '@/api/commonList';
+	import {
+		applyOrderSnapshotDisplay,
+		normalizeOrderSnapshotValue,
+		resetOrderSnapshotState
+	} from '@/utils/orderSnapshotSelect';
 	import {
 		ElButton
 	} from 'element-plus'
@@ -229,12 +237,15 @@
 	})
 	
 	// 编辑操作处理方法
-	const handleEdit = (row) => {
-		httpGet(`/orders/${props.editId}`).then(res => {
-			setTimeout(function() {
-				saveDataShow(res, 1);
-			}, 500)
-		});
+	const handleEdit = async () => {
+		const [res] = await Promise.all([
+			httpGet(`/orders/${props.editId}`),
+			refreshSnapshotSelectData(),
+		]);
+		if (!res) return;
+		setTimeout(function() {
+			saveDataShow(res, 1);
+		}, 500)
 	}
 	const tabName= ref('2')
 	// const dialogFormVisible = ref(false);
@@ -247,6 +258,8 @@
 	const paySureList1s = ref([]);
 	const loading = ref(true);
 	const seletData = ref({});
+	const snapshotSelectState = ref({});
+	const buildNoCacheQuery = () => ({ _t: Date.now() });
 	const invoiceType=ref(0)  //0  默认展示  1  带参数战术
 	
 	const containers = ref([]); //箱子信息
@@ -261,6 +274,16 @@
 	const SW = ref([]); //商务
 	const XHDW = ref([]); //销货单位
 	const MT = ref([]); //码头
+	const refreshSnapshotSelectData = async () => {
+		const [shippingCompanies, enteredPortWharves, companyHeaders] = await Promise.all([
+			getCGS(buildNoCacheQuery()),
+			getMT(buildNoCacheQuery()),
+			getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() }),
+		]);
+		seletData.value.CGS = shippingCompanies;
+		seletData.value.MT = enteredPortWharves;
+		seletData.value.WTTT = companyHeaders;
+	}
 	onMounted(async () => {
 		statistic.value.forEach((item,index)=>{
 			const source = ref(0)
@@ -369,13 +392,21 @@
 			}
 		}
 		// console.log('单据数据', data)
-		formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
-		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
+		const shipNameAndNo = data.ship_name && data.ship_no ? `${data.ship_name}/${data.ship_no}` : '';
+		formListNew.value[2].formData[0].formItem[1].value = shipNameAndNo;
+		formListNew.value[2].formData[0].formItem[1].remark = shipNameAndNo;
 		if (data.shipping_company_id) {
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id) || {}; //船公司
 		}
+		applyOrderSnapshotDisplay({
+			formList: formListNew.value,
+			formData: data,
+			sourceData: res,
+			selectData: seletData.value,
+			state: snapshotSelectState.value,
+		});
 		payment_status.value = res.payment_status || 0;
-		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(data), seletData.value);
 		proxy.$refs.paymentTable.tableData = [];
 		// addPayment();
 		//提单信息
@@ -415,6 +446,7 @@
 	//船公司信息
 	const shipCompany = ref({});
 	function resetInfo() {
+		resetOrderSnapshotState(snapshotSelectState.value);
 		payment_status.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
 		containers.value = [];
@@ -432,12 +464,26 @@
 		}
 		for (var key in remarkList) {
 			var item = formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]];
+			const fieldValue = normalizeOrderSnapshotValue(key, data[key], snapshotSelectState.value);
 			var dataNew = item.options ? item.options.find(v => {
-				return v.id == data[key]
+				return v.id == fieldValue
 			}) : {};
 			formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]].remark = dataNew ? dataNew
 				.remark : '';
 		}
+	}
+	function buildSnapshotNormalizedChildData(source) {
+		const sourceData = source || {};
+		return {
+			...sourceData,
+			shipping_company_id: normalizeOrderSnapshotValue('shipping_company_id', sourceData.shipping_company_id, snapshotSelectState.value),
+			entered_port_wharf_id: normalizeOrderSnapshotValue('entered_port_wharf_id', sourceData.entered_port_wharf_id, snapshotSelectState.value),
+			'order_delegation_header.company_header_id': normalizeOrderSnapshotValue(
+				'order_delegation_header.company_header_id',
+				sourceData['order_delegation_header.company_header_id'],
+				snapshotSelectState.value
+			),
+		};
 	}
 	function countAccounts() {
 		var tableData = proxy.$refs.accountTable.state.tableData;
@@ -462,8 +508,9 @@
 	}
 	//落箱数据生成
 	function createDrop() {
+		const normalizedSaveData = buildSnapshotNormalizedChildData(proxy.$refs.commonForm.saveData);
 		var saveData = {
-			...proxy.$refs.commonForm.saveData,
+			...normalizedSaveData,
 			boxInfo: containers.value
 		};
 		proxy.$refs.dropBox.openDrop(saveData, seletData.value);

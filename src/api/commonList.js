@@ -64,36 +64,40 @@ export async function getYWLX() {
 }
 
 //船公司列表
-export async function getCGS() {
+export async function getCGS(data={}) {
 	var params = {
 		is_paginate: 0,
+		...data
 	}
 	let res = await httpGet('/shipping-companies', params);
 	return res.data||[]
 }
 
 //码头列表
-export async function getMT() {
+export async function getMT(data={}) {
 	var params = {
 		is_paginate: 0,
+		...data
 	}
 	let res = await httpGet('/wharves', params);
 	return res.data||[]
 }
 
 //车队列表
-export async function getCHD() {
+export async function getCHD(data={}) {
 	var params = {
 		is_paginate: 0,
+		...data
 	}
 	let res = await httpGet('/fleets', params);
 	return res.data||[]
 }
 
 //箱子类型列表
-export async function getXZLX() {
+export async function getXZLX(data={}) {
 	var params = {
 		is_paginate: 0,
+		...data
 	}
 	let res = await httpGet('/container-types', params);
 	return res.data||[]

@@ -1,14 +1,14 @@
 <template>
-	<div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme }">
-		<div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
-		<sidebar v-if="!sidebar.hide" class="sidebar-container" />
-		<div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
-			<div :class="{ 'fixed-header': fixedHeader }" style="position: sticky;top: 0;z-index: 10;">
+	<div :class="[classObj, { 'embed-layout': isEmbedLayout }]" class="app-wrapper" :style="{ '--current-color': theme }">
+		<div v-if="!isEmbedLayout && device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
+		<sidebar v-if="!isEmbedLayout && !sidebar.hide" class="sidebar-container" />
+		<div :class="{ hasTagsView: needTagsView && !isEmbedLayout, sidebarHide: sidebar.hide || isEmbedLayout }" class="main-container">
+			<div v-if="!isEmbedLayout" :class="{ 'fixed-header': fixedHeader }" style="position: sticky;top: 0;z-index: 10;">
 				<navbar @setLayout="setLayout" />
 				<tags-view v-if="needTagsView" />
 			</div>
 			<app-main />
-			<settings ref="settingRef" />
+			<settings v-if="!isEmbedLayout" ref="settingRef" />
 		</div>
 	</div>
 </template>
@@ -29,6 +29,7 @@
 	import useAppStore from '@/store/modules/app'
 	import useSettingsStore from '@/store/modules/settings'
 
+	const route = useRoute()
 	const settingsStore = useSettingsStore()
 	const theme = computed(() => settingsStore.theme);
 	const sideTheme = computed(() => settingsStore.sideTheme);
@@ -36,6 +37,7 @@
 	const device = computed(() => useAppStore().device);
 	const needTagsView = computed(() => settingsStore.tagsView);
 	const fixedHeader = computed(() => settingsStore.fixedHeader);
+	const isEmbedLayout = computed(() => String(route.query.embed || '') === '1');
 
 	const classObj = computed(() => ({
 		hideSidebar: !sidebar.value.opened,
@@ -96,6 +98,10 @@
 			position: fixed;
 			top: 0;
 		}
+	}
+
+	.app-wrapper.embed-layout {
+		background: #fff;
 	}
 
 	.drawer-bg {

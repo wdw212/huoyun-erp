@@ -15,7 +15,7 @@
 			</el-table-column>
 			<el-table-column label="大小" align="center" prop="size">
 				<template #default="scope">
-					{{ (scope.row.size / 1024).toFixed(2) }} KB
+					{{ formatFileSize(scope.row.size) }}
 				</template>
 			</el-table-column>
 			<el-table-column label="状态" align="center" prop="status">
@@ -44,10 +44,8 @@
 	import {
 		ref,
 		defineProps,
-		watch,
 		defineExpose,
-		defineEmits,
-		onMounted
+		defineEmits
 	} from "vue";
 	import axios from 'axios'
 
@@ -55,6 +53,10 @@
 	const order_files = ref([]);
 	const fileList = ref([]);
 	const uploadRef = ref();
+	const formatFileSize = (size) => {
+		const parsedSize = Number(size || 0);
+		return `${(parsedSize / 1024).toFixed(2)} KB`;
+	}
 	
 	const props = defineProps({
 		isEdit: {
@@ -89,10 +91,12 @@
 		}).then(response => {
 			fileList.value.push({
 				file: response.data.path,
-				url: response.data.url
+				url: response.data.url,
+				size: Number(file.file?.size || 0),
 			})
 			order_files.value.forEach((item,index)=>{
 				order_files.value[index].status = 'success';
+				order_files.value[index].size = Number(order_files.value[index].size || file.file?.size || 0);
 			})
 			console.log('上传成功', fileList.value);
 			emit('uploadFile', fileList.value);
@@ -105,7 +109,8 @@
 		console.log('上传成功:', order_files.value, response);
 		fileList.value.push({
 			file: response.path,
-			url: response.url
+			url: response.url,
+			size: 0
 		})
 		emit('uploadFile', fileList.value);
 	};

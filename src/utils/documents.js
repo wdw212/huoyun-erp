@@ -533,7 +533,7 @@ export const AccountsColumn = ref([
 		form: {
 			type: 'select',placeholder: '请选择合作单位',key: 'company_header_id',
 			filterable: true, options: [],  labelName: 'company_name', valueName: 'id',
-			showLabel: 'label'
+			showLabel: 'label', snapshotLabelKey: 'company_header_name', snapshotLoadOnVisible: true,
 			// method: 'get', url: '/company-headers',popover:true
 		}
 	},
@@ -582,7 +582,8 @@ export const PaymentColumn = ref([
 		form: {
 			type: 'selectSearch',placeholder: '请选择应收抬头',key: 'company_header_id',
 			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers',popover:true
+			method: 'get', url: '/company-headers',popover:true, showLabel: 'label',
+			snapshotLabelKey: 'company_header_name', snapshotLoadOnVisible: true
 		}
 	},
 	{label: '人民币费用', type: 'edit', prop: 'cny_amount',

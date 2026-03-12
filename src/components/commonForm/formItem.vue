@@ -3,7 +3,7 @@
 		<el-popover placement="top" width="auto" effect="dark"
 		:disabled="saveData!== null&&saveData!=''&&newItem.popover?false:true"  >
 			<template #default>
-				<pre>{{showContent||saveData}}</pre>
+				<pre>{{ showContent || normalizeSelectSnapshotValue(saveData) }}</pre>
 			</template>
 			<template #reference>
 				<template v-if="newItem.type=='input'">
@@ -49,16 +49,29 @@
 					:clearable="newItem.clearable"
 					:disabled="newItem.disabled"
 					:filterable="newItem.filterable"
-					:value-key="newItem.keyName?newItem.keyName:'id'"
+					:value-key="newItem.keyName || newItem.valueName || 'id'"
+					@visible-change="handleSelectVisibleChange"
 					@change="changeValue">
 						<template #label="{ label, value }">
 					        <span v-if="newItem.showLabel&&newItem.showLabel=='label'">{{ label }}</span>
 					        <span v-else>{{ value }}</span>
 					    </template>
-						<el-option v-for="vv in newItem.options" 
-						:key="newItem.keyName?vv[newItem.keyName]:'id'"
+						<el-option v-for="(vv, vIndex) in newItem.options" 
+						:key="newItem.keyName ? vv[newItem.keyName] : (newItem.valueName ? vv[newItem.valueName] : (vv.value ?? vIndex))"
 						:label="newItem.labelName?vv[newItem.labelName]:vv.label"
-						:value="newItem.valueName?vv[newItem.valueName]:vv.value" />
+						:value="newItem.valueName?vv[newItem.valueName]:vv.value">
+							<div :class="['snapshot-select-option', { 'is-snapshot': vv.__snapshotOption }]">
+								<span class="snapshot-select-option__name">
+									{{ newItem.labelName ? vv[newItem.labelName] : vv.label }}
+								</span>
+								<span
+									v-if="vv.__snapshotOption"
+									class="snapshot-select-option__tag is-snapshot"
+								>
+									{{ vv.__snapshotTagLabel || '历史快照' }}
+								</span>
+							</div>
+						</el-option>
 					</el-select>
 				</template>
 				<template v-if="newItem.type=='button'">
@@ -82,11 +95,28 @@
 					:remote-show-suffix="newItem.remoteShowSuffix"
 					:remote-method="remoteMethod"
 					:loading="newItem.loading"
+					@visible-change="handleSelectVisibleChange"
 					@change="changeValue">
-						<el-option v-for="vv in newItem.options"
-						:key="newItem.keyName?vv[newItem.keyName]:'id'"
+						<template #label="{ label, value }">
+					        <span v-if="newItem.showLabel&&newItem.showLabel=='label'">{{ label }}</span>
+					        <span v-else>{{ value }}</span>
+					    </template>
+						<el-option v-for="(vv, vIndex) in newItem.options"
+						:key="newItem.keyName ? vv[newItem.keyName] : (newItem.valueName ? vv[newItem.valueName] : (vv.value ?? vIndex))"
 						:label="newItem.labelName?vv[newItem.labelName]:vv.label"
-						:value="newItem.valueName?vv[newItem.valueName]:vv.value" />
+						:value="newItem.valueName?vv[newItem.valueName]:vv.value">
+							<div :class="['snapshot-select-option', { 'is-snapshot': vv.__snapshotOption }]">
+								<span class="snapshot-select-option__name">
+									{{ newItem.labelName ? vv[newItem.labelName] : vv.label }}
+								</span>
+								<span
+									v-if="vv.__snapshotOption"
+									class="snapshot-select-option__tag is-snapshot"
+								>
+									{{ vv.__snapshotTagLabel || '历史快照' }}
+								</span>
+							</div>
+						</el-option>
 					</el-select>
 				</template>
 			</template>
@@ -111,6 +141,12 @@
 		httpPost,
 		httpGet
 	} from '@/api/apiCommon';
+	import {
+		buildSelectSnapshotOption,
+		isSelectSnapshotToken,
+		normalizeSelectSnapshotValue,
+	snapshotToComparable
+} from '@/utils/selectSnapshot';
 
 	const props = defineProps({
 		item: {
@@ -125,33 +161,154 @@
 				return ''
 			}
 		},
+		rowData: {
+			type: Object,
+			default: () => {
+				return {}
+			}
+		},
 	})
 
 	const saveData = ref(null);
 	const newItem = ref({});
+	const showContent = ref('');
+	const snapshotState = ref({
+		token: '',
+		originValue: '',
+		label: '',
+		rowIdentity: '',
+		dismissed: false,
+	});
+	const buildItemClone = (item = {}) => ({
+		...item,
+		options: Array.isArray(item.options) ? [...item.options] : [],
+	});
+	const getOptionValue = (option) => {
+		if (!option) return undefined;
+		return newItem.value.valueName ? option[newItem.value.valueName] : option.value;
+	};
+	const getOptionLabel = (option) => {
+		if (!option) return '';
+		return newItem.value.labelName ? option[newItem.value.labelName] : option.label;
+	};
+	const getRowSnapshotLabel = () => {
+		const snapshotLabelKey = newItem.value.snapshotLabelKey;
+		if (!snapshotLabelKey) return '';
+		return (props.rowData?.[snapshotLabelKey] ?? '').toString().trim();
+	};
+	const getRowIdentity = () => {
+		if (props.rowData?.id !== undefined && props.rowData?.id !== null) {
+			return String(props.rowData.id);
+		}
+		return `${newItem.value.key || 'snapshot'}::${getRowSnapshotLabel()}`;
+	};
+	const syncDisplayContent = (rawValue = saveData.value, options = newItem.value.options) => {
+		if (newItem.value.type === 'select' || newItem.value.type === 'selectSearch') {
+			const normalizedValue = normalizeSelectSnapshotValue(rawValue);
+			const displayOptions = Array.isArray(options) ? options : [];
+			const matchedOption = displayOptions.find((option) => (
+				snapshotToComparable(getOptionValue(option)) === snapshotToComparable(rawValue)
+			)) || displayOptions.find((option) => (
+				snapshotToComparable(getOptionValue(option)) === snapshotToComparable(normalizedValue)
+			));
+			if (matchedOption) {
+				showContent.value = getOptionLabel(matchedOption) || '';
+				return;
+			}
+			if (isSelectSnapshotToken(rawValue)) {
+				showContent.value = getRowSnapshotLabel() || normalizedValue || '';
+				return;
+			}
+			showContent.value = normalizedValue || '';
+			return;
+		}
+		showContent.value = rawValue || '';
+	};
+	const syncSelectSnapshotDisplay = () => {
+		if (!['select', 'selectSearch'].includes(newItem.value.type)) {
+			return;
+		}
+		const snapshotLabel = getRowSnapshotLabel();
+		const normalizedValue = normalizeSelectSnapshotValue(props.formValue);
+		const rowIdentity = getRowIdentity();
+		if (
+			rowIdentity !== snapshotState.value.rowIdentity ||
+			snapshotLabel !== snapshotState.value.label
+		) {
+			snapshotState.value = {
+				token: '',
+				originValue: normalizedValue,
+				label: snapshotLabel,
+				rowIdentity,
+				dismissed: false,
+			};
+		}
+		const sourceOriginValue = snapshotState.value.originValue;
+		const displayOptions = Array.isArray(newItem.value.options) ? [...newItem.value.options] : [];
+		if (
+			!snapshotLabel ||
+			snapshotState.value.dismissed ||
+			snapshotToComparable(normalizedValue) !== snapshotToComparable(sourceOriginValue)
+		) {
+			saveData.value = props.formValue;
+			newItem.value.options = displayOptions.filter((option) => !option?.__snapshotOption);
+			syncDisplayContent(saveData.value, newItem.value.options);
+			return;
+		}
+		const snapshotMeta = buildSelectSnapshotOption({
+			fieldKey: newItem.value.key || 'snapshot',
+			originValue: sourceOriginValue,
+			snapshotLabel,
+			options: displayOptions.filter((option) => !option?.__snapshotOption),
+			valueKey: newItem.value.valueName || 'value',
+			labelKey: newItem.value.labelName || 'label',
+		});
+		if (!snapshotMeta) {
+			saveData.value = props.formValue;
+			newItem.value.options = displayOptions.filter((option) => !option?.__snapshotOption);
+			syncDisplayContent(saveData.value, newItem.value.options);
+			return;
+		}
+		newItem.value.options = [
+			snapshotMeta.option,
+			...displayOptions.filter((option) => !option?.__snapshotOption),
+		];
+		snapshotState.value.token = snapshotMeta.token;
+		saveData.value = snapshotMeta.token;
+		syncDisplayContent(saveData.value, newItem.value.options);
+	};
 	watch(props.item, (newVal) => {
 		// console.log('formItem.item', newVal);
-		newItem.value = newVal;
+		newItem.value = buildItemClone(newVal);
 		newItem.value.clearable = newVal.clearable != '' ? newVal.clearable : true;
 		resetKey();
+		syncSelectSnapshotDisplay();
 	}, {
 		deep: true
 	})
 	watch(()=>props.formValue, (newVal) => {
 		// console.log('formItem.formValue', newVal);
 		saveData.value = props.formValue;
+		syncSelectSnapshotDisplay();
 	}, {
 		deep: true, immediate: true
+	})
+	watch(() => props.rowData, () => {
+		syncSelectSnapshotDisplay();
+	}, {
+		deep: true
 	})
 	
 	const updateValue = (val) => {
 		saveData.value = val;
+		syncSelectSnapshotDisplay();
 		// console.log('updateValue-formItem数据回显', saveData.value);
 	}
 
 	const updateItem = (item) => {
-		newItem.value = item;
+		newItem.value = buildItemClone(item);
 		resetKey();
+		syncSelectSnapshotDisplay();
 		// console.log('updateItem', newItem.value);
 	}
 
@@ -168,9 +325,26 @@
 				keyword: val
 			});
 			newItem.value.options = res.data || [];
+			syncSelectSnapshotDisplay();
 		} else {
 			newItem.value.options = [];
+			syncSelectSnapshotDisplay();
 		}
+	}
+	const handleSelectVisibleChange = async (visible) => {
+		if (typeof newItem.value.onVisibleChange === 'function') {
+			await newItem.value.onVisibleChange(visible, newItem.value, props.rowData);
+		}
+		if (!visible || !newItem.value.snapshotLoadOnVisible || !newItem.value.url) {
+			syncSelectSnapshotDisplay();
+			return;
+		}
+		var methodType = newItem.value.method == 'get' ? httpGet : httpPost;
+		let res = await methodType(newItem.value.url, {
+			is_paginate: 0
+		});
+		newItem.value.options = res.data || [];
+		syncSelectSnapshotDisplay();
 	}
 	
 	const changeButton = (index) => {
@@ -188,7 +362,6 @@
 		emit('changeButton', newItems);
 	}
 
-	const showContent = ref('');
 	const changeValue = (val) => {
 		var newItems = {
 			...newItem.value
@@ -202,34 +375,29 @@
 				newItems.value = val.replace(/[^0-9\.]/g, "").toUpperCase();
 			}
 		}else{
-			newItems.value = val;
+			newItems.value = ['select', 'selectSearch'].includes(newItem.value.type)
+				? normalizeSelectSnapshotValue(val)
+				: val;
 		}
-		saveData.value = newItems.value
-		
-		if(newItem.value.type=='select'||newItem.value.type=='selectSearch'){
-			var data = newItem.value.options.find((vv)=>{
-				if(newItem.value.valueName){
-					return val==vv[newItem.value.valueName]
-				}else{
-					return val==vv.value
-				}
-			})
-			if(data){
-				showContent.value = newItem.value.labelName?(data[newItem.value.labelName]||''):data.label;
-			}else{
-				showContent.value = saveData.value||'';
+		if (['select', 'selectSearch'].includes(newItem.value.type)) {
+			if (isSelectSnapshotToken(val)) {
+				snapshotState.value.dismissed = false;
+			} else {
+				snapshotState.value.dismissed = snapshotToComparable(newItems.value) === snapshotToComparable(snapshotState.value.originValue);
 			}
-		}else{
-			showContent.value = saveData.value;
 		}
+		saveData.value = val
+		
+		syncDisplayContent(saveData.value, newItem.value.options);
 		// console.log('newItems', newItems);
 		emit('changeValue', newItems);
 	}
 
 	onMounted(() => {
-		newItem.value = props.item;
+		newItem.value = buildItemClone(props.item);
 		// console.log('formItem', props);
 		resetKey()
+		syncSelectSnapshotDisplay();
 	})
 
 	const emit = defineEmits(['changeValue','changeButton'])
@@ -241,4 +409,31 @@
 
 <style>
 	pre{margin: 0;}
+	.snapshot-select-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+	.snapshot-select-option__name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.snapshot-select-option__tag {
+		flex: none;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: #fff3cd;
+		color: #c67a00;
+		font-size: 12px;
+		line-height: 1.2;
+	}
+	.snapshot-select-option.is-snapshot {
+		color: #c67a00;
+		font-weight: 600;
+	}
 </style>

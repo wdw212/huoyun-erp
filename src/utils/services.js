@@ -433,7 +433,7 @@ export const formList = ref([
 						{ type: 'dateTime',value: '',label: '截单时间',placeholder: '请选择截单时间',key: 'cutoff_at', format: 'YYYY-MM-DD HH:mm',rules: rulesInit('请选择截单时间', 1) },
 						{ type: 'dateTime',value: '',label: '截港时间',placeholder: '请选择截港时间',key: 'template6', format: 'YYYY-MM-DD HH:mm' },
 						{ type: 'date',value: '',label: '实际到港时间',placeholder: '请选择实际到港时间',key: 'arrival_at', dateType: 'date' },
-						{ type: 'select',value: '',label: '进港码头',placeholder: '请选择进港码头',key: 'template8',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true },
+						{ type: 'select',value: '',label: '进港码头',placeholder: '请选择进港码头',key: 'entered_port_wharf_id',options: [], labelName: 'name', valueName: 'id',popover: true, clearable: true, filterable: true },
 						{ type: 'select',value: '',label: '保险',placeholder: '请选择保险',key: 'template9',options: optionsComm['保险'], defaultValue: 0 },
 						{ type: 'select',value: '',label: '提货',placeholder: '请选择提货',key: 'is_delivery',options: optionsComm['提货'], defaultValue: 1 },
 						{ label: '落箱数据', soltName: 'template11' },
@@ -615,7 +615,8 @@ export const AccountsColumn = ref([
 		form: {
 			type: 'selectSearch',placeholder: '请选择合作单位',key: 'company_header_id',
 			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers',popover:true
+			method: 'get', url: '/company-headers',popover:true, showLabel: 'label',
+			snapshotLabelKey: 'company_header_name', snapshotLoadOnVisible: true
 		}
 	},
 	{label: '不开票备注', type: 'edit', prop: 'no_invoice_remark',
@@ -672,7 +673,8 @@ export const PaymentColumn = ref([
 		form: {
 			type: 'selectSearch',placeholder: '请选择应收抬头',key: 'company_header_id',
 			remoteShowSuffix: true, options: [],  labelName: 'company_name', valueName: 'id',
-			method: 'get', url: '/company-headers',popover:true
+			method: 'get', url: '/company-headers',popover:true, showLabel: 'label',
+			snapshotLabelKey: 'company_header_name', snapshotLoadOnVisible: true
 		}
 	},
 	{label: '人民币费用', type: 'edit', prop: 'cny_amount',

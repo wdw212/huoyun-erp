@@ -11,12 +11,18 @@
 						<div class="sub-tit">(2)Shipper/ Exporter</div>
 						<div class="mt10">
 							<el-select v-model="sender_id" placeholder="选择发货人" size="large" style="width: 440px" filterable
+								@visible-change="() => getSelectDataList()"
 								@change='senderChange'>
-								<template #label="{ label, value }">
-									<span>{{value&&SENDER_LIST.find(v=> v.id==value)&&SENDER_LIST.find(v=> v.id==value).name}}</span>
+								<template #label="{ value }">
+									<span>{{ resolvePartyDisplayName('sender', value) }}</span>
 								</template>
-								<el-option v-for="item in SENDER_LIST" :key="item.id" :label="item.label"
-									:value="item.id" />
+								<el-option v-for="item in senderOptions" :key="item.id" :label="item.label"
+									:value="item.id">
+									<div :class="['snapshot-select-option', { 'is-snapshot': item.__snapshotOption }]">
+										<span class="snapshot-select-option__name">{{ item.label }}</span>
+										<span v-if="item.__snapshotOption" class="snapshot-select-option__tag is-snapshot">{{ item.__snapshotTagLabel || '历史快照' }}</span>
+									</div>
+								</el-option>
 							</el-select>
 						</div>
 
@@ -49,12 +55,18 @@
 						<div class="sub-tit">(3)Consignee(complete name and address)</div>
 						<div class="mt10">
 							<el-select v-model="receiver_id" placeholder="选择收货人" size="large" style="width: 440px" filterable
+								@visible-change="() => getSelectDataList()"
 								@change='receiveChange'>
-								<template #label="{ label, value }">
-									<span>{{value&&RECEIVE_LIST.find(v=> v.id==value)&&RECEIVE_LIST.find(v=> v.id==value).name}}</span>
+								<template #label="{ value }">
+									<span>{{ resolvePartyDisplayName('receiver', value) }}</span>
 								</template>
-								<el-option v-for="item in RECEIVE_LIST" :key="item.id" :label="item.label"
-									:value="item.id" />
+								<el-option v-for="item in receiverOptions" :key="item.id" :label="item.label"
+									:value="item.id">
+									<div :class="['snapshot-select-option', { 'is-snapshot': item.__snapshotOption }]">
+										<span class="snapshot-select-option__name">{{ item.label }}</span>
+										<span v-if="item.__snapshotOption" class="snapshot-select-option__tag is-snapshot">{{ item.__snapshotTagLabel || '历史快照' }}</span>
+									</div>
+								</el-option>
 							</el-select>
 						</div>
 						<div class="mt10 mb10">
@@ -75,12 +87,18 @@
 						<div class="sub-tit">(4) Notify Party (complete name and address)</div>
 						<div class="mt10">
 							<el-select v-model="notifier_id" placeholder="选择通知人" size="large" style="width: 440px" filterable
+								@visible-change="() => getSelectDataList()"
 								@change='notiferChange'>
-								<template #label="{ label, value }">
-								    <span>{{value&&NOTIFER_LIST.find(v=> v.id==value)&&NOTIFER_LIST.find(v=> v.id==value).name}}</span>
+								<template #label="{ value }">
+								    <span>{{ resolvePartyDisplayName('notifier', value) }}</span>
 								</template>
-								<el-option v-for="item in NOTIFER_LIST" :key="item.id" :label="item.label"
-									:value="item.id" />
+								<el-option v-for="item in notifierOptions" :key="item.id" :label="item.label"
+									:value="item.id">
+									<div :class="['snapshot-select-option', { 'is-snapshot': item.__snapshotOption }]">
+										<span class="snapshot-select-option__name">{{ item.label }}</span>
+										<span v-if="item.__snapshotOption" class="snapshot-select-option__tag is-snapshot">{{ item.__snapshotTagLabel || '历史快照' }}</span>
+									</div>
+								</el-option>
 							</el-select>
 						</div>
 						<div class="mt10 mb10">
@@ -430,7 +448,7 @@
 </template>
 
 <script setup>
-	import {ref,defineExpose,defineEmits} from 'vue';
+	import {ref,computed,defineExpose,defineEmits} from 'vue';
 	import html2canvas from "html2canvas";
 	import {listData} from "@/api/company/send-and-receive";
 	import {
@@ -439,6 +457,7 @@
 	} from "@/utils/exportFile";
 	import { Refresh } from '@element-plus/icons-vue'
 	import { commonParam } from '@/utils/common'
+	import { buildSelectSnapshotOption, normalizeSelectSnapshotValue } from '@/utils/selectSnapshot'
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -470,6 +489,92 @@
 	const sender_id = ref('')
 	const receiver_id = ref('')
 	const notifier_id = ref('')
+	const senderDetail = ref({})
+	const receiverDetail = ref({})
+	const notifierDetail = ref({})
+
+	const PARTY_FIELD_MAP = {
+		sender: { list: SENDER_LIST, idRef: sender_id, detailRef: senderDetail },
+		receiver: { list: RECEIVE_LIST, idRef: receiver_id, detailRef: receiverDetail },
+		notifier: { list: NOTIFER_LIST, idRef: notifier_id, detailRef: notifierDetail },
+	}
+
+	const buildPartyOptions = (partyKey) => {
+		const config = PARTY_FIELD_MAP[partyKey]
+		const list = Array.isArray(config?.list?.value) ? config.list.value : []
+		const currentValue = config?.idRef?.value
+		const normalizedCurrentValue = normalizeSelectSnapshotValue(currentValue)
+		const snapshotLabel = (config?.detailRef?.value?.name || '').toString().trim()
+		const snapshotMeta = buildSelectSnapshotOption({
+			fieldKey: partyKey,
+			originValue: normalizedCurrentValue,
+			snapshotLabel,
+			options: list,
+			valueKey: 'id',
+			labelKey: 'label',
+		})
+		if (!snapshotMeta) {
+			return list
+		}
+		return [snapshotMeta.option, ...list]
+	}
+
+	const senderOptions = computed(() => buildPartyOptions('sender'))
+	const receiverOptions = computed(() => buildPartyOptions('receiver'))
+	const notifierOptions = computed(() => buildPartyOptions('notifier'))
+
+	const resolvePartyDisplayName = (partyKey, value) => {
+		const config = PARTY_FIELD_MAP[partyKey]
+		const list = buildPartyOptions(partyKey)
+		const normalizedValue = normalizeSelectSnapshotValue(value)
+		const matched = list.find((item) => String(item.id) === String(value) || String(item.id) === String(normalizedValue))
+		return matched?.name || config?.detailRef?.value?.name || matched?.label || ''
+	}
+
+	const syncPartySnapshotToken = (partyKey) => {
+		const config = PARTY_FIELD_MAP[partyKey]
+		if (!config) return
+		const currentValue = normalizeSelectSnapshotValue(config.idRef.value)
+		if (!currentValue) {
+			config.idRef.value = ''
+			return
+		}
+		const snapshotLabel = (config.detailRef.value?.name || '').toString().trim()
+		const latest = (Array.isArray(config.list.value) ? config.list.value : []).find((item) => String(item.id) === String(currentValue))
+		if (latest && (latest.name || latest.label || '').toString().trim() === snapshotLabel) {
+			config.idRef.value = currentValue
+			return
+		}
+		const snapshotMeta = buildSelectSnapshotOption({
+			fieldKey: partyKey,
+			originValue: currentValue,
+			snapshotLabel,
+			options: Array.isArray(config.list.value) ? config.list.value : [],
+			valueKey: 'id',
+			labelKey: 'label',
+		})
+		config.idRef.value = snapshotMeta ? snapshotMeta.token : currentValue
+	}
+
+	const syncAllPartySnapshotTokens = () => {
+		;['sender', 'receiver', 'notifier'].forEach((partyKey) => syncPartySnapshotToken(partyKey))
+	}
+
+	const findPartyOption = (list, id) => (Array.isArray(list) ? list.find((item) => String(item.id) === String(id)) : null)
+
+	const buildPartySnapshotPayload = (partyKey) => {
+		const config = PARTY_FIELD_MAP[partyKey]
+		const normalizedId = normalizeSelectSnapshotValue(config.idRef.value)
+		if (!normalizedId) return {}
+		const latestOption = findPartyOption(config.list.value, normalizedId)
+		const detail = config.detailRef.value || {}
+		return {
+			...(latestOption || {}),
+			...(detail || {}),
+			id: Number(normalizedId),
+			name: (detail.name || latestOption?.name || '').toString(),
+		}
+	}
 	const bl_no = ref('')
 	const freight_forwarding = ref('')
 	const ship_info = ref('')
@@ -511,9 +616,12 @@
 	}
 	function save(type){
 		var newData = {
-			sender_id: sender_id.value,
-			receiver_id: receiver_id.value,
-			notifier_id: notifier_id.value,
+			sender_id: normalizeSelectSnapshotValue(sender_id.value),
+			receiver_id: normalizeSelectSnapshotValue(receiver_id.value),
+			notifier_id: normalizeSelectSnapshotValue(notifier_id.value),
+			sender: buildPartySnapshotPayload('sender'),
+			receiver: buildPartySnapshotPayload('receiver'),
+			notifier: buildPartySnapshotPayload('notifier'),
 			sender_info: sender_info.value,
 			receiver_info: receiver_info.value,
 			notifier_info: notifier_info.value,
@@ -538,6 +646,9 @@
 		}
 	}
 	const updateBill = (data, state) => {
+		senderDetail.value = data.sender_detail?.snapshot || data.sender || data.sender_detail || {};
+		receiverDetail.value = data.receiver_detail?.snapshot || data.receiver || data.receiver_detail || {};
+		notifierDetail.value = data.notifier_detail?.snapshot || data.notifier || data.notifier_detail || {};
 		sender_id.value = data.sender_id||'';
 		receiver_id.value = data.receiver_id||'';
 		notifier_id.value = data.notifier_id||'';
@@ -557,6 +668,7 @@
 		gross_weight.value = data.gross_weight||'';
 		volume.value = data.volume||'';
 		saveState.value = state;
+		syncAllPartySnapshotTokens();
 		// console.log('updateBill提单数据', data, state);
 	}
 
@@ -601,6 +713,9 @@
 		sender_id.value = ''
 		receiver_id.value = ''
 		notifier_id.value = ''
+		senderDetail.value = {}
+		receiverDetail.value = {}
+		notifierDetail.value = {}
 		sender_info.value = ''
 		receiver_info.value = ''
 		notifier_info.value = ''
@@ -626,22 +741,31 @@
 				SENDER_LIST.value = senders ? senders.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
 				RECEIVE_LIST.value = receivers ? receivers.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
 				NOTIFER_LIST.value = notifiers ? notifiers.map(v=>{return {...v,label:v.keyword?v.keyword+'——'+v.name:v.name}}) : []
+				syncAllPartySnapshotTokens()
 			})
 	}
 	// 发货人下拉框变化
 	function senderChange(e) {
-		if (e) {
-			sender_info.value = SENDER_LIST.value.find(item => item.id === e).type_content
-		} else {
+		const normalizedId = normalizeSelectSnapshotValue(e)
+		const selected = findPartyOption(SENDER_LIST.value, normalizedId)
+		if (selected) {
+			senderDetail.value = { ...selected, id: Number(normalizedId) }
+			sender_info.value = selected.type_content || sender_info.value
+		} else if (!normalizedId) {
+			senderDetail.value = {}
 			sender_info.value = ''
 		}
 	}
 	// 收货人下拉框变化
 	function receiveChange(e) {
-		if (e) {
-			receiver_info.value = RECEIVE_LIST.value.find(item => item.id === e)?.type_content
-			receiveUrl.value = RECEIVE_LIST.value.find(item => item.id === e).url
-		} else {
+		const normalizedId = normalizeSelectSnapshotValue(e)
+		const selected = findPartyOption(RECEIVE_LIST.value, normalizedId)
+		if (selected) {
+			receiverDetail.value = { ...selected, id: Number(normalizedId) }
+			receiver_info.value = selected.type_content || receiver_info.value
+			receiveUrl.value = selected.url || ''
+		} else if (!normalizedId) {
+			receiverDetail.value = {}
 			receiver_info.value = ''
 			receiveUrl.value = ''
 		}
@@ -649,9 +773,13 @@
 	}
 	// 通知人下拉框变化
 	function notiferChange(e) {
-		if (e) {
-			notifier_info.value = NOTIFER_LIST.value.find(item => item.id === e).type_content
-		} else {
+		const normalizedId = normalizeSelectSnapshotValue(e)
+		const selected = findPartyOption(NOTIFER_LIST.value, normalizedId)
+		if (selected) {
+			notifierDetail.value = { ...selected, id: Number(normalizedId) }
+			notifier_info.value = selected.type_content || notifier_info.value
+		} else if (!normalizedId) {
+			notifierDetail.value = {}
 			notifier_info.value = ''
 		}
 	}
@@ -870,5 +998,36 @@
 
 	.font-black {
 		color: #000;
+	}
+
+	.snapshot-select-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+
+	.snapshot-select-option__name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.snapshot-select-option__tag {
+		flex: none;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: #fff3cd;
+		color: #c67a00;
+		font-size: 12px;
+		line-height: 1.2;
+	}
+
+	.snapshot-select-option.is-snapshot {
+		color: #c67a00;
+		font-weight: 600;
 	}
 </style>

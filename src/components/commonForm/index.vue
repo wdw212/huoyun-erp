@@ -92,11 +92,24 @@
 															:clearable="vv.clearable"
 															:disabled="vv.disabled||item.disabled"
 															:filterable="vv.filterable"
+															@visible-change="handleSelectVisibleChange($event, vv)"
 															@change="changeValue($event, vv)">
-																<el-option v-for="v in vv.options" 
-																:key="vv.keyName?v[vv.keyName]:'id'"
+																<el-option v-for="(v, vIndex) in vv.options" 
+																:key="vv.keyName ? v[vv.keyName] : (vv.valueName ? v[vv.valueName] : (v.value ?? vIndex))"
 																:label="vv.labelName?v[vv.labelName]:v.label"
-																:value="vv.valueName?v[vv.valueName]:v.value" />
+																:value="vv.valueName?v[vv.valueName]:v.value">
+																	<div :class="['snapshot-select-option', { 'is-snapshot': v.__snapshotOption }]">
+																		<span class="snapshot-select-option__name">
+																			{{ vv.labelName ? v[vv.labelName] : v.label }}
+																		</span>
+																		<span
+																			v-if="v.__snapshotOption"
+																			class="snapshot-select-option__tag is-snapshot"
+																		>
+																			{{ v.__snapshotTagLabel || '历史快照' }}
+																		</span>
+																	</div>
+																</el-option>
 															</el-select>
 														</template>
 														<template v-if="vv.type=='button'">
@@ -120,11 +133,24 @@
 															:remote-show-suffix="vv.remoteShowSuffix"
 															:remote-method="remoteMethod"
 															:loading="vv.loading"
+															@visible-change="handleSelectVisibleChange($event, vv)"
 															@change="changeValue($event, vv)">
-																<el-option v-for="v in vv.options"
-																:key="vv.keyName?v[vv.keyName]:'id'"
-																:label="vv.labelName?v[vv.labelName]:v.label"
-																:value="vv.valueName?v[vv.valueName]:v.value" />
+																	<el-option v-for="(v, vIndex) in vv.options"
+																	:key="vv.keyName ? v[vv.keyName] : (vv.valueName ? v[vv.valueName] : (v.value ?? vIndex))"
+																	:label="vv.labelName?v[vv.labelName]:v.label"
+																	:value="vv.valueName?v[vv.valueName]:v.value">
+																		<div :class="['snapshot-select-option', { 'is-snapshot': v.__snapshotOption }]">
+																			<span class="snapshot-select-option__name">
+																				{{ vv.labelName ? v[vv.labelName] : v.label }}
+																			</span>
+																			<span
+																				v-if="v.__snapshotOption"
+																				class="snapshot-select-option__tag is-snapshot"
+																			>
+																				{{ v.__snapshotTagLabel || '历史快照' }}
+																			</span>
+																		</div>
+																	</el-option>
 															</el-select>
 														</template>
 														<template v-if="vv.type=='upload'">
@@ -330,6 +356,13 @@
 		emit('itemChange', data, val, item);
 	}
 
+	const handleSelectVisibleChange = async (visible, item) => {
+		if (typeof item?.onVisibleChange === 'function') {
+			await item.onVisibleChange(visible, item, saveData);
+		}
+		emit('selectVisibleChange', visible, item);
+	}
+
 	const changeSave = (val) => {
 		var data = JSON.parse(JSON.stringify(saveData));
 		for(var key in val){
@@ -355,7 +388,7 @@
 		resetKey(props.formList)
 	})
 
-	const emit = defineEmits(['confirm', 'cancel', 'itemChange', 'tabsChange'])
+	const emit = defineEmits(['confirm', 'cancel', 'itemChange', 'tabsChange', 'selectVisibleChange'])
 	defineExpose({
 		saveData,
 		resetKey,
@@ -366,4 +399,34 @@
 
 <style scoped>
 	pre{margin: 0;}
+	.snapshot-select-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+
+	.snapshot-select-option__name {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.snapshot-select-option__tag {
+		flex: none;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: #fff3cd;
+		color: #c67a00;
+		font-size: 12px;
+		line-height: 1.2;
+	}
+
+	.snapshot-select-option.is-snapshot {
+		color: #c67a00;
+		font-weight: 600;
+	}
 </style>

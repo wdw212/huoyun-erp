@@ -1,11 +1,11 @@
 <template>
 
-	<div class="p-r service" v-loading="loading">
+	<div :class="{ 'service-embed': isEmbedMode }" class="p-r service" v-loading="loading">
 		<!-- 顶部搜索 -->
-		<search-top ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
+		<search-top v-if="!isEmbedMode" ref="searchTop" :queryParams="queryParams" @search="searchConfirm"></search-top>
 
 		<!-- 表格 -->
-		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
+		<table-list v-if="!isEmbedMode" :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true" class="px-2" ref="tableList" :number="true" :multiple="false">
 			<template #headerCon>
 				<div style="display: flex;flex-wrap: wrap;text-align: center!important;">
 					<div style="width: 20%;margin-top: 10px;" v-for="(item,index) in statistic" :key="index">
@@ -175,23 +175,54 @@
 				<template #headerRight></template>
 			</table-list>
 		</el-dialog>
-		<div v-draggable="{handle: '.custom-handle'}" :style="{width: '1000px',top: '10px',zIndex: '1000',height: '600px',fontSize: '12px',overflow: 'hidden',display: billBool== true?'block': 'none',position: 'fixed'}" class="shadow-lg0 radius10 draggable">
+		<el-dialog v-model="copyBillVisible" title="复制账单" width="900px" :close-on-click-modal="false">
+			<el-card class="mb-2">
+				<el-form :inline="true" :model="copyBillQuery">
+					<el-form-item label="目标单据">
+						<el-input
+							v-model="copyBillQuery.keyword"
+							placeholder="工作编号、提单号、起运港"
+							clearable
+							style="width: 260px"
+							@keyup.enter="searchCopyBillOrders"
+						/>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="searchCopyBillOrders">搜索</el-button>
+						<el-button @click="resetCopyBillOrders">重置</el-button>
+					</el-form-item>
+				</el-form>
+			</el-card>
+			<table-list
+				:tableConfig="copyBillOrderTableConfig"
+				:tableColumn="copyBillOrderTableColumn"
+				class="px-2"
+				ref="copyBillOrderTable"
+				:number="true"
+				:multiple="false"
+			/>
+		</el-dialog>
+		<div
+			v-draggable="billDragOptions"
+			:style="billDialogStyle"
+			:class="['draggable', { 'shadow-lg0 radius10': !isEmbedMode, 'embed-bill-sheet': isEmbedMode }]"
+		>
 		<!-- <el-dialog v-model="paySureVisible" title="费用确认单" width="90%"  :modal="false"
   :close-on-click-modal="false" draggable  :lock-scroll="false"> -->
 			<div  class="w-100 h-100 bill-dialog flex flex-column" style="background: #fff;padding: 0 5px" ref="contentContainer">
 				<div class="py-1 w-100" style="height: 50px;">
 					<div class="dialog-footer">
 						<el-button type="primary" @click="exportToImage">生成图片</el-button>
-						<el-button type="primary" @click="openInvoiceForm">申请开票</el-button>
+						<el-button :type="isCurrentOrderFinished ? 'info' : 'primary'" @click="openInvoiceForm">申请开票</el-button>
 						<el-button type="primary" @click="submitFormBill">保 存</el-button>
 						<el-button @click="cancelBill">取 消</el-button>
 					</div>
 				</div>
-				<div class="d-flex w-100 flex-1" style="height: 550px;">
-					<div class="pt-1 flex-1 bR-0 pr-1 w-100 flex flex-column " style="font-size: 12px;">
+				<div :class="['d-flex', 'w-100', 'flex-1', 'bill-content-layout', { 'bill-content-layout-embed': isEmbedMode }]" :style="billContentStyle">
+					<div class="pt-1 flex-1 bR-0 pr-1 w-100 flex flex-column bill-main-panel" style="font-size: 12px;">
 						<div class="custom-handle  w-100">
 							<div class="flex1">
-								<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
+								<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;" @error="handleBillLogoError"/>
 								<p class="font-32 font-w">Logistics & Services</p>
 							</div>
 							<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
@@ -331,7 +362,12 @@
 									  align="center">
 									  <template v-slot="{row,$index}">
 										  <el-select v-model="row.fee_type_id" placeholder="请选择费用明细"  clearable filterable @change="changeCurrency($event,row,$index)">
-											<el-option v-for="item in seletData.FYLX" :key="item.id" :label="item.name" :value="item.id"/>
+											<el-option v-for="item in getBillFeeTypeOptions(row)" :key="item.id" :label="item.name" :value="item.id">
+								<div :class="['snapshot-select-option', { 'is-snapshot': item.__snapshotOption }]">
+									<span class="snapshot-select-option__name">{{ item.name }}</span>
+									<span v-if="item.__snapshotOption" class="snapshot-select-option__tag is-snapshot">{{ item.__snapshotTagLabel || '历史快照' }}</span>
+								</div>
+							</el-option>
 										  </el-select>
 									  </template>
 									</el-table-column>
@@ -507,8 +543,8 @@
 										  <el-switch
 											v-model="is_show_seal">
 										  </el-switch>
-										  <div class="mt-2" v-if="is_show_seal">
-											 <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" /> 
+										  <div class="mt-2" v-if="is_show_seal && formBill.show_seal && !billSealLoadFailed">
+											 <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" @error="handleBillSealError" /> 
 										  </div>
 									  </div>
 									</div>
@@ -524,7 +560,7 @@
 							</div>
 						</div>
 					</div>
-					<div style="width: 200px;padding-left: 5px;" class="pt-2 font-12 bill-right flex flex-column">
+					<div :style="billRightStyle" class="pt-2 font-12 bill-right flex flex-column bill-right-panel">
 						<div class="w-100">
 							<el-form :inline="true" :model="formBillTemplates" label-width="60px">
 							  <el-form-item label="导出文件名">
@@ -566,7 +602,7 @@
 		</div>
 		<!-- 单据详情 -->
 		<el-dialog v-model="dialogFormVisibleInvoiceForm" title="申请开票列表" width="80%" :close-on-click-modal="false">
-			<el-button type="primary" @click="handleAddInvoiceForm()"> 新增 </el-button>
+			<el-button type="primary" @click="handleAddInvoiceForm()" :disabled="isCurrentOrderFinished"> 新增 </el-button>
 			<table-list :tableConfig="tableConfigInvoice" :tableColumn="tableColumnInvoice" :toolbar="true" :toolbarRowReset='false' class="px-2" ref="tableListInvoiceForm" :number="true" :multiple="false"  :show-summary="true"
             :summary-fields="['tax_rate', 'total_cny_amount', 'total_usd_amount']">
 				<template #headerRight></template>
@@ -604,7 +640,7 @@
 			    >
 				<div class=" w-100 custom-handle-image ">
 					<div class="flex1">
-						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;"/>
+						<img :src="formBill.pay_sure_logo" alt="" style="width: 260px;height: 40px;" @error="handleBillLogoError"/>
 						<p class="font-32 font-w">Logistics & Services</p>
 					</div>
 					<div class="font-32 t-c bB-0 pb-2">费用确认单</div>
@@ -780,8 +816,8 @@
 								 <!-- <el-switch
 									v-model="is_show_seal">
 								  </el-switch> -->
-								  <div class="mt-2" v-if="is_show_seal">
-									  <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" /> 
+								  <div class="mt-2" v-if="is_show_seal && formBill.show_seal && !billSealLoadFailed">
+									  <img style="width: 200px;height: auto;" :src="formBill.show_seal" alt="" @error="handleBillSealError" /> 
 									 <!-- <img style="width: 200px;height: auto;" src="../../../assets/pay_sure_logo1.png" alt="" /> -->
 								  </div>
 							  </div>
@@ -859,11 +895,25 @@
 	import {
 		getCZY,
 		getSW,
+		getCGS,
+		getMT,
+		getTT,
 		optionsComm
 	} from '@/api/commonList';
 	import {
+		applyOrderSnapshotDisplay,
+		bindOrderSnapshotSelectVisibleRefresh,
+		normalizeOrderSnapshotSubmitData,
+		normalizeOrderSnapshotValue,
+		resetOrderSnapshotState,
+		trackOrderSnapshotFieldChange
+	} from '@/utils/orderSnapshotSelect';
+	import {
 		ElButton
 	} from 'element-plus'
+	import paySureLogo from '@/assets/pay_sure_logo.png'
+	import paySureSeal from '@/assets/pay_sure_logo1.png'
+	import { buildSelectSnapshotOption, normalizeSelectSnapshotValue } from '@/utils/selectSnapshot'
 	const {
 		proxy
 	} = getCurrentInstance();
@@ -879,8 +929,16 @@
 	const paySureList1s = ref([]);
 	const loading = ref(true);
 	const seletData = ref({});
+	const snapshotSelectState = ref({});
+	const snapshotSourceData = ref({});
+	const snapshotRefreshFlags = ref({
+		shipping_company_snapshot_refresh: false,
+		entered_port_wharf_snapshot_refresh: false,
+		delegation_header_snapshot_refresh: false,
+	});
+	const buildNoCacheQuery = () => ({ _t: Date.now() });
 	
-	const invoiceForm= ref({
+	const createEmptyInvoiceFormState = () => ({
 		order_id: '',
 		job_no: '',
 		seller_id: '',
@@ -889,6 +947,16 @@
 		checkList: [],
 		remark: ''
 	})
+	const resetInvoiceFormState = (extra = {}) => {
+		invoiceForm.value = {
+			...createEmptyInvoiceFormState(),
+			...extra,
+			orderBillItems: Array.isArray(extra.orderBillItems) ? extra.orderBillItems : [],
+			orderBillContainers: Array.isArray(extra.orderBillContainers) ? extra.orderBillContainers : [],
+			checkList: Array.isArray(extra.checkList) ? extra.checkList : [],
+		}
+	}
+	const invoiceForm= ref(createEmptyInvoiceFormState())
 	const invoiceType=ref(0)  //0  默认展示  1  带参数战术
 
 	const containers = ref([]); //箱子信息
@@ -899,11 +967,87 @@
 	const seller_id_bill= ref('')
 	const contentContainer= ref(null)
 	const orderBillItems= ref([{fee_type_id:'',currency:'',quantity:1,price:'',remark:''}])
+	const getBillFeeTypeOptions = (row = {}) => {
+		const feeTypeOptions = Array.isArray(seletData.value.FYLX) ? seletData.value.FYLX : [];
+		const normalizedFeeTypeId = normalizeSelectSnapshotValue(row?.fee_type_id);
+		const snapshotLabel = (row?.fee_type_name || '').toString().trim();
+		const snapshotMeta = buildSelectSnapshotOption({
+			fieldKey: 'fee_type_id',
+			originValue: normalizedFeeTypeId,
+			snapshotLabel,
+			options: feeTypeOptions,
+			valueKey: 'id',
+			labelKey: 'name',
+		});
+		return snapshotMeta ? [snapshotMeta.option, ...feeTypeOptions] : feeTypeOptions;
+	}
+
+	const normalizeBillFeeTypeRows = (rows = []) => (
+		(Array.isArray(rows) ? rows : []).map((item) => {
+			const row = { ...item };
+			const snapshotMeta = buildSelectSnapshotOption({
+				fieldKey: 'fee_type_id',
+				originValue: row.fee_type_id,
+				snapshotLabel: (row.fee_type_name || '').toString().trim(),
+				options: Array.isArray(seletData.value.FYLX) ? seletData.value.FYLX : [],
+				valueKey: 'id',
+				labelKey: 'name',
+			});
+			if (snapshotMeta) {
+				row.fee_type_id = snapshotMeta.token;
+			}
+			return row;
+		})
+	);
+
+	const resolveBillDelegationHeader = (res, type) => {
+		if (type === 0) {
+			return res.delegation_header || saveDataBillAdd.value?.order_delegation_header?.company_header_name || saveDataBillAdd.value?.delegation_header || '';
+		}
+		const rawDelegationHeaderId = type === 1
+			? res['order_delegation_header.company_header_id']
+			: res.order_delegation_header?.company_header_id;
+		const delegationHeaderId = normalizeOrderSnapshotValue('order_delegation_header.company_header_id', rawDelegationHeaderId, snapshotSelectState.value);
+		const snapshotName = res['order_delegation_header.company_header_name']
+			|| res.order_delegation_header?.company_header_name
+			|| snapshotSourceData.value?.order_delegation_header?.company_header_name
+			|| '';
+		if (snapshotName) {
+			return snapshotName;
+		}
+		return seletData.value.WTTT.filter(itemIndex => String(itemIndex.id) == String(delegationHeaderId))[0]?.company_name || '';
+	}
+
+	const resolveBillSellerId = (res, type) => {
+		if (type === 0) {
+			return saveDataBillAdd.value?.order_delegation_header?.seller_id || '';
+		}
+		if (type === 2) {
+			return res.order_delegation_header?.seller_id || '';
+		}
+		return res['order_delegation_header.seller_id'] || '';
+	}
 	const orderBillContainers= ref([])
 	const cost_share= ref('')
 	const customer_payment_info= ref('')
 	const company_receipt_info= ref('')
 	const is_show_seal= ref(true)
+	const billSealLoadFailed = ref(false)
+	const resolveBillSealUrl = (sellerDetail = null) => {
+		return sellerDetail?.financial_seal?.url || paySureSeal
+	}
+	const handleBillLogoError = (event) => {
+		event.target.src = paySureLogo
+	}
+	const handleBillSealError = (event) => {
+		if (event.target?.src && !event.target.src.includes('pay_sure_logo1')) {
+			event.target.src = paySureSeal
+			formBill.value.show_seal = paySureSeal
+			return
+		}
+		billSealLoadFailed.value = true
+		event.target.style.display = 'none'
+	}
 	const showContent= ref(true)
 	const is_show_containers= ref(true)
 	const remarkBill= ref('')
@@ -914,6 +1058,20 @@
 	const dialogFormVisibleInvoiceForm= ref(false)  //申请开票弹框
 	const dialogFormVisibleInvoiceFormDetails= ref(false)
 	const saveDataBillAdd= ref(null)  //制作账单时的详情
+	const currentOrderFinishStatus = ref(0)
+	const isCurrentOrderFinished = computed(() => Number(currentOrderFinishStatus.value) === 1)
+
+	function syncCurrentOrderFinishStatus(value) {
+		currentOrderFinishStatus.value = Number(value || 0) === 1 ? 1 : 0
+	}
+
+	function ensureInvoiceUnlocked() {
+		if (!isCurrentOrderFinished.value) {
+			return true
+		}
+		proxy.$modal.msgWarning('申请开票已完结，请先取消')
+		return false
+	}
 	// 制作账单
 	function handleAddBill(){
 		billBool.value= true
@@ -922,6 +1080,9 @@
 	}
 	// 点击申请开票详情
 	function handleAddInvoiceForm(){
+		if (!ensureInvoiceUnlocked()) {
+			return
+		}
 		console.log(invoiceForm.value,'922')
 		invoiceType.value = 0;
 		dialogFormVisibleInvoiceFormDetails.value= true
@@ -929,6 +1090,7 @@
 	// 制作账单
 	function toBillPage(){
 		console.log(proxy.$refs.commonForm.saveData,'seletData.WTTT')
+		syncCurrentOrderFinishStatus(snapshotSourceData.value?.is_finish ?? proxy.$refs.commonForm?.saveData?.is_finish)
 		billBool.value= true
 		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 		billDataList()
@@ -942,11 +1104,13 @@
 		billEntranceType.value= type
 		console.log(res,'res')
 		console.log(type,'type')
-		const delegation_header_id= type== 1?res["order_delegation_header.company_header_id"]: type== 2? res.order_delegation_header?.company_header_id:''
-		const delegation_header= type== 1 || type== 2? seletData.value.WTTT.filter(itemIndex => (itemIndex.id== delegation_header_id))[0]?.company_name: res.delegation_header
+		if (res?.is_finish !== undefined && res?.is_finish !== null) {
+			syncCurrentOrderFinishStatus(res.is_finish)
+		}
+		const delegation_header = resolveBillDelegationHeader(res, type)
 		formBill.value= {
 			id: type== 0?res.id: null,
-			order_id: editId.value,
+			order_id: type== 0 ? (res.order_id || editId.value) : editId.value,
 			delegation_header: delegation_header,
 			job_no: res.job_no,
 			contract_no: res.contract_no,
@@ -957,16 +1121,26 @@
 			ship_name: res.ship_name,
 			ship_no: res.ship_no,
 			sailing_at: res.sailing_at,
-			arrival_at: res.arrival_at
+			arrival_at: res.arrival_at,
+			pay_sure_logo: paySureLogo
 		}
+		billSealLoadFailed.value = false
 		formBillTemplates.value.wordName= res.job_no
-		seller_id_bill.value= type== 0 || type== 2?saveDataBillAdd.value.order_delegation_header.seller_id :res["order_delegation_header.seller_id"]
+		seller_id_bill.value = resolveBillSellerId(res, type)
 		console.log(res,'res')
-		httpGet(`/sellers/${seller_id_bill.value}`).then(res => {
-			console.log(res,'res908')
-			formBill.value.pay_sure_logo= res.logo?res.logo.url:'../../../assets/pay_sure_logo.png'
-			formBill.value.show_seal= res.financial_seal?res.financial_seal.url:''
-		});
+		if (seller_id_bill.value) {
+			httpGet(`/sellers/${seller_id_bill.value}`).then(res => {
+				console.log(res,'res908')
+				formBill.value.pay_sure_logo= res.logo?.url || paySureLogo
+				formBill.value.show_seal = resolveBillSealUrl(res)
+			}).catch(() => {
+				formBill.value.pay_sure_logo = paySureLogo
+				formBill.value.show_seal = paySureSeal
+			});
+		} else {
+			formBill.value.pay_sure_logo = paySureLogo
+			formBill.value.show_seal = paySureSeal
+		}
 		if(type== 1 || type== 2){
 			orderBillContainers.value= []
 			if((type== 1 && containers.value.length>0) || (type== 2 && res.containers.length>0)){
@@ -1003,7 +1177,7 @@
 				totalUSD: 0,
 			}))
 			
-			orderBillItems.value= res.order_bill_items
+			orderBillItems.value= normalizeBillFeeTypeRows(JSON.parse(JSON.stringify(res.order_bill_items || [])))
 			cost_share.value= res.cost_share
 			customer_payment_info.value= res.customer_payment_info
 			company_receipt_info.value= res.company_receipt_info
@@ -1026,15 +1200,8 @@
 		dialogFormVisibleInvoiceFormDetails.value= false
 		billBool.value= false
 		seller_id_bill.value= ''
-		invoiceForm.value= {
-			order_id: '',
-			job_no: '',
-			seller_id: '',
-			orderBillItems: [],
-			orderBillContainers: [],
-			checkList: [],
-			remark: ''
-		}
+		syncCurrentOrderFinishStatus(0)
+		resetInvoiceFormState()
 		isNowImageOrPdf.value= 0
 		is_show_containers.value= true
 	}
@@ -1081,6 +1248,61 @@
 	const SW = ref([]); //商务
 	const XHDW = ref([]); //销货单位
 	const MT = ref([]); //码头
+	const refreshSnapshotSelectData = async () => {
+		const [shippingCompanies, enteredPortWharves, companyHeaders] = await Promise.all([
+			getCGS(buildNoCacheQuery()),
+			getMT(buildNoCacheQuery()),
+			getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() }),
+		]);
+		seletData.value.CGS = shippingCompanies;
+		seletData.value.MT = enteredPortWharves;
+		seletData.value.WTTT = companyHeaders;
+	}
+	const bindSnapshotSelectVisibleRefresh = () => {
+		bindOrderSnapshotSelectVisibleRefresh({
+			formList: formListNew.value,
+			getSourceData: () => snapshotSourceData.value,
+			getSelectData: () => seletData.value,
+			getState: () => snapshotSelectState.value,
+			refreshers: {
+				shipping_company_id: async () => {
+					seletData.value.CGS = await getCGS(buildNoCacheQuery());
+				},
+				entered_port_wharf_id: async () => {
+					seletData.value.MT = await getMT(buildNoCacheQuery());
+				},
+				'order_delegation_header.company_header_id': async () => {
+					seletData.value.WTTT = await getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() });
+				},
+			},
+		});
+	}
+	const resetSnapshotRefreshFlags = () => {
+		snapshotRefreshFlags.value.shipping_company_snapshot_refresh = false;
+		snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = false;
+		snapshotRefreshFlags.value.delegation_header_snapshot_refresh = false;
+	}
+	const markSnapshotRefreshFlag = (fieldKey, rawValue) => {
+		const fieldState = snapshotSelectState.value?.[fieldKey];
+		if (!fieldState) return;
+		if (rawValue === fieldState.snapshotToken) {
+			if (fieldKey === 'shipping_company_id') {
+				snapshotRefreshFlags.value.shipping_company_snapshot_refresh = false;
+			} else if (fieldKey === 'entered_port_wharf_id') {
+				snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = false;
+			} else if (fieldKey === 'order_delegation_header.company_header_id') {
+				snapshotRefreshFlags.value.delegation_header_snapshot_refresh = false;
+			}
+			return;
+		}
+		if (fieldKey === 'shipping_company_id') {
+			snapshotRefreshFlags.value.shipping_company_snapshot_refresh = true;
+		} else if (fieldKey === 'entered_port_wharf_id') {
+			snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh = true;
+		} else if (fieldKey === 'order_delegation_header.company_header_id') {
+			snapshotRefreshFlags.value.delegation_header_snapshot_refresh = true;
+		}
+	}
 	onMounted(async () => {
 		statistic.value.forEach((item,index)=>{
 			const source = ref(0)
@@ -1151,7 +1373,11 @@
 			// formListNew.value[5].formData[1].noShow = true;
 			loading.value = false;
 			seletData.value = options;
+			bindSnapshotSelectVisibleRefresh();
 			AccountsColumn.value[0].form.options = seletData.value.YFTT;
+			setTimeout(() => {
+				openBillDetailFromRoute();
+			}, 300);
 			// console.log('formListNew', formListNew, seletData.value)
 		})
 	})
@@ -1361,30 +1587,63 @@
 					onClick: (row, index) => handleDetails(row, index)
 				},
 				{
+					label: '复制',
+					type: 'warning',
+					onClick: (row, index) => openCopyBillDialog(row, index)
+				},
+				{
 						label: '删除',
 						type: 'danger',
 						onClick: (row, index) => handleDeleteBill(row, index)
 					}
 			],
 			fixed: "right",
-			width: '190px'
+			width: '250px'
 		}])
 	const tableConfigBill= ref({
 		url: '/order-bills',
 		requestMethod: httpGet,
 		isQuery: false
 	})
+	const copyBillVisible = ref(false)
+	const copyBillSource = ref(null)
+	const copyBillQuery = ref({
+		keyword: '',
+	})
+	const copyBillOrderTableConfig = ref({
+		url: '/orders/business-index',
+		requestMethod: httpGet,
+		isQuery: false,
+		data: {},
+	})
+	const copyBillOrderTableColumn = ref([
+		{ label: '工作编号', prop: 'job_no', formatter: (row) => row.job_no || '无', minWidth: '140' },
+		{ label: '提单号', prop: 'bl_no', formatter: (row) => row.bl_no || '无', minWidth: '160' },
+		{ label: '目的港', prop: 'destination_port', formatter: (row) => row.destination_port || '无', minWidth: '140' },
+		{ label: '开船日期', prop: 'sailing_at', formatter: (row) => row.sailing_at || '无', minWidth: '120' },
+		{
+			label: '操作',
+			prop: 'actions',
+			width: '150px',
+			actions: [{
+				label: '复制到此单',
+				type: 'primary',
+				onClick: (row) => copyBillToOrder(row)
+			}]
+		}
+	])
 	const tableColumnInvoice= ref([
-		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order.job_no || '无'},
+		{label: '工作编号',prop: 'job_no',formatter: (row) => row.order?.job_no || '无'},
 		{label: '开票抬头',prop: 'purchase_entity.name'},
 		{label: '销货单位',prop: 'sale_entity.name'},
 		{label: '发票类型',prop: 'invoice_type.name'},
 		{label: '税额',prop: 'tax_amount'},
 		{label: '单子完结',prop: 'is_finish_name',
 		render: (row, index) => {
+			const isFinish = Number(row?.is_finish ?? row?.order?.is_finish ?? 0) === 1
 			return [
 				h(ElButton, {
-						type: row?.order?.is_finish== 1? 'success' : 'danger',
+						type: isFinish ? 'success' : 'danger',
 						size: 'small',
 						onClick: () => {},
 						style: {
@@ -1392,7 +1651,7 @@
 						},
 						key: row.id
 					},
-					() => (row?.order?.is_finish== 1?'已完结': '未完结')
+					() => (isFinish ? '已完结' : '未完结')
 				)
 			]
 		}},
@@ -1459,14 +1718,18 @@
 		}, 200)
 	}
 	// 编辑操作处理方法
-	const handleEdit = (row) => {
-		httpGet(`/orders/${row.id}`).then(res => {
-			dialogFormVisible.value = true;
-			editId.value = row.id;
-			setTimeout(function() {
-				saveDataShow(res, 1);
-			}, 500)
-		});
+	const handleEdit = async (row) => {
+		const [res] = await Promise.all([
+			httpGet(`/orders/${row.id}`),
+			refreshSnapshotSelectData()
+		]);
+		if (!res) return;
+		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
+		dialogFormVisible.value = true;
+		editId.value = row.id;
+		setTimeout(function() {
+			saveDataShow(res, 1);
+		}, 500)
 	}
     // 申请开票
 	const handleInvoiceList = async (row) => {
@@ -1476,6 +1739,7 @@
 		tableConfigInvoice.value.isQuery= true
 	    //  获取订单详情
 	    const res = await httpGet(`/orders/${row.id}`);
+		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
 	    
 	   
 	    //  设置发票表单数据
@@ -1500,6 +1764,7 @@
 	    
 	  } catch (error) {
 	    console.error('获取订单数据失败:', error);
+		syncCurrentOrderFinishStatus(row?.is_finish);
 	    
 	    // 如果获取订单失败，仍然可以设置基本数据并显示对话框
 	    invoiceForm.value = {
@@ -1531,14 +1796,17 @@
 		});
 	}
 	//单据复制
-	function handleCopy(row) {
-		httpGet(`/orders/${row.id}`).then(res => {
-			dialogFormVisible.value = true;
-			editId.value = '';
-			setTimeout(function() {
-				saveDataShow(res, 2);
-			}, 500)
-		});
+	async function handleCopy(row) {
+		const [res] = await Promise.all([
+			httpGet(`/orders/${row.id}`),
+			refreshSnapshotSelectData()
+		]);
+		if (!res) return;
+		dialogFormVisible.value = true;
+		editId.value = '';
+		setTimeout(function() {
+			saveDataShow(res, 2);
+		}, 500)
 	}
 	
 	// 帐单列表
@@ -1560,15 +1828,54 @@
 	    
 	    // 5. 设置账单数据（去掉setTimeout延迟）
 	    saveDataBillAdd.value = res;
+		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
 	    
 	  } catch (error) {
 	    console.error('获取账单数据失败:', error);
 	    // 这里可以添加错误提示，但仍然显示对话框
+		syncCurrentOrderFinishStatus(row?.is_finish);
 	    billVisible.value = true;
 	  }
 	}
 
+	function openCopyBillDialog(row) {
+		copyBillSource.value = row;
+		copyBillQuery.value.keyword = '';
+		copyBillOrderTableConfig.value.data = {
+			exclude_order_id: row.order_id || '',
+		};
+		copyBillOrderTableConfig.value.isQuery = true;
+		copyBillVisible.value = true;
+	}
+
+	function searchCopyBillOrders() {
+		copyBillOrderTableConfig.value.data = {
+			keyword: copyBillQuery.value.keyword || '',
+			exclude_order_id: copyBillSource.value?.order_id || '',
+		};
+		copyBillOrderTableConfig.value.isQuery = true;
+	}
+
+	function resetCopyBillOrders() {
+		copyBillQuery.value.keyword = '';
+		searchCopyBillOrders();
+	}
+
+	function copyBillToOrder(row) {
+		if (!copyBillSource.value?.id) return;
+		httpPost(`/order-bills/${copyBillSource.value.id}/copy-to-order`, {
+			order_id: row.id,
+		}).then(() => {
+			proxy.$modal.msgSuccess("复制成功!");
+			copyBillVisible.value = false;
+			proxy.$refs.tableListBill?.getList();
+		});
+	}
+
 	function resetInfo() {
+		resetOrderSnapshotState(snapshotSelectState.value);
+		resetSnapshotRefreshFlags();
+		snapshotSourceData.value = {};
 		payment_status.value = 0;
 		proxy.$refs.commonForm.activeName = '操作单据';
 		containers.value = [];
@@ -1582,6 +1889,8 @@
 
 	function saveDataShow(res, type) {
 		resetInfo();
+		snapshotSourceData.value = res || {};
+		syncCurrentOrderFinishStatus(res?.is_finish);
 
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
@@ -1601,13 +1910,21 @@
 			}
 		}
 		// console.log('单据数据', data)
-		formListNew.value[2].formData[0].formItem[1].value = data.ship_name + '/' + data.ship_no;
-		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name + '/' + data.ship_no;
-		if (data.shipping_company_id) {
+		const shippingCompanyId = data.shipping_company_id;
+		formListNew.value[2].formData[0].formItem[1].value = data.ship_name && data.ship_no ? data.ship_name + '/' + data.ship_no : '';
+		formListNew.value[2].formData[0].formItem[1].remark = data.ship_name && data.ship_no ? data.ship_name + '/' + data.ship_no : '';
+		if (shippingCompanyId) {
 			shipCompany.value = seletData.value.CGS.find(item => item.id === data.shipping_company_id) || {}; //船公司
 		}
+		applyOrderSnapshotDisplay({
+			formList: formListNew.value,
+			formData: data,
+			sourceData: res,
+			selectData: seletData.value,
+			state: snapshotSelectState.value,
+		});
 		payment_status.value = res.payment_status || 0;
-		proxy.$refs.boxInfo.updateSaveData(data, seletData.value);
+		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(data), seletData.value);
 		proxy.$refs.paymentTable.tableData = [];
 		addPayment();
 		//提单信息
@@ -1617,7 +1934,7 @@
 				billInfo.value[vv] = '';
 			})
 		}
-		// proxy.$refs.billForm.updateBill(billInfo.value, true) //装箱单
+		proxy.$refs.billForm.updateBill(billInfo.value, true) //装箱单
 
 		proxy.$refs.commonForm.changeSave(data);
 		
@@ -1651,14 +1968,28 @@
 		}
 		for (var key in remarkList) {
 			var item = formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]];
+			const fieldValue = normalizeOrderSnapshotValue(key, data[key], snapshotSelectState.value);
 			var dataNew = item.options ? item.options.find(v => {
-				return v.id == data[key]
+				return v.id == fieldValue
 			}) : {};
 			formListNew.value[remarkList[key][0]].formData[0].formItem[remarkList[key][1]].remark = dataNew ? dataNew
 				.remark : '';
 		}
 	}
 	//单据删除
+	function buildSnapshotNormalizedChildData(source) {
+		const sourceData = source || {};
+		return {
+			...sourceData,
+			shipping_company_id: normalizeOrderSnapshotValue('shipping_company_id', sourceData.shipping_company_id, snapshotSelectState.value),
+			entered_port_wharf_id: normalizeOrderSnapshotValue('entered_port_wharf_id', sourceData.entered_port_wharf_id, snapshotSelectState.value),
+			'order_delegation_header.company_header_id': normalizeOrderSnapshotValue(
+				'order_delegation_header.company_header_id',
+				sourceData['order_delegation_header.company_header_id'],
+				snapshotSelectState.value
+			),
+		};
+	}
 	const deleteIds = ref([]);
 
 	function handleDelete(row, index) {
@@ -1694,6 +2025,69 @@
 	}
 	// 委托抬头-一代联系人
 	const router = useRouter();
+	const route = useRoute();
+	const routeBillHandled = ref(false);
+	const isEmbedMode = computed(() => String(route.query.embed || '') === '1');
+	const billDragOptions = computed(() => ({
+		handle: isEmbedMode.value ? '.custom-handle-disabled' : '.custom-handle'
+	}));
+	const billDialogStyle = computed(() => ({
+		width: isEmbedMode.value ? '100%' : '1000px',
+		top: isEmbedMode.value ? '0' : '10px',
+		left: isEmbedMode.value ? '0' : undefined,
+		right: isEmbedMode.value ? '0' : undefined,
+		zIndex: '1000',
+		height: isEmbedMode.value ? 'calc(100vh - 16px)' : '600px',
+		fontSize: '12px',
+		overflow: 'hidden',
+		display: billBool.value === true ? 'block' : 'none',
+		position: isEmbedMode.value ? 'relative' : 'fixed',
+		margin: isEmbedMode.value ? '0 auto' : undefined,
+	}));
+	const billContentStyle = computed(() => ({
+		height: isEmbedMode.value ? 'calc(100% - 50px)' : '550px'
+	}));
+	const billRightStyle = computed(() => ({
+		width: isEmbedMode.value ? '100%' : '200px',
+		paddingLeft: isEmbedMode.value ? '0' : '5px',
+		borderTop: isEmbedMode.value ? '1px solid #ebeef5' : 'none',
+		marginTop: isEmbedMode.value ? '8px' : '0',
+	}));
+
+	const openBillDetailFromRoute = async () => {
+		if (routeBillHandled.value) return;
+		const routeBillId = Number(route.query.bill_id || 0);
+		const storageBillId = Number(window.sessionStorage.getItem('service_open_bill_id') || 0);
+		const billId = routeBillId || storageBillId;
+		if (!billId) return;
+		routeBillHandled.value = true;
+		try {
+			await handleDetails({ id: billId });
+		} finally {
+			window.sessionStorage.removeItem('service_open_bill_id');
+			if (!isEmbedMode.value) {
+				const nextQuery = {
+					...route.query
+				};
+				delete nextQuery.bill_id;
+				router.replace({
+					path: route.path,
+					query: nextQuery
+				});
+			}
+		}
+	};
+
+	watch(
+		[() => route.query.bill_id, () => loading.value],
+		([billId, loadingNow]) => {
+			const storageBillId = Number(window.sessionStorage.getItem('service_open_bill_id') || 0);
+			if (!loadingNow && (billId || storageBillId)) {
+				openBillDetailFromRoute();
+			}
+		},
+		{ immediate: true }
+	);
 
 	function addCompanyHead() {
 		router.push({
@@ -1704,7 +2098,7 @@
 		});
 	}
 	async function refreshCompanyHead() {
-		var WTTT = await getTT(commonParam().WTTT_params); //委托公司抬头
+		var WTTT = await getTT({ ...commonParam().WTTT_params, ...buildNoCacheQuery() }); //委托公司抬头
 		formListNew.value[1].formData[0].formItem[1].options = WTTT;
 	}
 	const addDelegation = () => {
@@ -1774,13 +2168,15 @@
 	function tableItemChangeAccounts(item, index) {
 		// console.log('tableItemChangeAccounts', item, index)
 		var tableData = proxy.$refs.accountTable.state.tableData[index];
+		const nextValue = normalizeSelectSnapshotValue(item.value);
 		var dataNew = item.options ? item.options.find(v => {
-			return v.id == tableData[item.key]
+			return String(v.id) === String(nextValue)
 		}) : {};
 		if (item.key == 'company_header_id') {
 			tableData.remark = dataNew.remark || ''
+			tableData.company_header_name = dataNew.company_name || ''
 		}
-		tableData[item.key] = item.value;
+		tableData[item.key] = nextValue;
 		proxy.$refs.accountTable.state.tableData[index] = tableData;
 		// console.log('tableItemChangeAccounts-tableData', tableData)
 		countAccounts();
@@ -1831,8 +2227,9 @@
 	}
 	//落箱数据生成
 	function createDrop() {
+		const normalizedSaveData = buildSnapshotNormalizedChildData(proxy.$refs.commonForm.saveData);
 		var saveData = {
-			...proxy.$refs.commonForm.saveData,
+			...normalizedSaveData,
 			boxInfo: containers.value
 		};
 		proxy.$refs.dropBox.openDrop(saveData, seletData.value);
@@ -1841,13 +2238,14 @@
 	const tabsChange = (tab) => {
 		if (tab == '提单信息') {
 			setTimeout(function() {
+				const normalizedSaveData = buildSnapshotNormalizedChildData(proxy.$refs.commonForm.saveData);
 				var saveData = {
-					...proxy.$refs.commonForm.saveData,
+					...normalizedSaveData,
 					boxInfo: containers.value,
 					shipCompany: shipCompany.setTime
 				};
 				// console.log('tab变化', tab=='提单信息', proxy.$refs.billForm);
-				// proxy.$refs.billForm.openBill(false, saveData, seletData.value);
+				proxy.$refs.billForm.openBill(false, saveData, seletData.value);
 			}, 300)
 		}
 	}
@@ -1859,13 +2257,15 @@
 	//单独字段操作
 	const itemChange = (data, val, item) => {
 		var saveData = proxy.$refs.commonForm.saveData;
+		markSnapshotRefreshFlag(item.key, val);
+		const currentValue = trackOrderSnapshotFieldChange(item.key, val, snapshotSelectState.value);
 		var dataNew = item.options ? item.options.find(v => {
-			return v.id == val
+			return v.id == currentValue
 		}) : {};
 		var updateData = {};
 		if (item.key == 'shipping_company_id') {
 			shipCompany.value = item.options.find(v => {
-				return v.id == val
+				return v.id == currentValue
 			})
 		} else if (item.key == 'cutoff_status') {
 			formListNew.value[0].formData[0].formItem[17].disabled = val == 3 ? true : false;
@@ -1888,8 +2288,8 @@
 			updateData['order_delegation_header.contact_person'] = dataNew.contact_person;
 			updateData['order_delegation_header.contact_phone'] = dataNew.contact_phone;
 		} else if (item.key == 'ship_name' || item.key == 'ship_no') {
-			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name + '/' + saveData.ship_no;
-			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name + '/' + saveData.ship_no;
+			formListNew.value[2].formData[0].formItem[1].value = saveData.ship_name && saveData.ship_no ? saveData.ship_name + '/' + saveData.ship_no : '';
+			formListNew.value[2].formData[0].formItem[1].remark = saveData.ship_name && saveData.ship_no ? saveData.ship_name + '/' + saveData.ship_no : '';
 		} else if (item.key == 'entered_port_wharf_id') { //进港码头
 			formListNew.value[2].formData[0].formItem[10].remark = dataNew ? dataNew.remark : '';
 		} else if (item.key == 'port_open_at') { //开港时间
@@ -1901,13 +2301,23 @@
 			formListNew.value[0].formData[0].formItem[21].disabled = val ? true : false;
 			updateData.arrival_at = val ? val : saveData.arrival_at;
 		}
-		proxy.$refs.boxInfo.updateSaveData(saveData, seletData.value);
+		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(saveData), seletData.value);
 		proxy.$refs.commonForm.changeSave(updateData);
 		// console.log('编辑字段:cutoff_at', data, proxy.$refs.commonForm.saveData)
 	}
 
 	// 单据信息提交
 	const confirmSubmit = (data) => {
+		normalizeOrderSnapshotSubmitData(data, snapshotSelectState.value);
+		if (snapshotRefreshFlags.value.shipping_company_snapshot_refresh) {
+			data.shipping_company_snapshot_refresh = 1;
+		}
+		if (snapshotRefreshFlags.value.entered_port_wharf_snapshot_refresh) {
+			data.entered_port_wharf_snapshot_refresh = 1;
+		}
+		if (snapshotRefreshFlags.value.delegation_header_snapshot_refresh) {
+			data.delegation_header_snapshot_refresh = 1;
+		}
 		// console.log('单据信息提交:', data)
 		if(containers.value.findIndex(v=>{return !v.container_type_id})>-1){
 			proxy.$modal.msgWarning("请完善箱子信息!");
@@ -1919,7 +2329,7 @@
 			containers: containers.value,
 			order_payments: order_payments,
 			order_files: order_files.value,
-			// bl_info: proxy.$refs.billForm.save(2),
+			bl_info: proxy.$refs.billForm.save(2),
 			payment_status: payment_status.value
 		}
 		var strKey = ['booking_info', 'order_delegation_header', 'order_payments', 'containers', 'order_files',
@@ -2074,6 +2484,10 @@
 	function submitFormBill(){
 		console.log(orderBillItems.value,'orderBillItems.value')
 		console.log(orderBillContainers.value,'orderBillContainers.value')
+		const normalizedOrderBillItems = orderBillItems.value.map(item => ({
+			...item,
+			fee_type_id: normalizeSelectSnapshotValue(item.fee_type_id),
+		}));
 		let order_bill_containers = orderBillContainers.value.map(item => ({
 			no: item.no ? item.no : '',
 			container_type: item.container_type ? item.container_type : '',
@@ -2082,7 +2496,7 @@
 		}));
 		const data= {
 			...formBill.value,
-			order_bill_items: JSON.stringify(orderBillItems.value),
+			order_bill_items: JSON.stringify(normalizedOrderBillItems),
 			order_bill_containers: JSON.stringify(order_bill_containers),
 			cost_share: cost_share.value,
 			customer_payment_info: customer_payment_info.value,
@@ -2108,10 +2522,23 @@
 	const billType=  ref(1)  //默认显示按钮
 	// 账单详情
 	function handleDetails(row){
-		httpGet(`/order-bills/${row.id}`).then(res => {
+		httpGet(`/order-bills/${row.id}`).then(async res => {
 			billBool.value = true;
 			billType.value= 0
-			// editId.value = row.id;
+			editId.value = res.order_id || ''
+			if (res.order_id) {
+				try {
+					saveDataBillAdd.value = await httpGet(`/orders/${res.order_id}`)
+					syncCurrentOrderFinishStatus(saveDataBillAdd.value?.is_finish)
+				} catch (error) {
+					console.error('获取账单所属单据失败:', error)
+					saveDataBillAdd.value = null
+					syncCurrentOrderFinishStatus(0)
+				}
+			} else {
+				saveDataBillAdd.value = null
+				syncCurrentOrderFinishStatus(0)
+			}
 			setTimeout(function() {
 				saveBillDataShow(res,0)
 			}, 500)
@@ -2214,10 +2641,19 @@
 		{label: '到港日期：',value:'arrival_at'},
 	])
 	function openInvoiceForm(){
+		if (!ensureInvoiceUnlocked()) {
+			return
+		}
 		console.log(formBill.value,'formBill.value2042')
+		const normalizedInvoiceForm = {
+			...createEmptyInvoiceFormState(),
+			...(invoiceForm.value || {}),
+		}
+		const selectedCheckList = Array.isArray(normalizedInvoiceForm.checkList) ? normalizedInvoiceForm.checkList : []
+		const selectedContainers = Array.isArray(normalizedInvoiceForm.orderBillContainers) ? normalizedInvoiceForm.orderBillContainers : []
 		// 处理 checkList 中的选中项
 		const selectedItems = checkListName.value
-		  .filter(item => invoiceForm.value.checkList.includes(item.value))
+		  .filter(item => selectedCheckList.includes(item.value))
 		  .map(item => {
 			  if(item.value== 'sailing_at' && formBill.value.sailing_at){
 				  const sailing_at= formBill.value.sailing_at.substring(0,10)
@@ -2232,17 +2668,21 @@
 		  .join('\n');
 		
 		// 处理 orderBillContainers 中的信息
-		const containerInfo = invoiceForm.value.orderBillContainers
+		const containerInfo = selectedContainers
 		  .map(container => `${container.no} ${container.container_type} ${container.driver}`)
 		  .join('\n');
 		
 		// 组合所有信息到 remark
-		invoiceForm.value.remark = [selectedItems, containerInfo]
-		  .filter(item => item) // 过滤空字符串
-		  .join('\n');
-		invoiceForm.value.order_id= editId.value
-		invoiceForm.value.job_no= billEntranceType.value== 1? proxy.$refs.commonForm.saveData.job_no: saveDataBillAdd.value.job_no
-		invoiceForm.value.seller_id= seller_id_bill.value
+		resetInvoiceFormState({
+			...normalizedInvoiceForm,
+			orderBillItems: Array.isArray(normalizedInvoiceForm.orderBillItems) ? normalizedInvoiceForm.orderBillItems : [],
+			orderBillContainers: selectedContainers,
+			checkList: selectedCheckList,
+			remark: [selectedItems, containerInfo].filter(item => item).join('\n'),
+			order_id: editId.value,
+			job_no: billEntranceType.value== 1 ? (proxy.$refs.commonForm?.saveData?.job_no || formBill.value.job_no || '') : (saveDataBillAdd.value?.job_no || formBill.value.job_no || ''),
+			seller_id: seller_id_bill.value,
+		})
 		invoiceType.value= 1
 		dialogFormVisibleInvoiceFormDetails.value= true
 		console.log(invoiceForm.value.remark,'invoiceForm.value.remark');
@@ -2270,22 +2710,22 @@
 	function changeCurrency(e,row,index){
 		console.log(e,'e')
 		console.log(seletData.value.FYLX,'seletData.value.FYLX')
+		const normalizedFeeTypeId = normalizeSelectSnapshotValue(e)
 		if(e){
-			row.currency= seletData.value.FYLX.filter(item => item.id== e)[0].type
+			const selectedFeeType = (Array.isArray(seletData.value.FYLX) ? seletData.value.FYLX : []).find(item => String(item.id) == String(normalizedFeeTypeId))
+			if(selectedFeeType){
+				row.currency= selectedFeeType.type
+				row.fee_type_name = selectedFeeType.name
+			}
+		}else{
+			row.fee_type_name = ''
 		}
 	}
 	
 	const closeInvoiceForm = () =>{
 		console.log(proxy.$refs.invoiceForm,'proxy.$refs.invoiceForm2183')
 		dialogFormVisibleInvoiceFormDetails.value= false
-		invoiceForm.value.order_id= ''
-		invoiceForm.value.job_no= ''
-		invoiceForm.value.seller_id= ''
-		invoiceForm.value.orderBillItems= []
-		invoiceForm.value.orderBillContainers= []
-		invoiceForm.value.checkList= []
-		invoiceForm.value.remark= ''
-		invoiceForm.value.id= ''
+		resetInvoiceFormState()
 		console.log(invoiceType.value,'invoiceType.value')
 		if(invoiceType.value== 0 || invoiceType.value== 2){
 			handleInvoiceList({id: editId.value})
@@ -2294,6 +2734,7 @@
 	
 	function closeInvoiceFormBtn(){
 		dialogFormVisibleInvoiceFormDetails.value= false
+		resetInvoiceFormState()
 		console.log(proxy.$refs.invoiceFormRef,'proxy.$refs.invoiceForm2195')
 	}
 	const isNowImageOrPdf= ref(0)  //1  图片  0pdf或者关闭  不显示在页面
@@ -2487,6 +2928,40 @@
 <style>
 	.font-center .el-textarea__inner{
 		text-align: center !important;
+	}
+	.service.service-embed{
+		padding: 0 !important;
+	}
+	.service.service-embed .embed-bill-sheet{
+		box-shadow: none !important;
+		border-radius: 0 !important;
+	}
+	.service.service-embed .bill-dialog{
+		padding: 0 8px !important;
+	}
+	.service.service-embed .bill-content-layout-embed{
+		flex-direction: column !important;
+	}
+	.service.service-embed .bill-main-panel{
+		order: 2;
+		padding-right: 0 !important;
+	}
+	.service.service-embed .bill-right-panel{
+		order: 1;
+		flex: none !important;
+		max-height: none !important;
+	}
+	.service.service-embed .bill-right-panel .el-form--inline{
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 12px;
+	}
+	.service.service-embed .bill-right-panel .el-form--inline .el-form-item{
+		margin-right: 0 !important;
+	}
+	.service.service-embed .bill-right-panel .flex-1{
+		flex: none !important;
+		max-height: 220px;
 	}
 	.icon-color-black{
 	  color: #333;
