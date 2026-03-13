@@ -1067,6 +1067,30 @@
 		currentOrderFinishStatus.value = Number(value || 0) === 1 ? 1 : 0
 	}
 
+	async function refreshCurrentOrderFinishStatus(orderId, fallback = 0) {
+		if (!orderId) {
+			syncCurrentOrderFinishStatus(fallback)
+			return currentOrderFinishStatus.value
+		}
+		try {
+			const res = await httpGet('/invoices', {
+				order_id: orderId,
+				page: 1,
+				page_size: 1000
+			})
+			const invoiceRows = Array.isArray(res?.data) ? res.data : []
+			syncCurrentOrderFinishStatus(invoiceRows.some(item => Number(item?.is_finish ?? 0) === 1))
+		} catch (error) {
+			console.error('刷新申请开票完结状态失败:', error)
+			syncCurrentOrderFinishStatus(fallback)
+		}
+		return currentOrderFinishStatus.value
+	}
+
+	function queueRefreshCurrentOrderFinishStatus(orderId, fallback = 0) {
+		void refreshCurrentOrderFinishStatus(orderId, fallback)
+	}
+
 	function hasInvoiceNumber(row) {
 		return [row?.cny_invoice_no, row?.usd_invoice_no].some(value => String(value || '').trim() !== '')
 	}
@@ -1096,7 +1120,8 @@
 		billDataList()
 	}
 	// 点击申请开票详情
-	function handleAddInvoiceForm(){
+	async function handleAddInvoiceForm(){
+		await refreshCurrentOrderFinishStatus(editId.value, currentOrderFinishStatus.value)
 		if (!ensureInvoiceUnlocked()) {
 			return
 		}
@@ -1107,7 +1132,7 @@
 	// 制作账单
 	function toBillPage(){
 		console.log(proxy.$refs.commonForm.saveData,'seletData.WTTT')
-		syncCurrentOrderFinishStatus(snapshotSourceData.value?.is_finish ?? proxy.$refs.commonForm?.saveData?.is_finish)
+		queueRefreshCurrentOrderFinishStatus(editId.value || snapshotSourceData.value?.id, currentOrderFinishStatus.value)
 		billBool.value= true
 		saveBillDataShow(proxy.$refs.commonForm.saveData,1)
 		billDataList()
@@ -1121,9 +1146,8 @@
 		billEntranceType.value= type
 		console.log(res,'res')
 		console.log(type,'type')
-		if (res?.is_finish !== undefined && res?.is_finish !== null) {
-			syncCurrentOrderFinishStatus(res.is_finish)
-		}
+		const currentOrderId = type == 0 ? (res?.order_id || editId.value) : editId.value
+		queueRefreshCurrentOrderFinishStatus(currentOrderId, currentOrderFinishStatus.value)
 		const delegation_header = resolveBillDelegationHeader(res, type)
 		formBill.value= {
 			id: type== 0?res.id: null,
@@ -1742,7 +1766,7 @@
 			refreshSnapshotSelectData()
 		]);
 		if (!res) return;
-		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
+		await refreshCurrentOrderFinishStatus(row.id, res?.is_finish ?? row?.is_finish);
 		dialogFormVisible.value = true;
 		editId.value = row.id;
 		setTimeout(function() {
@@ -1757,7 +1781,7 @@
 		tableConfigInvoice.value.isQuery= true
 	    //  获取订单详情
 	    const res = await httpGet(`/orders/${row.id}`);
-		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
+		await refreshCurrentOrderFinishStatus(row.id, res?.is_finish ?? row?.is_finish);
 	    
 	   
 	    //  设置发票表单数据
@@ -1782,7 +1806,7 @@
 	    
 	  } catch (error) {
 	    console.error('获取订单数据失败:', error);
-		syncCurrentOrderFinishStatus(row?.is_finish);
+		await refreshCurrentOrderFinishStatus(row.id, row?.is_finish);
 	    
 	    // 如果获取订单失败，仍然可以设置基本数据并显示对话框
 	    invoiceForm.value = {
@@ -1846,12 +1870,12 @@
 	    
 	    // 5. 设置账单数据（去掉setTimeout延迟）
 	    saveDataBillAdd.value = res;
-		syncCurrentOrderFinishStatus(res?.is_finish ?? row?.is_finish);
+		await refreshCurrentOrderFinishStatus(row.id, res?.is_finish ?? row?.is_finish);
 	    
 	  } catch (error) {
 	    console.error('获取账单数据失败:', error);
 	    // 这里可以添加错误提示，但仍然显示对话框
-		syncCurrentOrderFinishStatus(row?.is_finish);
+		await refreshCurrentOrderFinishStatus(row.id, row?.is_finish);
 	    billVisible.value = true;
 	  }
 	}
@@ -1908,7 +1932,7 @@
 	function saveDataShow(res, type) {
 		resetInfo();
 		snapshotSourceData.value = res || {};
-		syncCurrentOrderFinishStatus(res?.is_finish);
+		queueRefreshCurrentOrderFinishStatus(res?.id, currentOrderFinishStatus.value);
 
 		var data = {};
 		var nullKey = ['job_no', 'contract_no', 'finish_at', 'commerce_user_id', 'container_type'];
@@ -2035,9 +2059,10 @@
 		const _ids = row.id || deleteIds.value;
 		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
 			return httpDelete('/invoices/' + _ids);
-		}).then(() => {
+		}).then(async () => {
 			tableConfigInvoice.value.data= {order_id: editId.value}
 			tableConfigInvoice.value.isQuery= true
+			await refreshCurrentOrderFinishStatus(editId.value, 0)
 			proxy.$modal.msgSuccess("删除成功");
 		}).catch(() => {});
 	}
@@ -2547,7 +2572,7 @@
 			if (res.order_id) {
 				try {
 					saveDataBillAdd.value = await httpGet(`/orders/${res.order_id}`)
-					syncCurrentOrderFinishStatus(saveDataBillAdd.value?.is_finish)
+					await refreshCurrentOrderFinishStatus(res.order_id, saveDataBillAdd.value?.is_finish)
 				} catch (error) {
 					console.error('获取账单所属单据失败:', error)
 					saveDataBillAdd.value = null
@@ -2658,7 +2683,8 @@
 		{label: '开船日期：',value:'sailing_at'},
 		{label: '到港日期：',value:'arrival_at'},
 	])
-	function openInvoiceForm(){
+	async function openInvoiceForm(){
+		await refreshCurrentOrderFinishStatus(editId.value, currentOrderFinishStatus.value)
 		if (!ensureInvoiceUnlocked()) {
 			return
 		}
