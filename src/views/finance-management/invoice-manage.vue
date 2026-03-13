@@ -31,10 +31,12 @@
 	import { httpPost, httpGet, httpPut, httpDelete } from '@/api/apiCommon';
 	import { queryParamsInvoice } from '@/utils/services';
 	import InvoiceForm from '@/components/InvoiceForm.vue'
+	import useUserStore from '@/store/modules/user'
 	import {
 		ElTag
 	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
+	const userStore = useUserStore();
 	
 	const dialogFormVisible = ref(false);
 	
@@ -93,6 +95,7 @@
 				{
 					label: '删除',
 					type: 'danger',
+					show: () => userStore.userRoleCode === 'SUPER_ADMIN',
 					onClick: (row) => handleDelete(row)
 				},
 			],

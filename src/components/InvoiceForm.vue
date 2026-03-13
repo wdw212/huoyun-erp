@@ -301,7 +301,7 @@
 						<div class="action-btns">
 							<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
 							<el-button  @click="exportImg(2)">美元发票预览</el-button>
-							<el-button type="success" @click="submit" v-if="!form.is_lock || form.is_lock== 0 || isFinanceRole || isSuperAdmin">保存</el-button>
+							<el-button type="success" @click="submit" v-if="canSaveInvoice">保存</el-button>
 							<el-button @click="openDetails">业务单据</el-button>
 						</div>
 					</el-col>
@@ -542,6 +542,10 @@
 	const isFinanceRole = computed(() => props.roleType === 'finance')
 	const canConfirmInvoice = computed(() => isFinanceRole.value || isSuperAdmin.value)
 	const isConfirmed = computed(() => !!form.value.confirm_at)
+	const isLockedForBusiness = computed(() => {
+		const lockStatus = Number(form.value.is_lock ?? props.invoiceForm?.is_lock ?? props.invoiceForm?.order?.is_lock ?? 0) === 1
+		return lockStatus || isConfirmed.value
+	})
 	const confirmInvoiceDisabled = computed(() => !canConfirmInvoice.value || isConfirmed.value)
 	const invoiceNumberDisabled = computed(() => {
 		if (isSuperAdmin.value) {
@@ -551,6 +555,12 @@
 			return isConfirmed.value
 		}
 		return true
+	})
+	const canSaveInvoice = computed(() => {
+		if (isSuperAdmin.value || isFinanceRole.value) {
+			return true
+		}
+		return !isLockedForBusiness.value
 	})
 	const resetInvoiceTypeSnapshotState = () => {
 		invoiceTypeSnapshotApplied.value = false
@@ -606,7 +616,9 @@
 				// changeSaleUscCode(form.value.sale_entity_id)
 			}
 			if([0,1,2].includes(newType)){
-				if(props.invoiceForm?.is_lock && props.invoiceForm.is_lock== 1 && !isSuperAdmin.value){editDisabled.value= true}
+				if (((props.invoiceForm?.is_lock && props.invoiceForm.is_lock == 1) || props.invoiceForm?.confirm_at) && !isSuperAdmin.value) {
+					editDisabled.value = true
+				}
 			}
 		    showDefaultData(newType)
 		  }
@@ -656,7 +668,7 @@
 				tableDataUSD.value= [createEmptyInvoiceItem()]
 			}
 		}else if(type == 2|| type == 4){
-			if(type==4){ editDisabled.value= true };
+			if(type==4 && !isSuperAdmin.value){ editDisabled.value= true };
 			remarkCNY.value= invoiceFormObj.value.cny_remark
 			remarkUSD.value= invoiceFormObj.value.usd_remark
 			const cnyItems = Array.isArray(invoiceFormObj.value.cny_invoice_items) ? invoiceFormObj.value.cny_invoice_items : []

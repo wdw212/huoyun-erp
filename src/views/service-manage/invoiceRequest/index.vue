@@ -59,10 +59,27 @@
 		trackOrderSnapshotFieldChange
 	} from '@/utils/orderSnapshotSelect';
 	import InvoiceForm from '../../../components/InvoiceForm.vue'
+	import useUserStore from '@/store/modules/user'
 	import {
 		ElTag
 	} from 'element-plus'
 	const { proxy } = getCurrentInstance();
+	const userStore = useUserStore();
+
+	function hasInvoiceNumber(row) {
+		return [row?.cny_invoice_no, row?.usd_invoice_no].some(value => String(value || '').trim() !== '')
+	}
+
+	function canDeleteInvoice(row) {
+		if (userStore.userRoleCode === 'SUPER_ADMIN') {
+			return true
+		}
+		if (userStore.userRoleCode !== 'BUSINESS') {
+			return false
+		}
+		const lockStatus = Number(row?.is_lock ?? row?.order?.is_lock ?? 0) === 1
+		return !lockStatus && !hasInvoiceNumber(row) && !row?.confirm_at
+	}
 	
 	const dialogFormVisible = ref(false);
 	const editId = ref('');
@@ -229,6 +246,7 @@
 				{
 					label: '删除',
 					type: 'danger',
+					show: (row) => canDeleteInvoice(row),
 					onClick: (row, index) => handleDelete(row, index)
 				},
 			],

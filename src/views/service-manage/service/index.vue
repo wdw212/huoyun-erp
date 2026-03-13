@@ -908,6 +908,7 @@
 		resetOrderSnapshotState,
 		trackOrderSnapshotFieldChange
 	} from '@/utils/orderSnapshotSelect';
+	import useUserStore from '@/store/modules/user'
 	import {
 		ElButton
 	} from 'element-plus'
@@ -1060,9 +1061,25 @@
 	const saveDataBillAdd= ref(null)  //制作账单时的详情
 	const currentOrderFinishStatus = ref(0)
 	const isCurrentOrderFinished = computed(() => Number(currentOrderFinishStatus.value) === 1)
+	const userStore = useUserStore()
 
 	function syncCurrentOrderFinishStatus(value) {
 		currentOrderFinishStatus.value = Number(value || 0) === 1 ? 1 : 0
+	}
+
+	function hasInvoiceNumber(row) {
+		return [row?.cny_invoice_no, row?.usd_invoice_no].some(value => String(value || '').trim() !== '')
+	}
+
+	function canDeleteInvoice(row) {
+		if (userStore.userRoleCode === 'SUPER_ADMIN') {
+			return true
+		}
+		if (userStore.userRoleCode !== 'BUSINESS') {
+			return false
+		}
+		const lockStatus = Number(row?.is_lock ?? row?.order?.is_lock ?? 0) === 1
+		return !lockStatus && !hasInvoiceNumber(row) && !row?.confirm_at
 	}
 
 	function ensureInvoiceUnlocked() {
@@ -1672,6 +1689,7 @@
 				{
 					label: '删除',
 					type: 'danger',
+					show: (row) => canDeleteInvoice(row),
 					onClick: (row, index) => handleInvoiceDelete(row, index)
 				},
 			],

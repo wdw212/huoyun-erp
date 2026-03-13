@@ -308,26 +308,35 @@
 			}
 		},
 		setup(props) {
+			const resolveActionOption = (option, defaultValue) => {
+				if (typeof option === 'function') {
+					return option(props.row, props.index)
+				}
+				return option ?? defaultValue
+			}
 			return () => h('div', {
 					class: 'action-buttons'
 				},
-				props.actions.map((action, i) => 
-					h(ElButton, {
-							type: action.type || 'primary',
-							size: action.size || 'small',
-							icon: action.icon,
-							onClick: () => action.onClick(props.row, props.index),
-							style: {
-								margin: '0px',
-								...(typeof action.style === 'function' 
-									? action.style(props.row) 
-									: action.style || {})
+				props.actions
+					.filter(action => resolveActionOption(action.show, true))
+					.map((action, i) => 
+						h(ElButton, {
+								type: action.type || 'primary',
+								size: action.size || 'small',
+								icon: action.icon,
+								disabled: resolveActionOption(action.disabled, false),
+								onClick: () => action.onClick(props.row, props.index),
+								style: {
+									margin: '0px',
+									...(typeof action.style === 'function' 
+										? action.style(props.row, props.index) 
+										: action.style || {})
+								},
+								key: i
 							},
-							key: i
-						},
-						() => action.label
+							() => action.label
+						)
 					)
-				)
 			)
 		}
 	})
