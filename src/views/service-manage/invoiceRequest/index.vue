@@ -70,6 +70,10 @@
 		return [row?.cny_invoice_no, row?.usd_invoice_no].some(value => String(value || '').trim() !== '')
 	}
 
+	function isInvoiceLockedForBusiness(row) {
+		return hasInvoiceNumber(row) || !!row?.confirm_at
+	}
+
 	function canDeleteInvoice(row) {
 		if (userStore.userRoleCode === 'SUPER_ADMIN') {
 			return true
@@ -77,8 +81,7 @@
 		if (userStore.userRoleCode !== 'BUSINESS') {
 			return false
 		}
-		const lockStatus = Number(row?.is_lock ?? row?.order?.is_lock ?? 0) === 1
-		return !lockStatus && !hasInvoiceNumber(row) && !row?.confirm_at
+		return !isInvoiceLockedForBusiness(row)
 	}
 	
 	const dialogFormVisible = ref(false);
@@ -462,7 +465,7 @@
 		}).then(() => {
 			console.log(336)
 			proxy.$refs.tableList.getList();
-			proxy.$modal.msgSuccess("删除成功");
+			proxy.$modal.alertSuccess("删除成功");
 		}).catch(() => {});
 	}
 	

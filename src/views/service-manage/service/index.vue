@@ -1095,6 +1095,10 @@
 		return [row?.cny_invoice_no, row?.usd_invoice_no].some(value => String(value || '').trim() !== '')
 	}
 
+	function isInvoiceLockedForBusiness(row) {
+		return hasInvoiceNumber(row) || !!row?.confirm_at
+	}
+
 	function canDeleteInvoice(row) {
 		if (userStore.userRoleCode === 'SUPER_ADMIN') {
 			return true
@@ -1102,8 +1106,7 @@
 		if (userStore.userRoleCode !== 'BUSINESS') {
 			return false
 		}
-		const lockStatus = Number(row?.is_lock ?? row?.order?.is_lock ?? 0) === 1
-		return !lockStatus && !hasInvoiceNumber(row) && !row?.confirm_at
+		return !isInvoiceLockedForBusiness(row)
 	}
 
 	function ensureInvoiceUnlocked() {
@@ -1967,8 +1970,7 @@
 		});
 		payment_status.value = res.payment_status || 0;
 		proxy.$refs.boxInfo.updateSaveData(buildSnapshotNormalizedChildData(data), seletData.value);
-		proxy.$refs.paymentTable.tableData = [];
-		addPayment();
+		proxy.$refs.paymentTable.updateTableData([]);
 		//提单信息
 		billInfo.value = res.bl_info || {};
 		if(type==2){
@@ -1990,6 +1992,11 @@
 			}
 			proxy.$refs.accountTable.updateTableData(order_payments);
 			countAccounts();
+		}
+		if (type == 1) {
+			proxy.$refs.paymentTable.updateTableData(res.order_receipts || []);
+		} else {
+			addPayment();
 		}
 
 		if (type == 1) {
@@ -2063,7 +2070,7 @@
 			tableConfigInvoice.value.data= {order_id: editId.value}
 			tableConfigInvoice.value.isQuery= true
 			await refreshCurrentOrderFinishStatus(editId.value, 0)
-			proxy.$modal.msgSuccess("删除成功");
+			proxy.$modal.alertSuccess("删除成功");
 		}).catch(() => {});
 	}
 	// 委托抬头-一代联系人
@@ -2420,7 +2427,10 @@
 		isQuery: false
 	})
 	const addPayment = () => {
-		proxy.$refs.paymentTable.tableData.push({
+		const tableData = Array.isArray(proxy.$refs.paymentTable?.state?.tableData)
+			? proxy.$refs.paymentTable.state.tableData
+			: [];
+		tableData.push({
 			company_header_id: '',
 			no_invoice_remark: '',
 			cny_amount: '',
@@ -2430,6 +2440,7 @@
 			usd_invoice_number: '',
 			usd_is_cashed: 0
 		});
+		proxy.$refs.paymentTable.updateTableData(tableData);
 	}
 	
 	/** 删除模板 */

@@ -124,7 +124,7 @@
 	}
 
 	const openDetail = (row) => {
-		detailFrameUrl.value = `/serive-management/serviceManageIndex?bill_id=${row.id}&embed=1&_t=${Date.now()}`
+		detailFrameUrl.value = `/service-management/service-management-index?bill_id=${row.id}&embed=1&_t=${Date.now()}`
 		detailFrameKey.value += 1
 		detailVisible.value = true
 	}

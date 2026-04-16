@@ -8,7 +8,7 @@
 		
 		<!-- 表格 -->
 		<table-list :tableConfig="tableConfig" :tableColumn="tableColumn" :toolbar="true"
-		class="px-2" :number="true" :multiple="false">
+		class="px-2" :number="true" :multiple="true">
 			<template #headerLeft> </template>
 			<template #headerRight>
 				<el-button type="primary" plain icon="Plus" @click="addDocument()" class="mb-1 mr-1">新增</el-button>
@@ -127,7 +127,7 @@
 			return httpDelete('/invoices/' + _ids);
 		}).then(() => {
 			proxy.$refs.tableList.getList();
-			proxy.$modal.msgSuccess("删除成功");
+			proxy.$modal.alertSuccess("删除成功");
 		}).catch(() => {});
 	}
 

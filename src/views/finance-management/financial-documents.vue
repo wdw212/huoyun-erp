@@ -135,17 +135,36 @@
 			</el-card>
 		</el-dialog>
 		
-		<!-- 开票管理 -->
-		<el-dialog v-model="invoiceShow" title="开票管理" width="90%" :close-on-click-modal="false">
+		<!-- 财务单据 -->
+		<el-dialog v-model="invoiceShow" title="财务单据" width="90%" :close-on-click-modal="false">
 			<table-list :tableConfig="tableConfigInvoice" :tableColumn="tableColumnInvoice" 
-			:toolbar="false" :number="true" :multiple="false" ref="invoiceTable">
+			:toolbar="false" :number="true" :multiple="true" ref="invoiceTable">
 				<template #headerLeft>
-					<el-col :span="1.5" style="padding-bottom: 10px;">
-						<el-button type="primary" plain icon="Plus" >新增</el-button>
-					</el-col>
+					<div style="padding-bottom: 10px; color: #f56c6c;">
+						申请开票由业务提交，此处同步展示当前票单的申请记录
+					</div>
+				</template>
+				<template #headerRight>
+					<el-button type="primary" plain @click="refreshInvoiceManageList">刷新</el-button>
 				</template>
 			</table-list>
-			<!-- <InvoiceForm></InvoiceForm> -->
+		</el-dialog>
+
+		<el-dialog
+			v-model="dialogFormVisibleInvoiceFormDetails"
+			title="申请开票"
+			width="80%"
+			:close-on-click-modal="false"
+			append-to-body
+			@close="closeInvoiceFormBtn"
+		>
+			<InvoiceForm
+				:invoiceForm="invoiceForm"
+				:type="invoiceType"
+				@close="closeInvoiceForm"
+				:visible="dialogFormVisibleInvoiceFormDetails"
+				roleType="finance"
+			/>
 		</el-dialog>
 		
 	</div>
@@ -160,7 +179,7 @@
 	import BoxInfo from "@/components/document/boxInfo";
 	import FileTable from "@/components/document/fileTable";
 	import BillForm from '@/components/document/BillForm.vue'
-	import { httpPost, httpPut, httpGet } from '@/api/apiCommon';
+	import { httpPost, httpPut, httpGet, httpDelete } from '@/api/apiCommon';
 	import { useTransition } from '@vueuse/core'
 	import { keyStatus,commonParam } from '@/utils/common'
 	import { queryParams, formList, statistic, AccountsColumn, PaymentColumn, amountFormFin } from '@/utils/documents';
@@ -173,11 +192,15 @@
 		resetOrderSnapshotState,
 		trackOrderSnapshotFieldChange
 	} from '@/utils/orderSnapshotSelect';
-	import { ElButton } from 'element-plus'
-	import { tableColumnInvoice, tableColumnInvoiceTot } from './finance'
+	import { ElButton, ElTag } from 'element-plus'
+	import { tableColumnInvoiceTot } from './finance'
 	import InvoiceForm from '@/components/InvoiceForm.vue'
 	import { formatChinaTime } from '@/utils/utils'
+	import useUserStore from "@/store/modules/user";
 	const { proxy } = getCurrentInstance();
+	const route = useRoute();
+	const router = useRouter();
+	const userStore = useUserStore();
 	
 	const formListNew = ref([]);
 	const AccountsColumns = ref([]);
@@ -315,6 +338,11 @@
 			width: '70px'
 		};
 		console.log('PaymentColumns', PaymentColumns.value)
+		pageReady.value = true;
+		openOrderDetailFromRoute();
+	})
+	watch(() => route.query.order_id, () => {
+		openOrderDetailFromRoute();
 	})
 	
 	//统计数据
@@ -333,11 +361,60 @@
 	//开票管理
 	const invoiceShow = ref(false);
 	const invoiceTable = ref(null);
+	const dialogFormVisibleInvoiceFormDetails = ref(false);
+	const invoiceForm = ref({});
+	const invoiceType = ref(4);
 	const tableConfigInvoice = ref({
-		url: '/orders/finance-index',
+		url: '/invoices',
 		requestMethod: httpGet,
 		isQuery: false
 	})
+	const tableColumnInvoice = ref([
+		{ label: '工作编号', prop: 'job_no', formatter: (row) => row.order?.job_no || '无' },
+		{ label: '开票抬头', prop: 'purchase_entity.name' },
+		{ label: '销货单位', prop: 'sale_entity.name' },
+		{ label: '发票类型', prop: 'invoice_type.name' },
+		{ label: '税额', prop: 'tax_amount' },
+		{
+			label: '单子完结',
+			prop: 'is_finish_name',
+			render: (row) => {
+				const isFinish = Number(row?.is_finish ?? row?.order?.is_finish ?? 0) === 1;
+				return [
+					h(ElTag, {
+						type: isFinish ? 'success' : 'danger',
+						size: 'small',
+						style: { margin: '0px' },
+						key: row.id
+					}, () => (isFinish ? '已完结' : '未完结'))
+				];
+			}
+		},
+		{ label: '人民币金额', prop: 'total_cny_amount' },
+		{ label: '人民币发票号', prop: 'cny_invoice_no' },
+		{ label: '美金金额', prop: 'total_usd_amount' },
+		{ label: '美金发票号', prop: 'usd_invoice_no' },
+		{ label: '申请时间', prop: 'created_at' },
+		{ label: '确认开票时间', prop: 'confirm_at' },
+		{
+			label: '操作',
+			prop: 'actions',
+			actions: [
+				{
+					label: '查看详情',
+					onClick: (row) => handleInvoiceEdit(row)
+				},
+				{
+					label: '删除',
+					type: 'danger',
+					show: () => userStore.userRoleCode === 'SUPER_ADMIN',
+					onClick: (row) => handleInvoiceDelete(row)
+				},
+			],
+			fixed: 'right',
+			width: '190px'
+		}
+	])
 	
 	//开票合计
 	const tableConfigInvoiceTot = ref({
@@ -436,6 +513,18 @@
 				{
 					label: '开票管理',
 					onClick: (row) => {
+						tableConfigInvoice.value = {
+							...tableConfigInvoice.value,
+							data: {
+								order_id: row.id,
+							},
+							isQuery: true,
+							page: {
+								page: 1,
+								page_size: 15,
+								total: 0,
+							},
+						};
 						invoiceShow.value = true;
 					}
 				},
@@ -451,6 +540,8 @@
 	
 	const editId = ref('');
 	const dialogFormVisible = ref(false);
+	const routeOpeningOrderId = ref('');
+	const pageReady = ref(false);
 	// 单据编辑
 	const handleEdit = async (row) => {
 		const [res] = await Promise.all([
@@ -463,6 +554,58 @@
 		setTimeout(function(){
 			saveDataShow(res);
 		}, 500)
+	}
+	const getRouteOrderId = () => {
+		const orderId = Array.isArray(route.query.order_id) ? route.query.order_id[0] : route.query.order_id;
+		return String(orderId || '').trim();
+	}
+	function handleInvoiceEdit(row) {
+		httpGet(`/invoices/${row.id}`).then(res => {
+			invoiceType.value = 4;
+			invoiceForm.value = {
+				...res,
+				job_no: row?.order?.job_no || res?.order?.job_no || row?.job_no || '',
+			};
+			dialogFormVisibleInvoiceFormDetails.value = true;
+		});
+	}
+	function handleInvoiceDelete(row) {
+		const id = row?.id;
+		if (!id) return;
+		proxy.$modal.confirm('是否确认删除选中的的数据项？').then(function() {
+			return httpDelete(`/invoices/${id}`);
+		}).then(() => {
+			refreshInvoiceManageList();
+			proxy.$modal.alertSuccess("删除成功");
+		}).catch(() => {});
+	}
+	const refreshInvoiceManageList = () => {
+		invoiceTable.value?.getList?.();
+		proxy.$refs.tableList?.getList?.();
+	}
+	const closeInvoiceForm = () => {
+		dialogFormVisibleInvoiceFormDetails.value = false;
+		invoiceForm.value = {};
+		refreshInvoiceManageList();
+	}
+	function closeInvoiceFormBtn() {
+		dialogFormVisibleInvoiceFormDetails.value = false;
+		invoiceForm.value = {};
+	}
+	const openOrderDetailFromRoute = async () => {
+		const orderId = getRouteOrderId();
+		if (!orderId || !pageReady.value || routeOpeningOrderId.value === orderId) {
+			return;
+		}
+		routeOpeningOrderId.value = orderId;
+		try {
+			await handleEdit({ id: orderId });
+			const nextQuery = { ...route.query };
+			delete nextQuery.order_id;
+			await router.replace({ query: nextQuery });
+		} finally {
+			routeOpeningOrderId.value = '';
+		}
 	}
 	function saveDataShow(res) {
 		resetInfo();

@@ -31,15 +31,19 @@
 											placeholder="请选择发票名称"
 											style="width:100%"
 											@change="changeInvoiceType($event)"
+											:value-key="'id'"
 											clearable
 											filterable
 											:disabled="editDisabled"
 										>
+											<template #label="{ label, value }">
+												<span>{{ getSelectDisplayLabel(label, value) }}</span>
+											</template>
 											<el-option
 												v-for="item in invoiceTypeListWithSnapshot"
 												:key="item.id"
 												:label="item.label"
-												:value="item.id"
+												:value="getRenderedOptionValue(form.invoice_type_id, item.id)"
 											>
 												<div :class="['invoice-type-option', { 'is-snapshot': item.__snapshot }]">
 													<span class="invoice-type-option__name">{{ item.label }}</span>
@@ -73,12 +77,9 @@
 					<el-col :span="10">
 						<div class="section mb30" style="margin-left: 80px;">
 							<el-form-item label="单子完结">
-								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" :disabled="editDisabled" />
+								<el-switch v-model="form.is_finish" class="mb-2" inline-prompt @change="handleSwitch" :disabled="settlementFieldsDisabled" />
 								<el-input v-model="form.commission" type="number" style="width: 150px; margin-left: 20px"
-									:disabled="!form.is_finish||editDisabled" />
-							</el-form-item>
-							<el-form-item v-if="canConfirmInvoice" label="确认开票：">
-								<el-switch v-model="confirmInvoice" inline-prompt :disabled="confirmInvoiceDisabled" />
+									:disabled="!form.is_finish || settlementFieldsDisabled" />
 							</el-form-item>
 							<el-form-item label="开票日期：">
 								<el-input v-model="form.invoice_date" style="width: 210px" disabled/>
@@ -101,9 +102,12 @@
 										<el-form-item label="名称：" class="society" style="width: 90%;">
 											
 											<el-tooltip effect="dark" :content="purchaseEntityDisplayName" placement="top" >
-												<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled">
+												<el-select v-model="form.purchase_entity_id" placeholder="请选择" @change="changePurchaseUscCode($event)" clearable  filterable :disabled="editDisabled" :value-key="'id'">
+													<template #label="{ label, value }">
+														<span>{{ getSelectDisplayLabel(label, value) }}</span>
+													</template>
 													<el-option v-for="item in purchaseEntityOptionsWithSnapshot" :key="item.id" :label="item.company_name"
-														:value="item.id" place>
+														:value="getRenderedOptionValue(form.purchase_entity_id, item.id)" place>
 														<div :class="['invoice-type-option', { 'is-snapshot': item.__snapshot }]">
 															<span class="invoice-type-option__name">{{ item.company_name }}</span>
 															<span
@@ -127,9 +131,12 @@
 									<!-- 销售方信息 -->
 									<div class="section pt-1">
 										<el-form-item label="名称：" class="society" style="width: 90%;">
-											<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled filterable>
+											<el-select v-model="form.sale_entity_id" placeholder="请选择" @change="changeSaleUscCode($event)" disabled filterable :value-key="'id'">
+												<template #label="{ label, value }">
+													<span>{{ getSelectDisplayLabel(label, value) }}</span>
+												</template>
 												<el-option v-for="item in sellerOptions" :key="item.id" :label="item.name"
-													:value="item.id" place />
+													:value="getRenderedOptionValue(form.sale_entity_id, item.id)" place />
 											</el-select>
 										</el-form-item>
 										<el-form-item label="统一社会信用代码：" class="society" style="width: 90%;">
@@ -159,7 +166,7 @@
 											</el-table-column>
 											<el-table-column label="单位" width="90" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.unit" :disabled="editDisabled" />
+													<el-input v-model="row.unit" :disabled="editDisabled" class="t-c" />
 												</template>
 											</el-table-column>
 											<el-table-column label="数量" width="90" align="center">
@@ -220,7 +227,7 @@
 											</el-table-column>
 											<el-table-column label="单位" width="90" align="center">
 												<template #default="{ row }">
-													<el-input v-model="row.unit" :disabled="editDisabled" />
+													<el-input v-model="row.unit" :disabled="editDisabled" class="t-c" />
 												</template>
 											</el-table-column>
 											<el-table-column label="数量" width="90" align="center">
@@ -301,8 +308,16 @@
 						<div class="action-btns">
 							<el-button type="primary" @click="exportImg(1)">人民币发票预览</el-button>
 							<el-button  @click="exportImg(2)">美元发票预览</el-button>
+							<el-button
+								v-if="showConfirmInvoiceButton"
+								:type="confirmInvoiceButtonType"
+								:disabled="confirmInvoiceButtonDisabled"
+								@click="toggleConfirmInvoice"
+							>
+								{{ confirmInvoiceButtonText }}
+							</el-button>
 							<el-button type="success" @click="submit" v-if="canSaveInvoice">保存</el-button>
-							<el-button @click="openDetails">业务单据</el-button>
+							<el-button @click="openDetails">{{ detailsButtonText }}</el-button>
 						</div>
 					</el-col>
 				</el-row>
@@ -449,6 +464,7 @@
 	const {
 		proxy
 	} = getCurrentInstance();
+	const router = useRouter();
 	const Emit= defineEmits(['close'])
 	const userStore = useUserStore()  //vuex缓存的用户信息
 	// 添加加载状态
@@ -458,6 +474,71 @@
 	const remarkUSD = ref('')
 	const INVOICE_ITEM_MAX_COUNT = 10
 	const createEmptyInvoiceItem = () => ({ fee_type_id: '', unit: '', quantity: null, amount: 0 })
+	const cloneInvoiceData = (value, fallback = []) => {
+		if (value === null || value === undefined) {
+			return Array.isArray(fallback) ? [...fallback] : fallback
+		}
+		if (typeof value === 'string') {
+			const trimmedValue = value.trim()
+			if (!trimmedValue) {
+				return Array.isArray(fallback) ? [...fallback] : fallback
+			}
+			if (
+				(trimmedValue.startsWith('[') && trimmedValue.endsWith(']')) ||
+				(trimmedValue.startsWith('{') && trimmedValue.endsWith('}'))
+			) {
+				try {
+					return JSON.parse(trimmedValue)
+				} catch (error) {
+					console.warn('发票数据 JSON 解析失败，回退默认值', error)
+				}
+			}
+		}
+		try {
+			return JSON.parse(JSON.stringify(value))
+		} catch (error) {
+			console.warn('发票数据拷贝失败，回退默认值', error)
+			return Array.isArray(fallback) ? [...fallback] : fallback
+		}
+	}
+	const pickInvoiceItemAmount = (row = {}) => {
+		const candidates = [
+			row.amount,
+			row.price,
+			row.cny_amount,
+			row.usd_amount,
+		]
+		const matched = candidates.find(item => item !== null && item !== undefined && String(item).trim() !== '')
+		return matched ?? 0
+	}
+	const normalizeInvoiceItemRow = (row = {}, options = {}) => {
+		if (!row || typeof row !== 'object') {
+			return createEmptyInvoiceItem()
+		}
+		const { preserveIdentity = false } = options
+		const normalizedRow = {
+			...row,
+			fee_type_id: row.fee_type_id ?? '',
+			fee_type_name: row.fee_type_name ?? '',
+			unit: row.unit ?? '',
+			quantity: row.quantity ?? null,
+			amount: pickInvoiceItemAmount(row),
+		}
+		if (!preserveIdentity) {
+			delete normalizedRow.id
+			delete normalizedRow.invoice_id
+		}
+		return normalizedRow
+	}
+	const cloneInvoiceItemRows = (rows = [], options = {}) => {
+		const clonedRows = cloneInvoiceData(rows, [])
+		if (!Array.isArray(clonedRows)) {
+			return []
+		}
+		return clonedRows
+			.filter(row => row && typeof row === 'object')
+			.map(row => normalizeInvoiceItemRow(row, options))
+	}
 	const tableDataCNY = ref([createEmptyInvoiceItem()])
 	const tableDataUSD = ref([createEmptyInvoiceItem()])
 	const invoiceFormObj = ref(null) //备注
@@ -525,36 +606,125 @@
 		if (Number.isFinite(numberValue) && numberValue > 0) return numberValue
 		return real
 	}
-	onMounted(async () => {
-	    try {
+	const getRenderedOptionValue = (currentValue, optionValue) => {
+		const normalizedCurrentValue = normalizeSelectSnapshotValue(currentValue)
+		if (typeof normalizedCurrentValue === 'string' && typeof optionValue === 'number') {
+			return String(optionValue)
+		}
+		if (
+			typeof normalizedCurrentValue === 'number' &&
+			typeof optionValue === 'string' &&
+			optionValue !== '' &&
+			!Number.isNaN(Number(optionValue))
+		) {
+			return Number(optionValue)
+		}
+		return optionValue
+	}
+	const getSelectDisplayLabel = (label, value) => {
+		const safeLabel = (label ?? '').toString().trim()
+		if (safeLabel) {
+			return safeLabel
+		}
+		return normalizeSelectSnapshotValue(value)
+	}
+	const findOptionById = (options = [], value) => {
+		const normalizedValue = normalizeSelectSnapshotValue(value)
+		return (Array.isArray(options) ? options : []).find(item => String(item?.id) === String(normalizedValue))
+	}
+	const resolveInvoiceJobNo = () => (
+		form.value.job_no ||
+		invoiceFormObj.value?.job_no ||
+		props.invoiceForm?.job_no ||
+		props.invoiceForm?.order?.job_no ||
+		''
+	)
+	const syncInvoiceDerivedFields = () => {
+		form.value.job_no = resolveInvoiceJobNo()
+		const invoiceTypeOption = findOptionById(invoiceTypeListWithSnapshot.value, form.value.invoice_type_id)
+		if (invoiceTypeOption && invoiceTypeOption.tax_rate !== undefined && invoiceTypeOption.tax_rate !== null && invoiceTypeOption.tax_rate !== '') {
+			form.value.tax_rate = invoiceTypeOption.tax_rate
+		}
+		const purchaseEntityOption = findOptionById(purchaseEntityOptionsWithSnapshot.value, form.value.purchase_entity_id)
+		if (purchaseEntityOption && purchaseEntityOption.tax_number) {
+			form.value.purchase_usc_code = purchaseEntityOption.tax_number
+		}
+		const sellerOption = findOptionById(sellerOptions.value, form.value.sale_entity_id)
+		if (sellerOption) {
+			form.value.sale_usc_code = sellerOption.tax_number || sellerOption.usc_code || form.value.sale_usc_code || ''
+		}
+	}
+	const loadSellerOptions = async (forceRefresh = false) => {
+		try {
+			if (!forceRefresh && sellerOptions.value.length > 0 && isSellerOptionsLoaded.value) {
+				return
+			}
 			console.log(userStore.userRoleCode,'setKeyInfo454')
-	        sellerOptions.value = await getXHDW()
-	        isSellerOptionsLoaded.value = true
-	    } catch (error) {
-	        console.error('错误提示：', error)
-	    }
+			sellerOptions.value = await getXHDW({ _: Date.now() })
+			isSellerOptionsLoaded.value = true
+		} catch (error) {
+			console.error('错误提示：', error)
+		}
+	}
+	onMounted(async () => {
+		await loadSellerOptions()
 	})
 	const invoiceType= ref(0)
-	const is_lock= ref(0)
 	const editDisabled= ref(false);
 	const confirmInvoice = ref(false)
 	const isSuperAdmin = computed(() => userStore.userRoleCode === 'SUPER_ADMIN')
 	const isFinanceRole = computed(() => props.roleType === 'finance')
 	const canConfirmInvoice = computed(() => isFinanceRole.value || isSuperAdmin.value)
 	const isConfirmed = computed(() => !!form.value.confirm_at)
-	const isLockedForBusiness = computed(() => {
-		const lockStatus = Number(form.value.is_lock ?? props.invoiceForm?.is_lock ?? props.invoiceForm?.order?.is_lock ?? 0) === 1
-		return lockStatus || isConfirmed.value
+	const hasCurrentInvoiceNumber = computed(() => {
+		return [form.value.cny_invoice_no, form.value.usd_invoice_no].some(value => String(value || '').trim() !== '')
 	})
-	const confirmInvoiceDisabled = computed(() => !canConfirmInvoice.value || isConfirmed.value)
+	const isLockedForBusiness = computed(() => {
+		return hasCurrentInvoiceNumber.value || isConfirmed.value
+	})
+	const canEnableConfirmInvoice = computed(() => canConfirmInvoice.value && !confirmInvoice.value)
+	const canDisableConfirmInvoice = computed(() => {
+		if (!confirmInvoice.value) {
+			return false
+		}
+		if (isSuperAdmin.value) {
+			return true
+		}
+		return canConfirmInvoice.value && !isConfirmed.value
+	})
+	const showConfirmInvoiceButton = computed(() => canConfirmInvoice.value)
+	const confirmInvoiceButtonText = computed(() => {
+		if (!confirmInvoice.value) {
+			return '未确认开票'
+		}
+		return '确认开票'
+	})
+	const detailsButtonText = computed(() => {
+		return isFinanceRole.value ? '财务单据' : '业务单据'
+	})
+	const confirmInvoiceButtonType = computed(() => {
+		if (!confirmInvoice.value) {
+			return 'danger'
+		}
+		return 'success'
+	})
+	const confirmInvoiceButtonDisabled = computed(() => {
+		return confirmInvoice.value && !canDisableConfirmInvoice.value
+	})
 	const invoiceNumberDisabled = computed(() => {
 		if (isSuperAdmin.value) {
 			return false
 		}
 		if (isFinanceRole.value) {
-			return isConfirmed.value
+			return isConfirmed.value || isNoInvoiceScenario.value
 		}
 		return true
+	})
+	const settlementFieldsDisabled = computed(() => {
+		if (isSuperAdmin.value || isFinanceRole.value) {
+			return false
+		}
+		return editDisabled.value
 	})
 	const canSaveInvoice = computed(() => {
 		if (isSuperAdmin.value || isFinanceRole.value) {
@@ -562,15 +732,25 @@
 		}
 		return !isLockedForBusiness.value
 	})
+	function toggleConfirmInvoice() {
+		if (canEnableConfirmInvoice.value) {
+			confirmInvoice.value = true
+			return
+		}
+		if (canDisableConfirmInvoice.value) {
+			confirmInvoice.value = false
+		}
+	}
 	const resetInvoiceTypeSnapshotState = () => {
 		invoiceTypeSnapshotApplied.value = false
 		purchaseEntitySnapshotApplied.value = false
 	}
-	watch([() => props.visible, () => props.type, isSellerOptionsLoaded], 
-	  async ([isVisible, newType, loaded], [oldVisible, oldType, oldLoaded]) => {
+	watch([() => props.visible, () => props.type], 
+	  async ([isVisible, newType]) => {
 		  // 只有当弹框显示、数据加载完成且有类型时才执行
 		  console.log('newType', newType)
-		  if (isVisible && loaded) {
+		  if (isVisible) {
+			await loadSellerOptions(true)
 			invoiceType.value= newType
 			editDisabled.value = false
 			confirmInvoice.value = false
@@ -604,23 +784,31 @@
 				remarkUSD.value= ''
 				console.log(form.value,'form.value')		
 				changeSaleUscCode(form.value.sale_entity_id)
-		}else if([2,4].includes(newType)){
+			}else if([2,4].includes(newType)){
 			form.value= JSON.parse(JSON.stringify(props.invoiceForm))
 			form.value.invoice_type_id = normalizeInvoiceTypeValue(form.value.invoice_type_id)
 			form.value.purchase_entity_id= form.value.purchase_entity_id? Number(form.value.purchase_entity_id): ''
 			form.value.sale_entity_id= form.value.sale_entity_id? Number(form.value.sale_entity_id): ''
-			form.value.is_finish = Number(props.invoiceForm?.order?.is_finish ?? props.invoiceForm?.is_finish ?? 0) === 1
-			form.value.commission = props.invoiceForm?.order?.commission ?? props.invoiceForm?.commission ?? ''
+			form.value.is_finish = Number(props.invoiceForm?.is_finish ?? props.invoiceForm?.order?.is_finish ?? 0) === 1
+			form.value.commission = props.invoiceForm?.commission ?? props.invoiceForm?.order?.commission ?? ''
 			confirmInvoice.value = !!form.value.confirm_at
-			console.log(form.value,'497')
-				// changeSaleUscCode(form.value.sale_entity_id)
+			if (form.value.sale_entity_id && !form.value.sale_usc_code) {
+				changeSaleUscCode(form.value.sale_entity_id)
 			}
+			console.log(form.value,'497')
+			}
+			syncInvoiceDerivedFields()
 			if([0,1,2].includes(newType)){
-				if (((props.invoiceForm?.is_lock && props.invoiceForm.is_lock == 1) || props.invoiceForm?.confirm_at) && !isSuperAdmin.value) {
+				const currentInvoiceLocked = [props.invoiceForm?.cny_invoice_no, props.invoiceForm?.usd_invoice_no]
+					.some(value => String(value || '').trim() !== '') || !!props.invoiceForm?.confirm_at
+				if (currentInvoiceLocked && !isSuperAdmin.value) {
 					editDisabled.value = true
 				}
 			}
 		    showDefaultData(newType)
+			nextTick(() => {
+				syncInvoiceDerivedFields()
+			})
 		  }
 	}, {
 		immediate: true
@@ -642,10 +830,11 @@
 			tableDataCNY.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 			tableDataUSD.value= [{fee_type_id: '',unit: '',quantity: null,amount: 0}]
 		}else if (type == 1) {
-			remarkCNY.value = invoiceFormObj.value.remark?invoiceFormObj.value.remark: ''
-			remarkUSD.value = invoiceFormObj.value.remark? invoiceFormObj.value.remark: ''
+			// type==1 业务带参数新增：备注由费用类型自动生成，不从订单 remark 带入（remark 里是单据号）
+			remarkCNY.value = ''
+			remarkUSD.value = ''
 			console.log(form.value.sale_entity_id,'form.value.sale_entity_id')
-			const orderBillItems = Array.isArray(invoiceFormObj.value.orderBillItems) ? invoiceFormObj.value.orderBillItems : []
+			const orderBillItems = cloneInvoiceItemRows(invoiceFormObj.value.orderBillItems)
 			if (orderBillItems.length > 0) {
 				
 				const hasCNY = orderBillItems.some(item => item.currency === 'cny');
@@ -671,8 +860,8 @@
 			if(type==4 && !isSuperAdmin.value){ editDisabled.value= true };
 			remarkCNY.value= invoiceFormObj.value.cny_remark
 			remarkUSD.value= invoiceFormObj.value.usd_remark
-			const cnyItems = Array.isArray(invoiceFormObj.value.cny_invoice_items) ? invoiceFormObj.value.cny_invoice_items : []
-			const usdItems = Array.isArray(invoiceFormObj.value.usd_invoice_items) ? invoiceFormObj.value.usd_invoice_items : []
+			const cnyItems = cloneInvoiceItemRows(invoiceFormObj.value.cny_invoice_items, { preserveIdentity: true })
+			const usdItems = cloneInvoiceItemRows(invoiceFormObj.value.usd_invoice_items, { preserveIdentity: true })
 			tableDataCNY.value = cnyItems.length > 0 ? cnyItems : [createEmptyInvoiceItem()]
 			tableDataUSD.value = usdItems.length > 0 ? usdItems : [createEmptyInvoiceItem()]
 			// 快照防追改：表单数据已就绪，应用 token
@@ -698,19 +887,32 @@
 	// 所有计算字段单独定义
 	// 不含税金额*（1+税率）=总金额
 	// 税额=总金额-不含税金额
+	const normalizeTaxRateValue = (value) => {
+		const numericValue = Number(value) || 0
+		if (numericValue <= 0) {
+			return 0
+		}
+		return numericValue > 1 ? (numericValue / 100) : numericValue
+	}
 	const calculations = reactive({
 			tax_amount: computed(() => {
 			  const sum = tableDataCNY.value.reduce((acc, item) => 
 			    acc + Number(item.amount || 0), 0
 			  )
-			  const taxRate = Number(form.value.tax_rate) || 0
-			  const result = sum * taxRate
-			  console.log(sum,'result')
-			  console.log(result,'result')
-			  return Number(result.toFixed(2))
+			  const taxRate = normalizeTaxRateValue(form.value.tax_rate)
+			  if (!sum || !taxRate) {
+			  	return '0.00'
+			  }
+			  const result = sum - (sum / (1 + taxRate))
+			  return result.toFixed(2)
 			})
 	  
 	  // 可以添加其他计算字段
+	})
+	watch(() => calculations.tax_amount, (value) => {
+		form.value.tax_amount = value || '0.00'
+	}, {
+		immediate: true
 	})
 
 	const buyer = ref({
@@ -1052,7 +1254,25 @@
 			applyInvoiceTypeSnapshotToken()
 			applyPurchaseEntitySnapshotToken()
 			applySnapshotTokens()
+			syncInvoiceDerivedFields()
 		})
+	})
+	watch(sellerOptions, () => {
+		nextTick(() => {
+			syncInvoiceDerivedFields()
+		})
+	}, {
+		deep: true
+	})
+	const isNoInvoiceScenario = computed(() => purchaseEntityDisplayName.value === '不开票')
+	watch(isNoInvoiceScenario, (active) => {
+		if (!active || isSuperAdmin.value) {
+			return
+		}
+		form.value.cny_invoice_no = ''
+		form.value.usd_invoice_no = ''
+	}, {
+		immediate: true
 	})
 
 	// 提交时还原快照 token 为真实 ID
@@ -1101,9 +1321,9 @@
 	// 获取税点税额
 	function changeInvoiceType(e){
 		console.log(form.value,'form.value')
-		const realId = parseSnapId(e)
-		let itemObj= invoiceTypeList.value.find(item =>item.id == realId)
-		form.value.tax_rate= itemObj?.tax_rate
+		const realId = normalizeInvoiceTypeValue(normalizeSelectSnapshotValue(e))
+		let itemObj= invoiceTypeList.value.find(item => String(item.id) === String(realId))
+		form.value.tax_rate= itemObj?.tax_rate ?? ''
 		// form.value.tax_amount= itemObj?.tax_number
 	}
 	// 获取购买方信用代码
@@ -1116,9 +1336,10 @@
 	}
 	// 获取购买方信息
 	function changeSaleUscCode(e){
-		let itemObj= sellerOptions.value.find(item =>item.id== e)
+		const realId = normalizeInvoiceTypeValue(normalizeSelectSnapshotValue(e))
+		let itemObj= sellerOptions.value.find(item => String(item.id) === String(realId))
 		console.log(itemObj,'itemObj')
-		form.value.sale_usc_code= itemObj?.tax_number
+		form.value.sale_usc_code = itemObj?.tax_number || itemObj?.usc_code || form.value.sale_usc_code || ''
 	}
 	// 提交
 	function changeFeeTypeCNY(){
@@ -1210,6 +1431,10 @@
 		  is_finish: form.value.is_finish == true ? 1 : 0,
 		  confirm_invoice: confirmInvoice.value ? 1 : 0
 		}
+		if (isNoInvoiceScenario.value && !isSuperAdmin.value) {
+			data.cny_invoice_no = ''
+			data.usd_invoice_no = ''
+		}
 		normalizeSnapshotData(data)
 		console.log(data,'data851')
 		if(form.value.id){
@@ -1227,7 +1452,22 @@
 		}
 		
 	}
-	function openDetails(){
+	async function openDetails(){
+		const orderId = form.value?.order_id || props.invoiceForm?.order_id;
+		if (!orderId) {
+			proxy.$modal.msgWarning("未找到关联单据");
+			return;
+		}
+		if (props.roleType === 'finance') {
+			await router.push({
+				name: 'FinancialDocuments',
+				query: {
+					order_id: String(orderId),
+				},
+			});
+			Emit('close');
+			return;
+		}
 		dialogFormVisibleDetails.value= true
 	}
 	// 保存模板
@@ -1270,6 +1510,8 @@
 			invoiceTemplatesList.value= (res.data || []).map(item => ({
 				...item,
 				invoice_type_id: normalizeInvoiceTypeValue(item.invoice_type_id),
+				cny_invoice_items: cloneInvoiceItemRows(item.cny_invoice_items),
+				usd_invoice_items: cloneInvoiceItemRows(item.usd_invoice_items),
 			}))
 		});
 	}
@@ -1286,8 +1528,8 @@
 			form.value.purchase_usc_code= item.purchase_usc_code
 			remarkCNY.value= item.cny_remark
 			remarkUSD.value= item.usd_remark
-			tableDataCNY.value= item.cny_invoice_items
-			tableDataUSD.value= item.usd_invoice_items
+			tableDataCNY.value= cloneInvoiceItemRows(item.cny_invoice_items)
+			tableDataUSD.value= cloneInvoiceItemRows(item.usd_invoice_items)
 		}
 		else{
 			invoicesCurrent.value= 9999
@@ -1338,7 +1580,11 @@
 	  if (form.value.tax_rate === null || form.value.tax_rate === undefined) {
 	    return ''
 	  }
-	  return `${(form.value.tax_rate * 100).toFixed(2)}%`
+	  const normalizedRate = normalizeTaxRateValue(form.value.tax_rate)
+	  if (!normalizedRate) {
+	  	return ''
+	  }
+	  return `${(normalizedRate * 100).toFixed(2)}%`
 	})
 	
 	const tableData= ref([])
